@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>송쌤과학 교실 도우미 (모바일 최적화)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- html2canvas -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&family=Gamja+Flower&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #FDFBF7;
+            /* 모눈종이 패턴 */
+            background-image: radial-gradient(#E2D5C5 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: #4A4A4A;
+            touch-action: manipulation;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior-y: none; /* 모바일 새로고침 방지 */
+        }
+
+        /* 스크롤바 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E2D5C5; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D1C0AD; }
+
+        /* 모바일 네비게이션용 숨김 스크롤 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 애니메이션 */
+        .card-enter { animation: cardPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes cardPop {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .winner-pulse { animation: winnerPulse 1.5s infinite; }
+        @keyframes winnerPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 183, 178, 0.7); transform: scale(1.05); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 183, 178, 0); transform: scale(1.05); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 183, 178, 0); transform: scale(1.05); }
+        }
+
+        /* 상호작용 시각 효과 */
+        .drag-target-active {
+            background-color: #E2F0CB !important;
+            border-color: #88D8B0 !important;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(136, 216, 176, 0.5);
+            z-index: 10;
+        }
+
+        .highlight-anim {
+            transition: all 0.1s;
+            transform: scale(1.15);
+            background-color: #B5EAD7 !important;
+            border-color: #88D8B0 !important;
+            color: #2D6A4F !important;
+            z-index: 10;
+            box-shadow: 0 10px 30px -5px rgba(181, 234, 215, 0.8);
+        }
+
+        .selected-item {
+            border-color: #FFB7B2 !important;
+            background-color: #FFF0F0 !important;
+            color: #FF8A80 !important;
+            transform: scale(0.95);
+            border-style: dashed !important;
+            animation: borderDance 1s infinite linear;
+        }
+
+        @keyframes borderDance {
+            0% { border-color: #FFB7B2; }
+            50% { border-color: #FFDAC1; }
+            100% { border-color: #FFB7B2; }
+        }
+
+        /* 유리 질감 UI */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .soft-shadow { 
+            box-shadow: 8px 8px 20px rgba(166, 171, 189, 0.1), 
+                       -8px -8px 20px rgba(255, 255, 255, 0.8); 
+        }
+        
+        /* 텍스트 정렬 헬퍼 */
+        .center-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            line-height: 1;
+            word-break: keep-all;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .timer-circle { transition: stroke-dashoffset 1s linear; }
+        footer { font-family: 'Do Hyeon', sans-serif; }
+        
+        /* 입력 폼 포커스 */
+        .input-focus-effect:focus-within {
+            transform: scale(1.02);
+            box-shadow: 0 10px 40px -10px rgba(255, 183, 178, 0.4);
+            border-color: #FFB7B2;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // 아이콘 컴포넌트
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (window.lucide && ref.current) {
+                    ref.current.innerHTML = '';
+                    const i = document.createElement('i');
+                    i.setAttribute('data-lucide', name);
+                    i.setAttribute('class', className);
+                    ref.current.appendChild(i);
+                    window.lucide.createIcons({ root: ref.current, nameAttr: 'data-lucide', attrs: { width: size, height: size } });
+                }
+            }, [name, size, className]);
+            return <span ref={ref} className="inline-flex items-center justify-center" />;
+        };
+
+        // 푸터
+        const Copyright = ({ fixed = false }) => (
+            <footer className={`w-full text-center py-6 text-xs text-gray-400 font-bold tracking-widest uppercase ${fixed ? 'fixed bottom-0 left-0 bg-white/50 backdrop-blur-sm' : 'mt-8'}`}>
+                ⓒ 송쌤과학 Class Helper. All Rights Reserved.
+            </footer>
+        );
+
+        function App() {
+            // === State ===
+            const [step, setStep] = useState('input');
+            const [studentCount, setStudentCount] = useState('');
+            const [students, setStudents] = useState([]);
+            const [mode, setMode] = useState('pick');
+            const [isSoundOn, setIsSoundOn] = useState(true);
+            const [systemModal, setSystemModal] = useState(null);
+
+            // 발표자
+            const [pickHistory, setPickHistory] = useState([]);
+            const [currentPick, setCurrentPick] = useState(null);
+            const [pickWinner, setPickWinner] = useState(null);
+            const [isPicking, setIsPicking] = useState(false);
+            const [isNoRepeat, setIsNoRepeat] = useState(false);
+
+            // 모둠/자리
+            const [placementType, setPlacementType] = useState('number'); 
+            const [inputNames, setInputNames] = useState('');
+            const [maleInput, setMaleInput] = useState('');
+            const [femaleInput, setFemaleInput] = useState('');
+            const [genderOption, setGenderOption] = useState('mixed');
+
+            const [teams, setTeams] = useState([]);
+            const [teamCount, setTeamCount] = useState(6);
+            const [teamColumns, setTeamColumns] = useState(3);
+            
+            const [seats, setSeats] = useState([]);
+            const [seatType, setSeatType] = useState('single');
+            const [excludedInput, setExcludedInput] = useState('');
+
+            // 인터랙션
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [dragOverItem, setDragOverItem] = useState(null); 
+            const [selectedItem, setSelectedItem] = useState(null);
+
+            // 타이머
+            const [timeLeft, setTimeLeft] = useState(300);
+            const [initialTime, setInitialTime] = useState(300);
+            const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+            // 도구
+            const [qrInput, setQrInput] = useState('');
+            const [qrUrl, setQrUrl] = useState(null);
+            const [memos, setMemos] = useState([]);
+            const [memoInput, setMemoInput] = useState('');
+            const [uploadedImg, setUploadedImg] = useState(null);
+            
+            // 전체화면
+            const [fullScreenContent, setFullScreenContent] = useState(null);
+            const [fsFontSize, setFsFontSize] = useState(80);
+
+            // Refs
+            const audioCtx = useRef(null);
+            const timerRef = useRef(null);
+            const captureRef = useRef(null);
+            const fileInputRef = useRef(null);
+
+            // === 오디오 ===
+            const initAudio = () => {
+                if (!audioCtx.current) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioCtx.current = new AudioContext();
+                }
+                if (audioCtx.current.state === 'suspended') audioCtx.current.resume();
+            };
+
+            const playSound = (type) => {
+                if (!isSoundOn) return;
+                initAudio();
+                const ctx = audioCtx.current;
+                const t = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(800, t);
+                    gain.gain.setValueAtTime(0.05, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+                    osc.start(t); osc.stop(t + 0.1);
+                } else if (type === 'tick') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(600, t);
+                    gain.gain.setValueAtTime(0.03, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+                    osc.start(t); osc.stop(t + 0.05);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.connect(g); g.connect(ctx.destination);
+                        o.type = 'sine';
+                        o.frequency.setValueAtTime(freq, t + i * 0.1);
+                        g.gain.setValueAtTime(0, t + i * 0.1);
+                        g.gain.linearRampToValueAtTime(0.1, t + i * 0.1 + 0.05);
+                        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 0.6);
+                        o.start(t + i * 0.1); o.stop(t + i * 0.1 + 0.6);
+                    });
+                } else if (type === 'alarm') {
+                    const now = t;
+                    for(let i=0; i<3; i++) {
+                        const o = ctx.createOscillator(); const g = ctx.createGain();
+                        o.connect(g); g.connect(ctx.destination);
+                        o.type = 'square';
+                        o.frequency.setValueAtTime(880, now + i*0.2);
+                        o.frequency.setValueAtTime(698, now + i*0.2 + 0.1);
+                        g.gain.setValueAtTime(0.05, now + i*0.2);
+                        g.gain.linearRampToValueAtTime(0, now + i*0.2 + 0.15);
+                        o.start(now + i*0.2); o.stop(now + i*0.2 + 0.2);
+                    }
+                }
+            };
+
+            // === 유틸리티 ===
+            const fireConfetti = () => {
+                const colors = ['#FFB7B2', '#B5EAD7', '#C7CEEA', '#E2F0CB', '#FFDAC1'];
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors, disableForReducedMotion: true });
+            };
+
+            const showAlert = (msg) => setSystemModal({ type: 'alert', msg });
+            const showConfirm = (msg, action) => setSystemModal({ type: 'confirm', msg, action });
+            const closeModal = () => { playSound('click'); setSystemModal(null); };
+            
+            // 이미지 캡처
+            const handleCapture = async () => {
+                if (!captureRef.current) return;
+                playSound('click');
+                try {
+                    await document.fonts.ready;
+                    
+                    const canvas = await html2canvas(captureRef.current, { 
+                        scale: 2, 
+                        backgroundColor: '#FDFBF7',
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: true,
+                        onclone: (clonedDoc) => {
+                            const elements = clonedDoc.querySelectorAll('.center-content');
+                            elements.forEach(el => {
+                                el.style.display = 'flex';
+                                el.style.alignItems = 'center';
+                                el.style.justifyContent = 'center';
+                                el.style.paddingBottom = '14px'; 
+                                el.style.paddingTop = '0px';
+                                el.style.transform = 'translateY(-3px)';
+                                el.style.lineHeight = '1';
+                                el.style.height = '100%';
+                                el.style.boxSizing = 'border-box';
+                            });
+                            const headers = clonedDoc.querySelectorAll('.team-header');
+                            headers.forEach(el => {
+                                el.style.display = 'flex';
+                                el.style.alignItems = 'center';
+                                el.style.gap = '14px';
+                            });
+                        }
+                    });
+                    
+                    const link = document.createElement('a');
+                    link.download = `송쌤과학_${mode}_${new Date().toLocaleTimeString().replace(/:/g,'-')}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    showAlert("이미지가 저장되었습니다. 📸\n(갤러리 또는 다운로드 폴더를 확인하세요)");
+                } catch (e) { 
+                    console.error(e);
+                    showAlert("저장에 실패했습니다.\n잠시 후 다시 시도해주세요."); 
+                }
+            };
+
+            // === 기본 기능 ===
+            const startClass = (e) => {
+                e.preventDefault();
+                const cnt = parseInt(studentCount);
+                if (!cnt || cnt < 1 || cnt > 100) return showAlert("1~100명 사이로 입력해주세요.");
+                playSound('click');
+                setStudents(Array.from({ length: cnt }, (_, i) => i + 1));
+                setStep('main');
+                setTimeout(initAudio, 500);
+            };
+
+            const goHome = () => {
+                playSound('click');
+                showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.", () => {
+                    setStep('input');
+                    setStudentCount('');
+                    setStudents([]);
+                    setPickHistory([]);
+                    setTeams([]);
+                    setSeats([]);
+                    setMemos([]);
+                    setUploadedImg(null);
+                    setIsTimerRunning(false);
+                    setSelectedItem(null);
+                });
+            };
+
+            // === 데이터 파싱 ===
+            const parseData = () => {
+                if (placementType === 'number') {
+                    const excluded = excludedInput.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
+                    return students.filter(s => !excluded.includes(s));
+                } 
+                else if (placementType === 'name') {
+                    const list = inputNames.split(/[\n,]+/).map(s => s.trim()).filter(s => s);
+                    if (list.length === 0) return null;
+                    return list;
+                }
+                else if (placementType === 'gender') {
+                    const m = maleInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s);
+                    const f = femaleInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s);
+                    if (m.length + f.length === 0) return null;
+                    return { m, f };
+                }
+                return [];
+            };
+
+            // === 모둠 만들기 ===
+            const createTeams = () => {
+                if (isPicking) return; 
+                const data = parseData();
+                if (!data) return showAlert("명단을 입력해주세요.");
+                
+                playSound('click');
+                setIsPicking(true); 
+                setTeams([]); 
+
+                setTimeout(() => {
+                    let pool = [];
+                    if (placementType === 'gender') {
+                        let { m, f } = data;
+                        m = m.sort(() => Math.random() - 0.5);
+                        f = f.sort(() => Math.random() - 0.5);
+                        if (genderOption === 'mixed') {
+                           const max = Math.max(m.length, f.length);
+                           for(let i=0; i<max; i++) {
+                               if(i < m.length) pool.push(m[i]);
+                               if(i < f.length) pool.push(f[i]);
+                           }
+                        } else {
+                            pool = [...m, ...f];
+                        }
+                    } else {
+                        pool = data.sort(() => Math.random() - 0.5);
+                    }
+
+                    const newTeams = Array.from({ length: teamCount }, () => []);
+                    pool.forEach((student, idx) => {
+                        newTeams[idx % teamCount].push(student);
+                    });
+
+                    setTeams(newTeams);
+                    setIsPicking(false);
+                    playSound('win');
+                }, 400);
+            };
+
+            // === 자리 배치 ===
+            const createSeats = () => {
+                if (isPicking) return;
+                const data = parseData();
+                if (!data) return showAlert("명단을 입력해주세요.");
+
+                playSound('click');
+                setIsPicking(true);
+                setSeats([]);
+
+                setTimeout(() => {
+                    let pool = [];
+                    if (placementType === 'gender') {
+                         let { m, f } = data;
+                         m = m.sort(() => Math.random() - 0.5);
+                         f = f.sort(() => Math.random() - 0.5);
+                         if (genderOption === 'mixed') {
+                             const max = Math.max(m.length, f.length);
+                             for(let i=0; i<max; i++) {
+                                 if(i < m.length) pool.push(m[i]);
+                                 if(i < f.length) pool.push(f[i]);
+                             }
+                         } else {
+                             pool = [...m, ...f];
+                         }
+                    } else {
+                        pool = data.sort(() => Math.random() - 0.5);
+                    }
+                    setSeats(pool);
+                    setIsPicking(false);
+                    playSound('win');
+                }, 400);
+            };
+
+            // === 상호작용 (클릭 스왑 및 드래그 앤 드롭) ===
+            const performSwap = (source, target) => {
+                if (source.type === 'team') {
+                    const newTeams = [...teams.map(t => [...t])];
+                    const temp = newTeams[source.index][source.subIndex];
+                    newTeams[source.index][source.subIndex] = newTeams[target.index][target.subIndex];
+                    newTeams[target.index][target.subIndex] = temp;
+                    setTeams(newTeams);
+                } else if (source.type === 'seat') {
+                    const newSeats = [...seats];
+                    const temp = newSeats[source.index];
+                    newSeats[source.index] = newSeats[target.index];
+                    newSeats[target.index] = temp;
+                    setSeats(newSeats);
+                }
+            };
+
+            const handleItemInteraction = (type, index, subIndex = null) => {
+                if (isPicking) return;
+                playSound('click');
+
+                if (selectedItem) {
+                    if (selectedItem.type === type && selectedItem.index === index && selectedItem.subIndex === subIndex) {
+                        setSelectedItem(null); // 취소
+                        return;
+                    }
+                    if (selectedItem.type !== type) {
+                        setSelectedItem({ type, index, subIndex }); // 타입 다르면 새로 선택
+                        return;
+                    }
+                    performSwap(selectedItem, { type, index, subIndex });
+                    setSelectedItem(null);
+                    playSound('win');
+                } else {
+                    setSelectedItem({ type, index, subIndex });
+                }
+            };
+
+            // 드래그 이벤트
+            const onDragStart = (e, type, index, subIndex) => { setDraggedItem({ type, index, subIndex }); setSelectedItem(null); };
+            const onDragOver = (e) => e.preventDefault();
+            const onDragEnter = (type, index, subIndex) => { if(draggedItem && draggedItem.type === type) setDragOverItem({ type, index, subIndex }); };
+            const onDrop = (e, type, targetIndex, targetSubIndex) => {
+                e.preventDefault();
+                setDragOverItem(null);
+                if (!draggedItem || draggedItem.type !== type) return;
+                performSwap(draggedItem, { type, index: targetIndex, subIndex: targetSubIndex });
+                setDraggedItem(null);
+                playSound('click');
+            };
+
+            // === 타이머 로직 ===
+            useEffect(() => {
+                if (isTimerRunning && timeLeft > 0) {
+                    timerRef.current = setInterval(() => {
+                        setTimeLeft(prev => {
+                            if (prev <= 1) {
+                                clearInterval(timerRef.current);
+                                setIsTimerRunning(false);
+                                playSound('alarm');
+                                fireConfetti();
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                } else {
+                    clearInterval(timerRef.current);
+                }
+                return () => clearInterval(timerRef.current);
+            }, [isTimerRunning]);
+
+            // === 렌더링 헬퍼 ===
+            const NavBtn = ({ active, icon, label, onClick }) => (
+                <button onClick={() => { playSound('click'); onClick(); }} 
+                    className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all duration-300 w-16 h-16 md:w-auto md:h-auto md:px-5 md:py-3 md:flex-row md:gap-2 relative overflow-hidden shrink-0 snap-center
+                    ${active ? 'bg-[#FFB7B2] text-white shadow-md scale-105' : 'text-gray-400 hover:bg-white hover:text-[#FFB7B2] hover:shadow-sm'}`}>
+                    <Icon name={icon} size={24} className={active ? "animate-pulse" : ""} />
+                    <span className="text-[10px] md:text-sm font-bold mt-1 md:mt-0">{label}</span>
+                </button>
+            );
+
+            // --- 1. 입력 화면 ---
+            if (step === 'input') {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
+                        <div className="bg-white/90 backdrop-blur-xl p-8 sm:p-10 rounded-[2.5rem] sm:rounded-[3rem] shadow-2xl w-full max-w-lg text-center border border-white relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-[#FFB7B2] via-[#B5EAD7] to-[#C7CEEA]"></div>
+                            <div className="mb-6 sm:mb-8 inline-block p-6 rounded-full bg-[#FFF0F0] shadow-inner animate-bounce">
+                                <Icon name="sprout" size={48} className="text-[#FFB7B2]" />
+                            </div>
+                            <h1 className="text-3xl sm:text-4xl font-black text-[#5D5D5D] mb-2 tracking-tight">송쌤과학</h1>
+                            <p className="text-[#AAA] font-bold mb-8 sm:mb-10 text-sm sm:text-base">행복한 교실을 위한 스마트 도우미</p>
+                            
+                            <form onSubmit={startClass} className="space-y-5 sm:space-y-6">
+                                <div className="relative transform transition-all input-focus-effect rounded-[2rem]">
+                                    <input type="number" value={studentCount} onChange={e => setStudentCount(e.target.value)} 
+                                        className="w-full h-16 sm:h-20 text-center text-4xl sm:text-5xl font-black text-[#5D5D5D] bg-[#F7F7F7] rounded-[2rem] border-4 border-transparent focus:border-[#FFB7B2] focus:bg-white focus:outline-none shadow-inner placeholder-gray-300 transition-all"
+                                        placeholder="0" autoFocus />
+                                    <span className="absolute right-6 sm:right-8 top-1/2 -translate-y-1/2 text-lg sm:text-xl font-bold text-gray-400">명</span>
+                                </div>
+                                <button type="submit" className="w-full py-4 sm:py-5 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-[2rem] text-xl sm:text-2xl font-black shadow-lg shadow-[#FFB7B2]/40 active:scale-95 transition-all flex items-center justify-center gap-3">
+                                    <span>수업 시작하기</span> <Icon name="arrow-right" />
+                                </button>
+                            </form>
+                            <div className="mt-8 flex justify-center">
+                                <button onClick={() => setIsSoundOn(!isSoundOn)} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm ${isSoundOn ? 'bg-[#E2F0CB] text-[#6B8E23] ring-2 ring-[#E2F0CB]' : 'bg-gray-100 text-gray-400'}`}>
+                                    <Icon name={isSoundOn ? "volume-2" : "volume-x"} size={16} /> 소리 {isSoundOn ? "ON" : "OFF"}
+                                </button>
+                            </div>
+                        </div>
+                        <Copyright fixed />
+                        {systemModal && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+                                <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center border-4 border-[#FFB7B2] transform scale-100 transition-all">
+                                    <p className="text-xl font-bold text-gray-700 mb-8 whitespace-pre-wrap leading-relaxed">{systemModal.msg}</p>
+                                    <button onClick={closeModal} className="w-full py-3 bg-[#FFB7B2] rounded-2xl font-bold text-white shadow-md hover:bg-[#FF9E99] active:scale-95">확인</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            // --- 2. 메인 화면 ---
+            return (
+                <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
+                    {/* 상단 네비게이션 */}
+                    <nav className="sticky top-0 z-40 glass-panel px-3 sm:px-4 py-3">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center gap-2">
+                            <div className="flex items-center gap-3 cursor-pointer group shrink-0" onClick={goHome}>
+                                <div className="bg-[#B5EAD7] p-2.5 rounded-2xl text-white shadow-sm group-hover:rotate-12 transition-transform"><Icon name="flask-conical" /></div>
+                                <div className="hidden md:block">
+                                    <h1 className="font-black text-gray-600 text-lg leading-none group-hover:text-[#FFB7B2] transition-colors">송쌤과학</h1>
+                                    <span className="text-xs text-gray-400 font-bold">{students.length}명 함께하는 중</span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-2 px-2 flex-1 md:flex-none justify-start md:justify-center bg-white/40 rounded-[2rem] border border-white/60 shadow-inner snap-x">
+                                <NavBtn active={mode==='pick'} icon="trophy" label="발표" onClick={()=>setMode('pick')} />
+                                <NavBtn active={mode==='team'} icon="users" label="모둠" onClick={()=>setMode('team')} />
+                                <NavBtn active={mode==='seat'} icon="armchair" label="좌석" onClick={()=>setMode('seat')} />
+                                <NavBtn active={mode==='timer'} icon="timer" label="타이머" onClick={()=>setMode('timer')} />
+                                <NavBtn active={mode==='qr'} icon="qr-code" label="QR" onClick={()=>setMode('qr')} />
+                                <NavBtn active={mode==='memo'} icon="sticky-note" label="메모" onClick={()=>setMode('memo')} />
+                                <NavBtn active={mode==='img'} icon="image" label="사진" onClick={()=>setMode('img')} />
+                            </div>
+
+                            <button onClick={goHome} className="p-3 text-gray-400 hover:text-[#FFB7B2] hover:bg-[#FFF0F0] rounded-2xl transition-colors hidden sm:block shrink-0" title="홈으로">
+                                <Icon name="home" />
+                            </button>
+                        </div>
+                    </nav>
+
+                    <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 pb-8 flex flex-col">
+                        
+                        {/* 1. 발표자 뽑기 */}
+                        {mode === 'pick' && (
+                            <div className="card-enter w-full">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-6 px-2">
+                                    <div>
+                                        <h2 className="text-2xl sm:text-3xl font-black text-[#5D5D5D] tracking-tight">발표자 뽑기</h2>
+                                        <p className="text-xs sm:text-sm text-gray-400 font-bold mt-1">오늘의 행운의 주인공은?</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={()=>setIsNoRepeat(!isNoRepeat)} className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border-2 transition-all ${isNoRepeat ? 'bg-[#FFB7B2] border-[#FFB7B2] text-white shadow-md' : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50'}`}>
+                                            중복방지 {isNoRepeat ? 'ON' : 'OFF'}
+                                        </button>
+                                        <button onClick={()=>setPickHistory([])} className="flex-1 sm:flex-none px-4 py-2 bg-gray-100 text-gray-500 rounded-xl text-xs sm:text-sm font-bold hover:bg-gray-200 transition-colors">
+                                            기록 초기화 ({pickHistory.length})
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-white rounded-[2rem] p-4 sm:p-8 soft-shadow border-4 border-[#FFF5F5] relative overflow-hidden w-full">
+                                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 sm:gap-3 relative z-10 w-full">
+                                        {students.map(num => {
+                                            const isWin = pickWinner === num;
+                                            const isHighlight = currentPick === num;
+                                            const isDone = pickHistory.includes(num);
+                                            return (
+                                                <div key={num} 
+                                                    className={`aspect-square rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl md:text-3xl font-black border-2 sm:border-4 transition-all duration-200 relative overflow-hidden shadow-sm
+                                                    ${isWin ? 'winner-pulse bg-[#FFB7B2] border-[#FF9E99] text-white z-20 scale-110' : 
+                                                      isHighlight ? 'highlight-anim' : 
+                                                      isDone ? 'bg-gray-50 border-gray-100 text-gray-300 scale-90 grayscale' : 'bg-white border-[#F0E6D2] text-[#5D5D5D] hover:border-[#FFB7B2]'}`}>
+                                                    {num}
+                                                    {isDone && <div className="absolute inset-0 flex items-center justify-center opacity-40 bg-gray-100/50"><Icon name="check" size={24} className="sm:w-8 sm:h-8" /></div>}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFF5F5] rounded-full filter blur-3xl opacity-50 pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+                                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#E2F0CB] rounded-full filter blur-3xl opacity-50 pointer-events-none translate-y-1/2 -translate-x-1/2"></div>
+                                </div>
+                                <div className="mt-8 text-center w-full">
+                                    <button onClick={() => {
+                                        if (isPicking) return;
+                                        let pool = isNoRepeat ? students.filter(s => !pickHistory.includes(s)) : students;
+                                        if (pool.length === 0) return showAlert("모든 학생이 발표했습니다! 기록을 초기화해주세요.");
+                                        
+                                        playSound('click'); setIsPicking(true); setPickWinner(null);
+                                        let count = 0; const maxCount = 20 + Math.floor(Math.random() * 10); let delay = 50;
+                                        const loop = () => {
+                                            setCurrentPick(students[Math.floor(Math.random() * students.length)]); playSound('tick');
+                                            count++;
+                                            if (count > maxCount) {
+                                                const finalWinner = pool[Math.floor(Math.random() * pool.length)];
+                                                setCurrentPick(finalWinner); setPickWinner(finalWinner);
+                                                if (isNoRepeat) setPickHistory(prev => [...prev, finalWinner]);
+                                                playSound('win'); fireConfetti(); setIsPicking(false);
+                                            } else { delay *= 1.1; setTimeout(loop, delay); }
+                                        }; loop();
+                                    }} disabled={isPicking} className="w-full sm:w-auto px-12 py-4 sm:py-5 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-full text-xl sm:text-2xl font-black shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto">
+                                        {isPicking ? <Icon name="loader-2" className="animate-spin" /> : <Icon name="sparkles" />}
+                                        {isPicking ? '두구두구...' : '발표자 뽑기'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 2. 모둠 만들기 */}
+                        {mode === 'team' && (
+                            <div className="card-enter space-y-4 sm:space-y-6 w-full">
+                                <div className="bg-white p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] soft-shadow border border-gray-100">
+                                    <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+                                        <div className="space-y-3 sm:space-y-4 flex-1">
+                                            <div className="flex gap-2">
+                                                {['number', 'name', 'gender'].map(t => (
+                                                    <button key={t} onClick={()=>setPlacementType(t)} 
+                                                        className={`flex-1 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all border-2 ${placementType===t ? 'bg-[#C7CEEA] border-[#C7CEEA] text-white shadow-md' : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50'}`}>
+                                                        {t==='number'?'번호':t==='name'?'이름':'남녀'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {placementType === 'name' && <textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-3 sm:p-4 bg-[#F7F9FC] rounded-2xl border-none resize-none h-20 sm:h-24 focus:ring-2 focus:ring-[#C7CEEA] text-sm sm:text-base" placeholder="학생 이름 입력 (쉼표나 줄바꿈으로 구분)" />}
+                                            {placementType === 'gender' && (
+                                                <div className="flex flex-col sm:flex-row gap-2">
+                                                    <textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-3 bg-[#F0F8FF] rounded-xl h-20 resize-none focus:ring-2 focus:ring-[#89CFF0] text-sm sm:text-base" placeholder="남학생 명단" />
+                                                    <textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-3 bg-[#FFF0F5] rounded-xl h-20 resize-none focus:ring-2 focus:ring-[#FFB7B2] text-sm sm:text-base" placeholder="여학생 명단" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-3 justify-center w-full md:min-w-[200px] md:w-auto">
+                                            <div className="flex items-center gap-1 bg-[#F7F9FC] p-1 rounded-xl border border-gray-100">
+                                                {[2, 3].map(c => (
+                                                    <button key={c} onClick={() => setTeamColumns(c)} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${teamColumns === c ? 'bg-white shadow-sm text-[#5C6B9E]' : 'text-gray-400 hover:text-gray-600'}`}>{c}열 배열</button>
+                                                ))}
+                                            </div>
+                                            <div className="flex items-center justify-between bg-[#F7F9FC] p-2 rounded-xl border border-gray-100">
+                                                <button onClick={()=>setTeamCount(Math.max(2, teamCount-1))} className="w-10 h-10 bg-white rounded-lg shadow-sm text-gray-500 hover:text-[#5C6B9E]"><Icon name="minus" size={20}/></button>
+                                                <div className="text-center px-2">
+                                                    <span className="block text-[10px] sm:text-xs text-gray-400 font-bold mb-0.5">모둠 수</span>
+                                                    <span className="text-lg sm:text-xl font-black text-[#5C6B9E]">{teamCount}개</span>
+                                                </div>
+                                                <button onClick={()=>setTeamCount(Math.min(20, teamCount+1))} className="w-10 h-10 bg-white rounded-lg shadow-sm text-gray-500 hover:text-[#5C6B9E]"><Icon name="plus" size={20}/></button>
+                                            </div>
+                                            <button onClick={createTeams} className="w-full py-3 sm:py-4 bg-[#C7CEEA] hover:bg-[#AAB6E0] text-white rounded-xl font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
+                                                <Icon name="wand-2" size={18} /> 생성하기
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {teams.length > 0 && (
+                                    <div className="relative w-full">
+                                         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3 mb-3 px-2">
+                                            <p className="text-xs text-gray-400 font-bold flex items-center gap-1 bg-white/60 px-2 py-1 rounded-lg">
+                                                <Icon name="mouse-pointer-2" size={14} /> 드래그 또는 터치(클릭)하여 자리 변경
+                                            </p>
+                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                <button onClick={createTeams} className="flex-1 sm:flex-none justify-center text-[#C7CEEA] bg-white border border-[#C7CEEA] px-3 py-2 rounded-xl text-xs sm:text-sm font-bold hover:bg-[#F0F4FF] flex items-center gap-1"><Icon name="shuffle" size={14}/> 섞기</button>
+                                                <button onClick={handleCapture} className="text-[#C7CEEA] bg-white border border-transparent hover:bg-[#F0F4FF] p-2 sm:p-2.5 rounded-xl shadow-sm"><Icon name="camera" size={20} /></button>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 모바일 화면 밖으로 넘치지 않도록 전체 래핑 */}
+                                        <div className="w-full overflow-x-auto pb-4 no-scrollbar">
+                                            {/* 이미지를 깨짐 없이 캡처하기 위해 captureRef를 안쪽 컨테이너에 배치 */}
+                                            <div ref={captureRef} className="bg-white p-4 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-[#C7CEEA] shadow-xl min-w-full">
+                                                <div className={`grid gap-3 sm:gap-4 w-full ${teamColumns===2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'}`}>
+                                                    {teams.map((team, tIdx) => (
+                                                        <div key={tIdx} className="bg-[#F7F9FC] rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-[#E2E8F0] min-h-[140px] shadow-sm hover:shadow-md transition-shadow h-full">
+                                                            <div className="team-header flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-1">
+                                                                <div className="bg-[#C7CEEA] text-white w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl font-black text-base sm:text-lg shadow-sm">
+                                                                    {tIdx+1}
+                                                                </div>
+                                                                <span className="text-xs sm:text-sm font-bold text-gray-500 bg-white px-2 py-1 sm:px-3 sm:py-1 rounded-lg shadow-sm border border-gray-100">
+                                                                    {team.length}명
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {team.map((student, sIdx) => {
+                                                                    const isSelected = selectedItem?.type === 'team' && selectedItem?.index === tIdx && selectedItem?.subIndex === sIdx;
+                                                                    const isDragOver = dragOverItem?.type === 'team' && dragOverItem?.index === tIdx && dragOverItem?.subIndex === sIdx;
+                                                                    return (
+                                                                        <div key={sIdx}
+                                                                            draggable
+                                                                            onDragStart={(e) => onDragStart(e, 'team', tIdx, sIdx)}
+                                                                            onDragOver={onDragOver}
+                                                                            onDragEnter={() => onDragEnter('team', tIdx, sIdx)}
+                                                                            onDrop={(e) => onDrop(e, 'team', tIdx, sIdx)}
+                                                                            onClick={() => handleItemInteraction('team', tIdx, sIdx)}
+                                                                            className={`bg-white border-2 rounded-xl font-bold text-gray-600 shadow-sm cursor-pointer select-none transition-all hover:border-[#C7CEEA] center-content min-h-[3rem] px-3 w-full
+                                                                            ${isSelected ? 'selected-item' : 'border-transparent'}
+                                                                            ${isDragOver ? 'drag-target-active' : ''}`}
+                                                                        >
+                                                                            <span className="text-lg sm:text-xl">{student}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* 3. 좌석 배치 */}
+                        {mode === 'seat' && (
+                             <div className="card-enter space-y-4 sm:space-y-6 w-full">
+                                <div className="bg-white p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] soft-shadow border border-gray-100">
+                                    <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+                                        <div className="flex-1 space-y-3 sm:space-y-4">
+                                             <div className="flex gap-2">
+                                                {['number', 'name', 'gender'].map(t => (
+                                                    <button key={t} onClick={()=>setPlacementType(t)} 
+                                                        className={`flex-1 py-2 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all border-2 ${placementType===t ? 'bg-[#FFD3B6] border-[#FFD3B6] text-white shadow-md' : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50'}`}>
+                                                        {t==='number'?'번호':t==='name'?'이름':'남녀'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {placementType === 'number' && (
+                                                <div className="relative">
+                                                    <input type="text" value={excludedInput} onChange={e=>setExcludedInput(e.target.value)} className="w-full p-3 sm:p-4 bg-[#FFF8F0] rounded-2xl border-none focus:ring-2 focus:ring-[#FFD3B6] text-sm sm:text-base" placeholder="제외할 번호 (예: 5, 12)" />
+                                                    {excludedInput && <button onClick={()=>setExcludedInput('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-300 hover:text-gray-500"><Icon name="x" size={16} /></button>}
+                                                </div>
+                                            )}
+                                            {placementType === 'name' && <textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-3 sm:p-4 bg-[#FFF8F0] rounded-2xl border-none resize-none h-20 sm:h-24 focus:ring-2 focus:ring-[#FFD3B6] text-sm sm:text-base" placeholder="학생 이름 입력" />}
+                                            {placementType === 'gender' && (
+                                                <div className="flex flex-col gap-2">
+                                                    <div className="flex bg-[#FFF8F0] p-1 rounded-xl">
+                                                        <button onClick={()=>setGenderOption('mixed')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${genderOption==='mixed'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>이성끼리 👫</button>
+                                                        <button onClick={()=>setGenderOption('same')} className={`flex-1 py-2 rounded-lg text-xs font-bold ${genderOption==='same'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>동성끼리 👬👭</button>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-3 bg-[#F0F8FF] rounded-xl h-20 resize-none focus:ring-2 focus:ring-[#89CFF0] text-sm" placeholder="남학생 명단" />
+                                                        <textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-3 bg-[#FFF0F5] rounded-xl h-20 resize-none focus:ring-2 focus:ring-[#FFB7B2] text-sm" placeholder="여학생 명단" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col justify-center gap-3 w-full md:min-w-[200px] md:w-auto">
+                                            <div className="flex bg-[#FFF8F0] p-1 rounded-xl border border-gray-100">
+                                                <button onClick={()=>setSeatType('single')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${seatType==='single'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>혼자 앉기</button>
+                                                <button onClick={()=>setSeatType('pair')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${seatType==='pair'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>짝꿍 앉기</button>
+                                            </div>
+                                            <button onClick={createSeats} className="w-full py-3 sm:py-4 bg-[#FFD3B6] hover:bg-[#F2C2A2] text-white rounded-xl font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
+                                                <Icon name="layout-grid" size={18} /> 생성하기
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {seats.length > 0 && (
+                                    <div className="relative w-full">
+                                        <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3 mb-3 px-2">
+                                            <p className="text-xs text-gray-400 font-bold flex items-center gap-1 bg-white/60 px-2 py-1 rounded-lg">
+                                                <Icon name="mouse-pointer-2" size={14} /> 터치(클릭)하여 자리 변경
+                                            </p>
+                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                <button onClick={createSeats} className="flex-1 sm:flex-none justify-center text-[#FFD3B6] bg-white border border-[#FFD3B6] px-3 py-2 rounded-xl text-xs sm:text-sm font-bold hover:bg-[#FFF5EB] flex items-center gap-1"><Icon name="shuffle" size={14}/> 섞기</button>
+                                                <button onClick={handleCapture} className="text-[#FFD3B6] bg-white border border-transparent hover:bg-[#FFF5EB] p-2 sm:p-2.5 rounded-xl shadow-sm"><Icon name="camera" size={20} /></button>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 중요: 모바일 좌우 스크롤을 통한 화면 깨짐 방지 */}
+                                        <div className="w-full overflow-x-auto pb-4 no-scrollbar rounded-[1.5rem] sm:rounded-[2.5rem]">
+                                            <div ref={captureRef} className="bg-white p-4 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-[#FFD3B6] min-w-[500px] min-h-[400px] flex flex-col shadow-xl">
+                                                <div className="w-full bg-[#5D5D5D] text-white py-2 sm:py-3 rounded-2xl text-center font-bold mb-8 shadow-md tracking-widest relative overflow-hidden text-sm sm:text-base">
+                                                    <span className="relative z-10">칠 판</span>
+                                                    <div className="absolute top-0 left-0 w-full h-1 bg-white/10"></div>
+                                                </div>
+                                                <div className={`grid gap-2 sm:gap-4 ${seatType==='single'?'grid-cols-5':'grid-cols-3'} w-full`}>
+                                                    {seatType === 'single' ? seats.map((s, i) => {
+                                                        const isSelected = selectedItem?.type === 'seat' && selectedItem?.index === i;
+                                                        const isDragOver = dragOverItem?.type === 'seat' && dragOverItem?.index === i;
+                                                        return (
+                                                            <div key={i}
+                                                                draggable
+                                                                onDragStart={(e) => onDragStart(e, 'seat', i)}
+                                                                onDragOver={onDragOver}
+                                                                onDragEnter={() => onDragEnter('seat', i)}
+                                                                onDrop={(e) => onDrop(e, 'seat', i)}
+                                                                onClick={() => handleItemInteraction('seat', i)}
+                                                                className={`aspect-[2/1] min-h-[40px] flex items-center justify-center bg-white border-2 rounded-xl text-base sm:text-xl font-black text-gray-600 shadow-sm cursor-pointer hover:bg-[#FFF8F0] hover:border-[#FFD3B6] transition-all center-content
+                                                                ${isSelected ? 'selected-item' : 'border-gray-100'}
+                                                                ${isDragOver ? 'drag-target-active' : ''}`}
+                                                            >
+                                                                <span>{s}</span>
+                                                            </div>
+                                                        );
+                                                    }) : (
+                                                        Array.from({ length: Math.ceil(seats.length / 2) }).map((_, gIdx) => {
+                                                            const idx1 = gIdx * 2;
+                                                            const idx2 = gIdx * 2 + 1;
+                                                            const isSel1 = selectedItem?.type === 'seat' && selectedItem?.index === idx1;
+                                                            const isSel2 = selectedItem?.type === 'seat' && selectedItem?.index === idx2;
+                                                            return (
+                                                                <div key={gIdx} className="flex bg-[#FFF8F0] border-2 border-[#FFD3B6] rounded-xl overflow-hidden shadow-sm h-12 sm:h-16">
+                                                                    <div draggable onDragStart={(e)=>onDragStart(e,'seat',idx1)} onDragOver={onDragOver} onDrop={(e)=>onDrop(e,'seat',idx1)} onClick={()=>handleItemInteraction('seat',idx1)}
+                                                                        className={`flex-1 flex items-center justify-center p-1 sm:p-2 border-r border-[#FFD3B6]/30 cursor-pointer hover:bg-white center-content ${isSel1?'selected-item':''}`}>
+                                                                        <span className="font-black text-gray-600 text-sm sm:text-lg">{seats[idx1]}</span>
+                                                                    </div>
+                                                                    <div draggable onDragStart={(e)=>onDragStart(e,'seat',idx2)} onDragOver={onDragOver} onDrop={(e)=>onDrop(e,'seat',idx2)} onClick={()=>handleItemInteraction('seat',idx2)}
+                                                                        className={`flex-1 flex items-center justify-center p-1 sm:p-2 cursor-pointer hover:bg-white center-content ${isSel2?'selected-item':''}`}>
+                                                                        <span className="font-black text-gray-600 text-sm sm:text-lg">{seats[idx2] || ''}</span>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                             </div>
+                        )}
+
+                        {/* 4. 타이머 */}
+                        {mode === 'timer' && (
+                            <div className="card-enter flex flex-col items-center justify-center py-6 sm:py-10 w-full">
+                                <div className="relative mb-8 sm:mb-10 w-64 h-64 sm:w-72 sm:h-72">
+                                    <svg viewBox="0 0 300 300" className="w-full h-full transform -rotate-90 drop-shadow-xl">
+                                        <circle cx="150" cy="150" r="120" stroke="#F0F0F0" strokeWidth="15" fill="none" />
+                                        <circle cx="150" cy="150" r="120" stroke="#FFDAC1" strokeWidth="15" fill="none" 
+                                            strokeDasharray={2 * Math.PI * 120} 
+                                            strokeDashoffset={(2 * Math.PI * 120) - (timeLeft / (initialTime || 1)) * (2 * Math.PI * 120)}
+                                            strokeLinecap="round"
+                                            className="timer-circle"
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span className="text-5xl sm:text-7xl font-black text-[#5D5D5D] tracking-tighter tabular-nums drop-shadow-sm">
+                                            {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}
+                                        </span>
+                                        <span className="text-xs sm:text-sm text-gray-400 font-bold mt-2 flex items-center gap-2">
+                                            {isTimerRunning ? <span className="animate-pulse text-[#FF9E99]">●</span> : <span className="text-gray-300">●</span>}
+                                            {isTimerRunning ? '진행 중' : '일시정지'}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+                                    {[10, 60, 300].map(s => (
+                                        <button key={s} onClick={()=>adjustTime(s)} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white rounded-xl font-bold text-sm sm:text-base text-gray-500 shadow-sm border border-gray-100 hover:bg-gray-50">+{s/60>=1 ? `${s/60}분` : `${s}초`}</button>
+                                    ))}
+                                    <button onClick={()=>adjustTime(-10)} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white rounded-xl font-bold text-sm sm:text-base text-red-400 shadow-sm border border-red-50 hover:bg-red-50">-10초</button>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-sm sm:max-w-md">
+                                    <button onClick={()=>{playSound('click'); setIsTimerRunning(!isTimerRunning);}} className={`flex-1 py-4 sm:py-5 rounded-2xl text-xl sm:text-2xl font-black text-white shadow-lg active:scale-95 flex items-center justify-center gap-2 ${isTimerRunning ? 'bg-[#FF9E99]' : 'bg-[#B5EAD7]'}`}>
+                                        <Icon name={isTimerRunning ? "pause" : "play"} /> {isTimerRunning ? '일시정지' : '시작'}
+                                    </button>
+                                    <button onClick={()=>{playSound('click'); setIsTimerRunning(false); setTimeLeft(initialTime);}} className="py-4 sm:py-5 px-6 rounded-2xl bg-gray-200 text-gray-500 font-bold hover:bg-gray-300 shadow-sm flex items-center justify-center">
+                                        <Icon name="rotate-ccw" /> <span className="ml-2 sm:hidden">초기화</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 5. QR 코드 */}
+                        {mode === 'qr' && (
+                            <div className="card-enter flex flex-col items-center w-full">
+                                <div className="bg-white p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-xl border-4 border-[#B5EAD7] w-full max-w-2xl text-center">
+                                    <h2 className="text-xl sm:text-2xl font-black text-[#5D5D5D] mb-4 sm:mb-6 flex items-center justify-center gap-2"><Icon name="scan-line" /> QR코드 생성기</h2>
+                                    <div className="flex flex-col sm:flex-row gap-2 mb-6 sm:mb-8">
+                                        <input type="text" value={qrInput} onChange={e=>setQrInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&(qrInput&&setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`))} 
+                                            className="flex-1 p-3 sm:p-4 bg-[#F0FDF4] rounded-xl sm:rounded-2xl border-2 border-transparent focus:border-[#B5EAD7] outline-none font-bold text-sm sm:text-lg" placeholder="인터넷 주소(URL) 입력" />
+                                        <button onClick={()=>{if(qrInput) {playSound('click'); setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`);}}} className="py-3 sm:py-0 px-6 bg-[#B5EAD7] text-white rounded-xl sm:rounded-2xl font-black shadow-md hover:bg-[#95D4B6]">생성</button>
+                                    </div>
+                                    {qrUrl ? (
+                                        <div className="inline-block p-4 sm:p-6 bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-gray-100 cursor-zoom-in" onClick={()=>setFullScreenContent({type:'qr', data:qrUrl})}>
+                                            <img src={qrUrl} alt="QR" className="w-48 h-48 sm:w-64 sm:h-64 mix-blend-multiply" />
+                                            <p className="text-gray-400 text-xs font-bold mt-3 sm:mt-4 flex items-center justify-center gap-1"><Icon name="zoom-in" size={12} /> 터치하여 크게 보기</p>
+                                        </div>
+                                    ) : (
+                                        <div className="w-48 h-48 sm:w-64 sm:h-64 mx-auto bg-gray-50 rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center text-gray-300 border-2 border-dashed border-gray-200">
+                                            <Icon name="link" size={40} className="mb-2 opacity-50" />
+                                            <span className="font-bold text-sm">주소를 입력하세요</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 6. 메모 */}
+                        {mode === 'memo' && (
+                            <div className="card-enter w-full max-w-4xl mx-auto">
+                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-6 sm:mb-8 w-full">
+                                    <div className="flex-1 relative">
+                                        <input type="text" value={memoInput} onChange={e=>setMemoInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter' && memoInput.trim()){playSound('click'); setMemos([{ id: Date.now(), text: memoInput, color: ['#FFE0E0', '#E0F4FF', '#E0FFE4', '#FFF4E0', '#F3E0FF'][Math.floor(Math.random()*5)] }, ...memos]); setMemoInput('');}}}
+                                            className="w-full p-3 sm:p-4 pl-10 sm:pl-12 bg-white rounded-xl sm:rounded-2xl border-2 border-[#C7CEEA] shadow-sm font-bold text-sm sm:text-lg focus:outline-none" placeholder="기억할 내용을 입력하세요" />
+                                        <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-[#C7CEEA]"><Icon name="pencil" size={18}/></span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={()=>{if(!memoInput.trim()) return; playSound('click'); setMemos([{ id: Date.now(), text: memoInput, color: ['#FFE0E0', '#E0F4FF', '#E0FFE4', '#FFF4E0', '#F3E0FF'][Math.floor(Math.random()*5)] }, ...memos]); setMemoInput('');}} className="flex-1 sm:flex-none px-6 py-3 sm:py-0 bg-[#C7CEEA] text-white rounded-xl sm:rounded-2xl font-black shadow-md"><Icon name="plus" className="mx-auto" /></button>
+                                        {memos.length > 0 && <button onClick={()=>{playSound('click'); setMemos([]);}} className="px-4 bg-red-100 text-red-400 rounded-xl sm:rounded-2xl font-bold"><Icon name="trash-2" /></button>}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5">
+                                    {memos.map(memo => (
+                                        <div key={memo.id} onClick={()=>{ setFullScreenContent({type:'text', data:memo.text, color:memo.color}); setFsFontSize(window.innerWidth < 600 ? 50 : 80); }}
+                                            className="relative p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] min-h-[120px] sm:min-h-[180px] flex items-center justify-center text-center cursor-pointer shadow-sm hover:shadow-md"
+                                            style={{backgroundColor: memo.color}}>
+                                            <p className="font-black text-gray-700 text-base sm:text-xl whitespace-pre-wrap line-clamp-4 font-[Gamja Flower]">{memo.text}</p>
+                                            <button onClick={(e)=>{e.stopPropagation(); playSound('click'); setMemos(memos.filter(m=>m.id!==memo.id));}} className="absolute top-2 right-2 p-1.5 bg-white/50 rounded-full text-red-400"><Icon name="trash-2" size={14} /></button>
+                                        </div>
+                                    ))}
+                                    {memos.length === 0 && (
+                                        <div className="col-span-full py-16 sm:py-24 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-3xl sm:rounded-[2.5rem] bg-white/50">
+                                            <Icon name="sticky-note" size={40} className="mx-auto opacity-30 mb-2" />
+                                            <p className="text-sm sm:text-base">새로운 메모를 추가해보세요!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 7. 사진 */}
+                        {mode === 'img' && (
+                             <div className="card-enter flex flex-col items-center w-full">
+                                 <div className="bg-white p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-lg border-4 border-[#FFC3A0] w-full max-w-4xl min-h-[300px] sm:min-h-[500px] flex items-center justify-center relative">
+                                     {uploadedImg ? (
+                                         <div className="relative w-full h-full flex items-center justify-center">
+                                             <img src={uploadedImg} className="max-w-full max-h-[60vh] rounded-xl sm:rounded-2xl shadow-sm cursor-zoom-in" onClick={()=>setFullScreenContent({type:'img', data:uploadedImg})} />
+                                             <button onClick={()=>{setUploadedImg(null); fileInputRef.current.value='';}} className="absolute top-2 right-2 sm:top-4 sm:right-4 p-2 sm:p-3 bg-white text-[#FFC3A0] rounded-full shadow-md"><Icon name="x" size={20}/></button>
+                                         </div>
+                                     ) : (
+                                         <div onClick={()=>fileInputRef.current.click()} className="flex flex-col items-center justify-center gap-3 sm:gap-4 cursor-pointer p-10 sm:p-20 hover:bg-[#FFF5EB] rounded-2xl sm:rounded-[2rem] w-full h-full border-2 border-dashed border-[#FFC3A0]/30">
+                                             <div className="p-6 sm:p-8 bg-[#FFEDD5] rounded-full text-[#FFC3A0]"><Icon name="image-plus" size={40} className="sm:w-14 sm:h-14" /></div>
+                                             <p className="text-lg sm:text-xl font-bold text-[#FFC3A0]">터치하여 사진 업로드</p>
+                                         </div>
+                                     )}
+                                     <input type="file" ref={fileInputRef} onChange={(e)=>{ const file=e.target.files[0]; if(file){ const reader=new FileReader(); reader.onload=(res)=>{setUploadedImg(res.target.result); playSound('win');}; reader.readAsDataURL(file); } }} accept="image/*" className="hidden" />
+                                 </div>
+                             </div>
+                        )}
+                        
+                        <Copyright />
+                    </main>
+
+                    {/* 시스템 모달 */}
+                    {systemModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+                            <div className="bg-white p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center border-4 border-[#FFB7B2]">
+                                <p className="text-lg sm:text-xl font-bold text-gray-700 mb-6 sm:mb-8 whitespace-pre-wrap">{systemModal.msg}</p>
+                                <div className="flex gap-2 sm:gap-3 justify-center">
+                                    {systemModal.type === 'confirm' && <button onClick={closeModal} className="flex-1 py-3 bg-gray-100 rounded-xl sm:rounded-2xl font-bold text-gray-500">취소</button>}
+                                    <button onClick={() => { if(systemModal.action) systemModal.action(); closeModal(); }} className="flex-1 py-3 bg-[#FFB7B2] rounded-xl sm:rounded-2xl font-bold text-white">확인</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 전체화면 확대 */}
+                    {fullScreenContent && (
+                        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 cursor-pointer animate-fade-in" onClick={()=>setFullScreenContent(null)}>
+                            {fullScreenContent.type === 'qr' && <div className="bg-white p-6 sm:p-8 rounded-3xl" onClick={e=>e.stopPropagation()}><img src={fullScreenContent.data} className="w-[80vw] h-[80vw] sm:w-[60vmin] sm:h-[60vmin]" /></div>}
+                            {fullScreenContent.type === 'img' && <img src={fullScreenContent.data} className="max-w-[100vw] max-h-[100vh] object-contain" />}
+                            {fullScreenContent.type === 'text' && (
+                                <div className="bg-white p-6 sm:p-12 rounded-[2rem] sm:rounded-[3rem] max-w-5xl w-full text-center h-[80vh] sm:h-auto sm:max-h-[90vh] flex flex-col items-center relative" style={{backgroundColor: fullScreenContent.color}} onClick={e => e.stopPropagation()}>
+                                    <div className="flex-1 overflow-y-auto w-full flex items-center justify-center min-h-[200px] no-scrollbar">
+                                         <p className="font-black text-gray-700 leading-tight font-[Gamja Flower] whitespace-pre-wrap select-text" style={{fontSize: `${fsFontSize}px`}}>{fullScreenContent.data}</p>
+                                    </div>
+                                    <div className="mt-4 sm:mt-8 flex items-center gap-3 sm:gap-4 bg-white/60 px-4 sm:px-6 py-2 sm:py-3 rounded-full" onClick={e => e.stopPropagation()}>
+                                        <button onClick={() => setFsFontSize(s => Math.max(20, s - 10))} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white font-bold text-gray-500"><Icon name="minus" size={20} /></button>
+                                        <span className="font-bold text-gray-600 min-w-[3rem] sm:min-w-[4rem] text-base sm:text-lg">{fsFontSize}px</span>
+                                        <button onClick={() => setFsFontSize(s => Math.min(300, s + 10))} className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white font-bold text-gray-500"><Icon name="plus" size={20} /></button>
+                                    </div>
+                                    <button onClick={() => setFullScreenContent(null)} className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 sm:p-4 bg-white/50 rounded-full text-gray-500"><Icon name="x" size={20} className="sm:w-6 sm:h-6"/></button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div id="confetti-holder" className="fixed inset-0 pointer-events-none z-50"></div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
