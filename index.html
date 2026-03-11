@@ -31,27 +31,23 @@
         body {
             font-family: 'Jua', sans-serif;
             background-color: #FDFBF7;
-            /* 모눈종이 패턴 */
             background-image: radial-gradient(#E2D5C5 1px, transparent 1px);
             background-size: 24px 24px;
             color: #4A4A4A;
             touch-action: manipulation;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
-            overscroll-behavior-y: none; /* 모바일 새로고침 방지 */
+            overscroll-behavior-y: none;
         }
 
-        /* 스크롤바 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #E2D5C5; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #D1C0AD; }
 
-        /* 모바일 네비게이션용 숨김 스크롤 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 애니메이션 */
         .card-enter { animation: cardPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
         @keyframes cardPop {
             from { opacity: 0; transform: scale(0.9) translateY(20px); }
@@ -65,7 +61,6 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 183, 178, 0); transform: scale(1.05); }
         }
 
-        /* 상호작용 시각 효과 */
         .drag-target-active {
             background-color: #E2F0CB !important;
             border-color: #88D8B0 !important;
@@ -99,7 +94,6 @@
             100% { border-color: #FFB7B2; }
         }
 
-        /* 유리 질감 UI */
         .glass-panel {
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(16px);
@@ -113,7 +107,6 @@
                        -8px -8px 20px rgba(255, 255, 255, 0.8); 
         }
         
-        /* 텍스트 정렬 헬퍼 */
         .center-content {
             display: flex;
             align-items: center;
@@ -130,11 +123,59 @@
         .timer-circle { transition: stroke-dashoffset 1s linear; }
         footer { font-family: 'Do Hyeon', sans-serif; }
         
-        /* 입력 폼 포커스 */
         .input-focus-effect:focus-within {
             transform: scale(1.02);
             box-shadow: 0 10px 40px -10px rgba(255, 183, 178, 0.4);
             border-color: #FFB7B2;
+        }
+
+        /* 미니 타이머 */
+        .mini-timer-float {
+            animation: miniTimerIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes miniTimerIn {
+            from { opacity: 0; transform: scale(0.5) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .mini-timer-pulse {
+            animation: miniPulse 2s infinite;
+        }
+        @keyframes miniPulse {
+            0%, 100% { box-shadow: 0 2px 12px rgba(255, 183, 178, 0.3); }
+            50% { box-shadow: 0 2px 20px rgba(255, 183, 178, 0.6); }
+        }
+
+        /* 타이머 입력 필드 */
+        .timer-input-field {
+            background: transparent;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-family: 'Jua', sans-serif;
+            caret-color: #FFDAC1;
+        }
+        .timer-input-field:focus {
+            background: rgba(255, 218, 193, 0.15);
+            border-radius: 12px;
+        }
+        .timer-input-field::selection {
+            background: rgba(255, 218, 193, 0.4);
+        }
+        /* 숫자 스피너 제거 */
+        .timer-input-field::-webkit-inner-spin-button,
+        .timer-input-field::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .timer-input-field { -moz-appearance: textfield; }
+
+        /* 설정 모달 슬라이드 업 */
+        .modal-slide-up {
+            animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
     </style>
 </head>
@@ -142,7 +183,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useCallback } = React;
 
         // 아이콘 컴포넌트
         const Icon = ({ name, size = 24, className = "" }) => {
@@ -198,6 +239,13 @@
             const [seatType, setSeatType] = useState('single');
             const [excludedInput, setExcludedInput] = useState('');
 
+            // 좌석 짝꿍 설정
+            const [seatPairSettings, setSeatPairSettings] = useState({ mustPair: [], mustNotPair: [] });
+            const [showPairSettings, setShowPairSettings] = useState(false);
+            const [pairSettingTab, setPairSettingTab] = useState('must'); // 'must' | 'mustNot'
+            const [pairInputA, setPairInputA] = useState('');
+            const [pairInputB, setPairInputB] = useState('');
+
             // 인터랙션
             const [draggedItem, setDraggedItem] = useState(null);
             const [dragOverItem, setDragOverItem] = useState(null); 
@@ -207,6 +255,7 @@
             const [timeLeft, setTimeLeft] = useState(300);
             const [initialTime, setInitialTime] = useState(300);
             const [isTimerRunning, setIsTimerRunning] = useState(false);
+            const [timerEverStarted, setTimerEverStarted] = useState(false);
 
             // 도구
             const [qrInput, setQrInput] = useState('');
@@ -224,6 +273,8 @@
             const timerRef = useRef(null);
             const captureRef = useRef(null);
             const fileInputRef = useRef(null);
+            const minInputRef = useRef(null);
+            const secInputRef = useRef(null);
 
             // === 오디오 ===
             const initAudio = () => {
@@ -298,44 +349,25 @@
                 playSound('click');
                 try {
                     await document.fonts.ready;
-                    
                     const canvas = await html2canvas(captureRef.current, { 
-                        scale: 2, 
-                        backgroundColor: '#FDFBF7',
-                        useCORS: true,
-                        logging: false,
-                        allowTaint: true,
+                        scale: 2, backgroundColor: '#FDFBF7', useCORS: true, logging: false, allowTaint: true,
                         onclone: (clonedDoc) => {
                             const elements = clonedDoc.querySelectorAll('.center-content');
                             elements.forEach(el => {
-                                el.style.display = 'flex';
-                                el.style.alignItems = 'center';
-                                el.style.justifyContent = 'center';
-                                el.style.paddingBottom = '14px'; 
-                                el.style.paddingTop = '0px';
-                                el.style.transform = 'translateY(-3px)';
-                                el.style.lineHeight = '1';
-                                el.style.height = '100%';
-                                el.style.boxSizing = 'border-box';
+                                el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center';
+                                el.style.paddingBottom = '14px'; el.style.paddingTop = '0px'; el.style.transform = 'translateY(-3px)';
+                                el.style.lineHeight = '1'; el.style.height = '100%'; el.style.boxSizing = 'border-box';
                             });
                             const headers = clonedDoc.querySelectorAll('.team-header');
-                            headers.forEach(el => {
-                                el.style.display = 'flex';
-                                el.style.alignItems = 'center';
-                                el.style.gap = '14px';
-                            });
+                            headers.forEach(el => { el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.gap = '14px'; });
                         }
                     });
-                    
                     const link = document.createElement('a');
                     link.download = `송쌤과학_${mode}_${new Date().toLocaleTimeString().replace(/:/g,'-')}.png`;
                     link.href = canvas.toDataURL();
                     link.click();
                     showAlert("이미지가 저장되었습니다. 📸\n(갤러리 또는 다운로드 폴더를 확인하세요)");
-                } catch (e) { 
-                    console.error(e);
-                    showAlert("저장에 실패했습니다.\n잠시 후 다시 시도해주세요."); 
-                }
+                } catch (e) { console.error(e); showAlert("저장에 실패했습니다.\n잠시 후 다시 시도해주세요."); }
             };
 
             // === 기본 기능 ===
@@ -352,17 +384,49 @@
             const goHome = () => {
                 playSound('click');
                 showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.", () => {
-                    setStep('input');
-                    setStudentCount('');
-                    setStudents([]);
-                    setPickHistory([]);
-                    setTeams([]);
-                    setSeats([]);
-                    setMemos([]);
-                    setUploadedImg(null);
-                    setIsTimerRunning(false);
-                    setSelectedItem(null);
+                    setStep('input'); setStudentCount(''); setStudents([]); setPickHistory([]); setTeams([]); setSeats([]);
+                    setMemos([]); setUploadedImg(null); setIsTimerRunning(false); setTimerEverStarted(false); setSelectedItem(null);
+                    setSeatPairSettings({ mustPair: [], mustNotPair: [] });
                 });
+            };
+
+            // === 타이머 시간 조정 (수정됨) ===
+            const adjustTime = (seconds) => {
+                playSound('click');
+                const newVal = Math.max(0, Math.min(5999, timeLeft + seconds));
+                setTimeLeft(newVal);
+                if (!isTimerRunning) setInitialTime(newVal);
+            };
+
+            // 타이머 수동 입력
+            const [minEditValue, setMinEditValue] = useState('');
+            const [secEditValue, setSecEditValue] = useState('');
+            const [isEditingMin, setIsEditingMin] = useState(false);
+            const [isEditingSec, setIsEditingSec] = useState(false);
+
+            const handleMinFocus = () => {
+                setIsEditingMin(true);
+                setMinEditValue(String(Math.floor(timeLeft / 60)));
+            };
+            const handleMinBlur = () => {
+                setIsEditingMin(false);
+                const m = Math.max(0, Math.min(99, parseInt(minEditValue) || 0));
+                const s = timeLeft % 60;
+                const newTime = m * 60 + s;
+                setTimeLeft(newTime);
+                setInitialTime(newTime);
+            };
+            const handleSecFocus = () => {
+                setIsEditingSec(true);
+                setSecEditValue(String(timeLeft % 60));
+            };
+            const handleSecBlur = () => {
+                setIsEditingSec(false);
+                const m = Math.floor(timeLeft / 60);
+                const s = Math.max(0, Math.min(59, parseInt(secEditValue) || 0));
+                const newTime = m * 60 + s;
+                setTimeLeft(newTime);
+                setInitialTime(newTime);
             };
 
             // === 데이터 파싱 ===
@@ -370,13 +434,11 @@
                 if (placementType === 'number') {
                     const excluded = excludedInput.split(/[\s,]+/).map(n => parseInt(n)).filter(n => !isNaN(n));
                     return students.filter(s => !excluded.includes(s));
-                } 
-                else if (placementType === 'name') {
+                } else if (placementType === 'name') {
                     const list = inputNames.split(/[\n,]+/).map(s => s.trim()).filter(s => s);
                     if (list.length === 0) return null;
                     return list;
-                }
-                else if (placementType === 'gender') {
+                } else if (placementType === 'gender') {
                     const m = maleInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s);
                     const f = femaleInput.split(/[\n,]+/).map(s => s.trim()).filter(s => s);
                     if (m.length + f.length === 0) return null;
@@ -390,11 +452,7 @@
                 if (isPicking) return; 
                 const data = parseData();
                 if (!data) return showAlert("명단을 입력해주세요.");
-                
-                playSound('click');
-                setIsPicking(true); 
-                setTeams([]); 
-
+                playSound('click'); setIsPicking(true); setTeams([]); 
                 setTimeout(() => {
                     let pool = [];
                     if (placementType === 'gender') {
@@ -403,37 +461,21 @@
                         f = f.sort(() => Math.random() - 0.5);
                         if (genderOption === 'mixed') {
                            const max = Math.max(m.length, f.length);
-                           for(let i=0; i<max; i++) {
-                               if(i < m.length) pool.push(m[i]);
-                               if(i < f.length) pool.push(f[i]);
-                           }
-                        } else {
-                            pool = [...m, ...f];
-                        }
-                    } else {
-                        pool = data.sort(() => Math.random() - 0.5);
-                    }
-
+                           for(let i=0; i<max; i++) { if(i < m.length) pool.push(m[i]); if(i < f.length) pool.push(f[i]); }
+                        } else { pool = [...m, ...f]; }
+                    } else { pool = data.sort(() => Math.random() - 0.5); }
                     const newTeams = Array.from({ length: teamCount }, () => []);
-                    pool.forEach((student, idx) => {
-                        newTeams[idx % teamCount].push(student);
-                    });
-
-                    setTeams(newTeams);
-                    setIsPicking(false);
-                    playSound('win');
+                    pool.forEach((student, idx) => { newTeams[idx % teamCount].push(student); });
+                    setTeams(newTeams); setIsPicking(false); playSound('win');
                 }, 400);
             };
 
-            // === 자리 배치 ===
+            // === 자리 배치 (짝꿍 제약조건 포함) ===
             const createSeats = () => {
                 if (isPicking) return;
                 const data = parseData();
                 if (!data) return showAlert("명단을 입력해주세요.");
-
-                playSound('click');
-                setIsPicking(true);
-                setSeats([]);
+                playSound('click'); setIsPicking(true); setSeats([]);
 
                 setTimeout(() => {
                     let pool = [];
@@ -443,23 +485,117 @@
                          f = f.sort(() => Math.random() - 0.5);
                          if (genderOption === 'mixed') {
                              const max = Math.max(m.length, f.length);
-                             for(let i=0; i<max; i++) {
-                                 if(i < m.length) pool.push(m[i]);
-                                 if(i < f.length) pool.push(f[i]);
-                             }
-                         } else {
-                             pool = [...m, ...f];
-                         }
+                             for(let i=0; i<max; i++) { if(i < m.length) pool.push(m[i]); if(i < f.length) pool.push(f[i]); }
+                         } else { pool = [...m, ...f]; }
+                    } else { pool = data.sort(() => Math.random() - 0.5); }
+
+                    // 짝꿍 앉기 모드일 때 제약조건 적용
+                    if (seatType === 'pair' && (seatPairSettings.mustPair.length > 0 || seatPairSettings.mustNotPair.length > 0)) {
+                        const result = applyPairConstraints(pool, seatPairSettings);
+                        setSeats(result);
                     } else {
-                        pool = data.sort(() => Math.random() - 0.5);
+                        setSeats(pool);
                     }
-                    setSeats(pool);
-                    setIsPicking(false);
-                    playSound('win');
+                    setIsPicking(false); playSound('win');
                 }, 400);
             };
 
-            // === 상호작용 (클릭 스왑 및 드래그 앤 드롭) ===
+            // 짝꿍 제약조건 적용 알고리즘
+            const applyPairConstraints = (pool, settings) => {
+                const { mustPair, mustNotPair } = settings;
+                const str = (v) => String(v);
+                
+                // 최대 200회 시도로 조건 만족하는 배치 찾기
+                for (let attempt = 0; attempt < 200; attempt++) {
+                    let arranged = [...pool].sort(() => Math.random() - 0.5);
+                    
+                    // mustPair 처리: 반드시 같이 앉아야 하는 쌍을 짝수/홀수 인접으로 배치
+                    for (const pair of mustPair) {
+                        const idxA = arranged.findIndex(s => str(s) === str(pair[0]));
+                        const idxB = arranged.findIndex(s => str(s) === str(pair[1]));
+                        if (idxA === -1 || idxB === -1) continue;
+                        
+                        // 둘 다 꺼내기 (큰 인덱스부터)
+                        const bigIdx = Math.max(idxA, idxB);
+                        const smallIdx = Math.min(idxA, idxB);
+                        const personBig = arranged.splice(bigIdx, 1)[0];
+                        const personSmall = arranged.splice(smallIdx, 1)[0];
+                        
+                        // 짝수 인덱스 위치를 찾아서 삽입 (이미 mustPair로 고정된 자리 건너뜀)
+                        let inserted = false;
+                        for (let i = 0; i <= arranged.length; i += 2) {
+                            arranged.splice(i, 0, personSmall, personBig);
+                            inserted = true;
+                            break;
+                        }
+                        if (!inserted) {
+                            arranged.push(personSmall, personBig);
+                        }
+                    }
+                    
+                    // 검증: mustPair가 실제로 짝이 되었는지
+                    let valid = true;
+                    for (const pair of mustPair) {
+                        let found = false;
+                        for (let i = 0; i + 1 < arranged.length; i += 2) {
+                            const s1 = str(arranged[i]);
+                            const s2 = str(arranged[i + 1]);
+                            if ((s1 === str(pair[0]) && s2 === str(pair[1])) ||
+                                (s1 === str(pair[1]) && s2 === str(pair[0]))) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) { valid = false; break; }
+                    }
+                    if (!valid) continue;
+                    
+                    // 검증: mustNotPair가 짝이 되지 않았는지
+                    for (const pair of mustNotPair) {
+                        for (let i = 0; i + 1 < arranged.length; i += 2) {
+                            const s1 = str(arranged[i]);
+                            const s2 = str(arranged[i + 1]);
+                            if ((s1 === str(pair[0]) && s2 === str(pair[1])) ||
+                                (s1 === str(pair[1]) && s2 === str(pair[0]))) {
+                                valid = false;
+                                break;
+                            }
+                        }
+                        if (!valid) break;
+                    }
+
+                    if (valid) return arranged;
+                }
+                
+                // 실패 시 그냥 랜덤 반환
+                return [...pool].sort(() => Math.random() - 0.5);
+            };
+
+            // === 짝꿍 설정 관리 ===
+            const addPairSetting = () => {
+                const a = pairInputA.trim();
+                const b = pairInputB.trim();
+                if (!a || !b) return showAlert("두 학생 모두 입력해주세요.");
+                if (a === b) return showAlert("같은 학생을 입력할 수 없습니다.");
+                
+                const key = pairSettingTab === 'must' ? 'mustPair' : 'mustNotPair';
+                const existing = seatPairSettings[key];
+                const isDuplicate = existing.some(p => 
+                    (String(p[0]) === a && String(p[1]) === b) || (String(p[0]) === b && String(p[1]) === a)
+                );
+                if (isDuplicate) return showAlert("이미 등록된 조합입니다.");
+                
+                setSeatPairSettings(prev => ({ ...prev, [key]: [...prev[key], [a, b]] }));
+                setPairInputA(''); setPairInputB('');
+                playSound('click');
+            };
+
+            const removePairSetting = (key, index) => {
+                playSound('click');
+                setSeatPairSettings(prev => ({ ...prev, [key]: prev[key].filter((_, i) => i !== index) }));
+            };
+
+            // === 상호작용 ===
             const performSwap = (source, target) => {
                 if (source.type === 'team') {
                     const newTeams = [...teams.map(t => [...t])];
@@ -479,35 +615,20 @@
             const handleItemInteraction = (type, index, subIndex = null) => {
                 if (isPicking) return;
                 playSound('click');
-
                 if (selectedItem) {
-                    if (selectedItem.type === type && selectedItem.index === index && selectedItem.subIndex === subIndex) {
-                        setSelectedItem(null); // 취소
-                        return;
-                    }
-                    if (selectedItem.type !== type) {
-                        setSelectedItem({ type, index, subIndex }); // 타입 다르면 새로 선택
-                        return;
-                    }
-                    performSwap(selectedItem, { type, index, subIndex });
-                    setSelectedItem(null);
-                    playSound('win');
-                } else {
-                    setSelectedItem({ type, index, subIndex });
-                }
+                    if (selectedItem.type === type && selectedItem.index === index && selectedItem.subIndex === subIndex) { setSelectedItem(null); return; }
+                    if (selectedItem.type !== type) { setSelectedItem({ type, index, subIndex }); return; }
+                    performSwap(selectedItem, { type, index, subIndex }); setSelectedItem(null); playSound('win');
+                } else { setSelectedItem({ type, index, subIndex }); }
             };
 
-            // 드래그 이벤트
             const onDragStart = (e, type, index, subIndex) => { setDraggedItem({ type, index, subIndex }); setSelectedItem(null); };
             const onDragOver = (e) => e.preventDefault();
             const onDragEnter = (type, index, subIndex) => { if(draggedItem && draggedItem.type === type) setDragOverItem({ type, index, subIndex }); };
             const onDrop = (e, type, targetIndex, targetSubIndex) => {
-                e.preventDefault();
-                setDragOverItem(null);
+                e.preventDefault(); setDragOverItem(null);
                 if (!draggedItem || draggedItem.type !== type) return;
-                performSwap(draggedItem, { type, index: targetIndex, subIndex: targetSubIndex });
-                setDraggedItem(null);
-                playSound('click');
+                performSwap(draggedItem, { type, index: targetIndex, subIndex: targetSubIndex }); setDraggedItem(null); playSound('click');
             };
 
             // === 타이머 로직 ===
@@ -516,18 +637,13 @@
                     timerRef.current = setInterval(() => {
                         setTimeLeft(prev => {
                             if (prev <= 1) {
-                                clearInterval(timerRef.current);
-                                setIsTimerRunning(false);
-                                playSound('alarm');
-                                fireConfetti();
-                                return 0;
+                                clearInterval(timerRef.current); setIsTimerRunning(false);
+                                playSound('alarm'); fireConfetti(); return 0;
                             }
                             return prev - 1;
                         });
                     }, 1000);
-                } else {
-                    clearInterval(timerRef.current);
-                }
+                } else { clearInterval(timerRef.current); }
                 return () => clearInterval(timerRef.current);
             }, [isTimerRunning]);
 
@@ -541,6 +657,9 @@
                 </button>
             );
 
+            // 미니 타이머 표시 조건: 타이머가 한 번이라도 시작되었고, 현재 타이머 탭이 아닐 때
+            const showMiniTimer = step === 'main' && mode !== 'timer' && (isTimerRunning || timerEverStarted) && timeLeft > 0;
+
             // --- 1. 입력 화면 ---
             if (step === 'input') {
                 return (
@@ -552,7 +671,6 @@
                             </div>
                             <h1 className="text-3xl sm:text-4xl font-black text-[#5D5D5D] mb-2 tracking-tight">송쌤과학</h1>
                             <p className="text-[#AAA] font-bold mb-8 sm:mb-10 text-sm sm:text-base">행복한 교실을 위한 스마트 도우미</p>
-                            
                             <form onSubmit={startClass} className="space-y-5 sm:space-y-6">
                                 <div className="relative transform transition-all input-focus-effect rounded-[2rem]">
                                     <input type="number" value={studentCount} onChange={e => setStudentCount(e.target.value)} 
@@ -613,6 +731,35 @@
                         </div>
                     </nav>
 
+                    {/* ★ 미니 타이머 (다른 탭에서 표시) */}
+                    {showMiniTimer && (
+                        <div 
+                            className={`fixed top-20 left-3 sm:left-4 z-50 mini-timer-float cursor-pointer select-none ${isTimerRunning ? 'mini-timer-pulse' : ''}`}
+                            onClick={() => { playSound('click'); setMode('timer'); }}
+                            title="타이머로 이동"
+                        >
+                            <div className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl shadow-lg border-2 transition-all hover:scale-105 active:scale-95 ${isTimerRunning ? 'bg-white border-[#FFB7B2]' : 'bg-white/90 border-gray-200'}`}>
+                                <div className="relative">
+                                    <svg viewBox="0 0 36 36" className="w-8 h-8 sm:w-9 sm:h-9 transform -rotate-90">
+                                        <circle cx="18" cy="18" r="15" stroke="#F0F0F0" strokeWidth="3" fill="none" />
+                                        <circle cx="18" cy="18" r="15" stroke={isTimerRunning ? "#FFDAC1" : "#D1D5DB"} strokeWidth="3" fill="none" 
+                                            strokeDasharray={2 * Math.PI * 15} 
+                                            strokeDashoffset={(2 * Math.PI * 15) - (timeLeft / (initialTime || 1)) * (2 * Math.PI * 15)}
+                                            strokeLinecap="round"
+                                        />
+                                    </svg>
+                                    {isTimerRunning && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#FF9E99] rounded-full animate-pulse"></span>}
+                                </div>
+                                <div className="flex flex-col leading-none">
+                                    <span className={`text-lg sm:text-xl font-black tabular-nums tracking-tight ${isTimerRunning ? 'text-[#5D5D5D]' : 'text-gray-400'}`}>
+                                        {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}
+                                    </span>
+                                    <span className="text-[9px] text-gray-400 font-bold">{isTimerRunning ? '진행 중' : '일시정지'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <main className="flex-1 max-w-7xl mx-auto w-full p-4 sm:p-6 pb-8 flex flex-col">
                         
                         {/* 1. 발표자 뽑기 */}
@@ -659,7 +806,6 @@
                                         if (isPicking) return;
                                         let pool = isNoRepeat ? students.filter(s => !pickHistory.includes(s)) : students;
                                         if (pool.length === 0) return showAlert("모든 학생이 발표했습니다! 기록을 초기화해주세요.");
-                                        
                                         playSound('click'); setIsPicking(true); setPickWinner(null);
                                         let count = 0; const maxCount = 20 + Math.floor(Math.random() * 10); let delay = 50;
                                         const loop = () => {
@@ -734,38 +880,26 @@
                                                 <button onClick={handleCapture} className="text-[#C7CEEA] bg-white border border-transparent hover:bg-[#F0F4FF] p-2 sm:p-2.5 rounded-xl shadow-sm"><Icon name="camera" size={20} /></button>
                                             </div>
                                         </div>
-                                        
-                                        {/* 모바일 화면 밖으로 넘치지 않도록 전체 래핑 */}
                                         <div className="w-full overflow-x-auto pb-4 no-scrollbar">
-                                            {/* 이미지를 깨짐 없이 캡처하기 위해 captureRef를 안쪽 컨테이너에 배치 */}
                                             <div ref={captureRef} className="bg-white p-4 sm:p-6 md:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-[#C7CEEA] shadow-xl min-w-full">
                                                 <div className={`grid gap-3 sm:gap-4 w-full ${teamColumns===2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'}`}>
                                                     {teams.map((team, tIdx) => (
                                                         <div key={tIdx} className="bg-[#F7F9FC] rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-[#E2E8F0] min-h-[140px] shadow-sm hover:shadow-md transition-shadow h-full">
                                                             <div className="team-header flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 px-1">
-                                                                <div className="bg-[#C7CEEA] text-white w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl font-black text-base sm:text-lg shadow-sm">
-                                                                    {tIdx+1}
-                                                                </div>
-                                                                <span className="text-xs sm:text-sm font-bold text-gray-500 bg-white px-2 py-1 sm:px-3 sm:py-1 rounded-lg shadow-sm border border-gray-100">
-                                                                    {team.length}명
-                                                                </span>
+                                                                <div className="bg-[#C7CEEA] text-white w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl font-black text-base sm:text-lg shadow-sm">{tIdx+1}</div>
+                                                                <span className="text-xs sm:text-sm font-bold text-gray-500 bg-white px-2 py-1 sm:px-3 sm:py-1 rounded-lg shadow-sm border border-gray-100">{team.length}명</span>
                                                             </div>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {team.map((student, sIdx) => {
                                                                     const isSelected = selectedItem?.type === 'team' && selectedItem?.index === tIdx && selectedItem?.subIndex === sIdx;
                                                                     const isDragOver = dragOverItem?.type === 'team' && dragOverItem?.index === tIdx && dragOverItem?.subIndex === sIdx;
                                                                     return (
-                                                                        <div key={sIdx}
-                                                                            draggable
-                                                                            onDragStart={(e) => onDragStart(e, 'team', tIdx, sIdx)}
-                                                                            onDragOver={onDragOver}
-                                                                            onDragEnter={() => onDragEnter('team', tIdx, sIdx)}
-                                                                            onDrop={(e) => onDrop(e, 'team', tIdx, sIdx)}
+                                                                        <div key={sIdx} draggable
+                                                                            onDragStart={(e) => onDragStart(e, 'team', tIdx, sIdx)} onDragOver={onDragOver}
+                                                                            onDragEnter={() => onDragEnter('team', tIdx, sIdx)} onDrop={(e) => onDrop(e, 'team', tIdx, sIdx)}
                                                                             onClick={() => handleItemInteraction('team', tIdx, sIdx)}
                                                                             className={`bg-white border-2 rounded-xl font-bold text-gray-600 shadow-sm cursor-pointer select-none transition-all hover:border-[#C7CEEA] center-content min-h-[3rem] px-3 w-full
-                                                                            ${isSelected ? 'selected-item' : 'border-transparent'}
-                                                                            ${isDragOver ? 'drag-target-active' : ''}`}
-                                                                        >
+                                                                            ${isSelected ? 'selected-item' : 'border-transparent'} ${isDragOver ? 'drag-target-active' : ''}`}>
                                                                             <span className="text-lg sm:text-xl">{student}</span>
                                                                         </div>
                                                                     );
@@ -820,6 +954,21 @@
                                                 <button onClick={()=>setSeatType('single')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${seatType==='single'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>혼자 앉기</button>
                                                 <button onClick={()=>setSeatType('pair')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${seatType==='pair'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>짝꿍 앉기</button>
                                             </div>
+                                            
+                                            {/* ★ 짝꿍 설정 버튼 (짝꿍 앉기 모드일 때만) */}
+                                            {seatType === 'pair' && (
+                                                <button onClick={() => { playSound('click'); setShowPairSettings(true); }}
+                                                    className="w-full py-2.5 bg-white border-2 border-dashed border-[#FFD3B6] text-[#D68C60] rounded-xl text-xs sm:text-sm font-bold hover:bg-[#FFF8F0] transition-all flex items-center justify-center gap-2 relative">
+                                                    <Icon name="settings-2" size={16} />
+                                                    짝꿍 조건 설정
+                                                    {(seatPairSettings.mustPair.length + seatPairSettings.mustNotPair.length) > 0 && (
+                                                        <span className="absolute -top-2 -right-2 bg-[#FFB7B2] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+                                                            {seatPairSettings.mustPair.length + seatPairSettings.mustNotPair.length}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            )}
+
                                             <button onClick={createSeats} className="w-full py-3 sm:py-4 bg-[#FFD3B6] hover:bg-[#F2C2A2] text-white rounded-xl font-bold shadow-md active:scale-95 flex items-center justify-center gap-2">
                                                 <Icon name="layout-grid" size={18} /> 생성하기
                                             </button>
@@ -838,8 +987,6 @@
                                                 <button onClick={handleCapture} className="text-[#FFD3B6] bg-white border border-transparent hover:bg-[#FFF5EB] p-2 sm:p-2.5 rounded-xl shadow-sm"><Icon name="camera" size={20} /></button>
                                             </div>
                                         </div>
-                                        
-                                        {/* 중요: 모바일 좌우 스크롤을 통한 화면 깨짐 방지 */}
                                         <div className="w-full overflow-x-auto pb-4 no-scrollbar rounded-[1.5rem] sm:rounded-[2.5rem]">
                                             <div ref={captureRef} className="bg-white p-4 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-4 border-[#FFD3B6] min-w-[500px] min-h-[400px] flex flex-col shadow-xl">
                                                 <div className="w-full bg-[#5D5D5D] text-white py-2 sm:py-3 rounded-2xl text-center font-bold mb-8 shadow-md tracking-widest relative overflow-hidden text-sm sm:text-base">
@@ -851,17 +998,12 @@
                                                         const isSelected = selectedItem?.type === 'seat' && selectedItem?.index === i;
                                                         const isDragOver = dragOverItem?.type === 'seat' && dragOverItem?.index === i;
                                                         return (
-                                                            <div key={i}
-                                                                draggable
-                                                                onDragStart={(e) => onDragStart(e, 'seat', i)}
-                                                                onDragOver={onDragOver}
-                                                                onDragEnter={() => onDragEnter('seat', i)}
-                                                                onDrop={(e) => onDrop(e, 'seat', i)}
+                                                            <div key={i} draggable
+                                                                onDragStart={(e) => onDragStart(e, 'seat', i)} onDragOver={onDragOver}
+                                                                onDragEnter={() => onDragEnter('seat', i)} onDrop={(e) => onDrop(e, 'seat', i)}
                                                                 onClick={() => handleItemInteraction('seat', i)}
                                                                 className={`aspect-[2/1] min-h-[40px] flex items-center justify-center bg-white border-2 rounded-xl text-base sm:text-xl font-black text-gray-600 shadow-sm cursor-pointer hover:bg-[#FFF8F0] hover:border-[#FFD3B6] transition-all center-content
-                                                                ${isSelected ? 'selected-item' : 'border-gray-100'}
-                                                                ${isDragOver ? 'drag-target-active' : ''}`}
-                                                            >
+                                                                ${isSelected ? 'selected-item' : 'border-gray-100'} ${isDragOver ? 'drag-target-active' : ''}`}>
                                                                 <span>{s}</span>
                                                             </div>
                                                         );
@@ -893,7 +1035,7 @@
                              </div>
                         )}
 
-                        {/* 4. 타이머 */}
+                        {/* 4. 타이머 (수정: 수동 입력 + 버튼 활성화) */}
                         {mode === 'timer' && (
                             <div className="card-enter flex flex-col items-center justify-center py-6 sm:py-10 w-full">
                                 <div className="relative mb-8 sm:mb-10 w-64 h-64 sm:w-72 sm:h-72">
@@ -907,25 +1049,73 @@
                                         />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-5xl sm:text-7xl font-black text-[#5D5D5D] tracking-tighter tabular-nums drop-shadow-sm">
-                                            {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}
-                                        </span>
+                                        {/* 타이머 수동 입력 영역 */}
+                                        <div className="flex items-center gap-0">
+                                            {isTimerRunning ? (
+                                                <span className="text-5xl sm:text-7xl font-black text-[#5D5D5D] tracking-tighter tabular-nums drop-shadow-sm">
+                                                    {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}
+                                                </span>
+                                            ) : (
+                                                <>
+                                                    <input
+                                                        ref={minInputRef}
+                                                        type="number"
+                                                        className="timer-input-field text-5xl sm:text-7xl font-black text-[#5D5D5D] tracking-tighter tabular-nums drop-shadow-sm w-[2.5ch]"
+                                                        value={isEditingMin ? minEditValue : Math.floor(timeLeft / 60).toString().padStart(2, '0')}
+                                                        onFocus={handleMinFocus}
+                                                        onBlur={handleMinBlur}
+                                                        onChange={(e) => setMinEditValue(e.target.value)}
+                                                        onKeyDown={(e) => { if(e.key === 'Enter') e.target.blur(); }}
+                                                        min="0" max="99"
+                                                    />
+                                                    <span className="text-5xl sm:text-7xl font-black text-[#5D5D5D] tracking-tighter drop-shadow-sm select-none">:</span>
+                                                    <input
+                                                        ref={secInputRef}
+                                                        type="number"
+                                                        className="timer-input-field text-5xl sm:text-7xl font-black text-[#5D5D5D] tracking-tighter tabular-nums drop-shadow-sm w-[2.5ch]"
+                                                        value={isEditingSec ? secEditValue : (timeLeft % 60).toString().padStart(2, '0')}
+                                                        onFocus={handleSecFocus}
+                                                        onBlur={handleSecBlur}
+                                                        onChange={(e) => setSecEditValue(e.target.value)}
+                                                        onKeyDown={(e) => { if(e.key === 'Enter') e.target.blur(); }}
+                                                        min="0" max="59"
+                                                    />
+                                                </>
+                                            )}
+                                        </div>
                                         <span className="text-xs sm:text-sm text-gray-400 font-bold mt-2 flex items-center gap-2">
                                             {isTimerRunning ? <span className="animate-pulse text-[#FF9E99]">●</span> : <span className="text-gray-300">●</span>}
-                                            {isTimerRunning ? '진행 중' : '일시정지'}
+                                            {isTimerRunning ? '진행 중' : '터치하여 시간 입력'}
                                         </span>
                                     </div>
                                 </div>
                                 
                                 <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
                                     {[10, 60, 300].map(s => (
-                                        <button key={s} onClick={()=>adjustTime(s)} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white rounded-xl font-bold text-sm sm:text-base text-gray-500 shadow-sm border border-gray-100 hover:bg-gray-50">+{s/60>=1 ? `${s/60}분` : `${s}초`}</button>
+                                        <button key={`add-${s}`} onClick={()=>adjustTime(s)} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white rounded-xl font-bold text-sm sm:text-base text-gray-500 shadow-sm border border-gray-100 hover:bg-gray-50 active:scale-95 transition-all">+{s>=60 ? `${s/60}분` : `${s}초`}</button>
                                     ))}
-                                    <button onClick={()=>adjustTime(-10)} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white rounded-xl font-bold text-sm sm:text-base text-red-400 shadow-sm border border-red-50 hover:bg-red-50">-10초</button>
+                                    <button onClick={()=>adjustTime(-10)} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white rounded-xl font-bold text-sm sm:text-base text-red-400 shadow-sm border border-red-50 hover:bg-red-50 active:scale-95 transition-all">-10초</button>
+                                </div>
+
+                                {/* 프리셋 버튼 */}
+                                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+                                    {[{label:'1분', sec:60}, {label:'3분', sec:180}, {label:'5분', sec:300}, {label:'10분', sec:600}].map(p => (
+                                        <button key={p.label} onClick={()=>{playSound('click'); setTimeLeft(p.sec); setInitialTime(p.sec); setIsTimerRunning(false);}}
+                                            className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all active:scale-95 ${timeLeft === p.sec && !isTimerRunning ? 'bg-[#FFDAC1] border-[#FFDAC1] text-white shadow-md' : 'bg-white border-gray-100 text-gray-400 hover:border-[#FFDAC1] hover:text-[#D68C60]'}`}>
+                                            {p.label}
+                                        </button>
+                                    ))}
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-sm sm:max-w-md">
-                                    <button onClick={()=>{playSound('click'); setIsTimerRunning(!isTimerRunning);}} className={`flex-1 py-4 sm:py-5 rounded-2xl text-xl sm:text-2xl font-black text-white shadow-lg active:scale-95 flex items-center justify-center gap-2 ${isTimerRunning ? 'bg-[#FF9E99]' : 'bg-[#B5EAD7]'}`}>
+                                    <button onClick={()=>{
+                                        playSound('click'); 
+                                        if(!isTimerRunning) { 
+                                            setTimerEverStarted(true); 
+                                            if(timeLeft > 0) setInitialTime(timeLeft);
+                                        } 
+                                        setIsTimerRunning(!isTimerRunning);
+                                    }} className={`flex-1 py-4 sm:py-5 rounded-2xl text-xl sm:text-2xl font-black text-white shadow-lg active:scale-95 flex items-center justify-center gap-2 ${isTimerRunning ? 'bg-[#FF9E99]' : 'bg-[#B5EAD7]'}`}>
                                         <Icon name={isTimerRunning ? "pause" : "play"} /> {isTimerRunning ? '일시정지' : '시작'}
                                     </button>
                                     <button onClick={()=>{playSound('click'); setIsTimerRunning(false); setTimeLeft(initialTime);}} className="py-4 sm:py-5 px-6 rounded-2xl bg-gray-200 text-gray-500 font-bold hover:bg-gray-300 shadow-sm flex items-center justify-center">
@@ -1015,6 +1205,120 @@
                         
                         <Copyright />
                     </main>
+
+                    {/* ★ 짝꿍 조건 설정 모달 */}
+                    {showPairSettings && (
+                        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4" onClick={() => setShowPairSettings(false)}>
+                            <div className="modal-slide-up bg-white w-full sm:max-w-lg sm:rounded-[2rem] rounded-t-[2rem] shadow-2xl border-t-4 sm:border-4 border-[#FFD3B6] max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+                                {/* 헤더 */}
+                                <div className="flex items-center justify-between p-5 sm:p-6 border-b border-gray-100 shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-[#FFD3B6] p-2 rounded-xl text-white"><Icon name="settings-2" size={20} /></div>
+                                        <div>
+                                            <h3 className="text-lg font-black text-[#5D5D5D]">짝꿍 조건 설정</h3>
+                                            <p className="text-[10px] sm:text-xs text-gray-400 font-bold">학생들에게 보이지 않는 비밀 설정</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setShowPairSettings(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                                        <Icon name="x" size={20} />
+                                    </button>
+                                </div>
+
+                                {/* 탭 */}
+                                <div className="flex mx-5 sm:mx-6 mt-4 bg-[#FFF8F0] p-1 rounded-xl shrink-0">
+                                    <button onClick={() => setPairSettingTab('must')} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${pairSettingTab === 'must' ? 'bg-white shadow-sm text-[#4CAF50]' : 'text-gray-400'}`}>
+                                        <Icon name="heart" size={14} /> 같이 앉기
+                                        {seatPairSettings.mustPair.length > 0 && <span className="bg-[#4CAF50] text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">{seatPairSettings.mustPair.length}</span>}
+                                    </button>
+                                    <button onClick={() => setPairSettingTab('mustNot')} className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${pairSettingTab === 'mustNot' ? 'bg-white shadow-sm text-[#FF6B6B]' : 'text-gray-400'}`}>
+                                        <Icon name="shield-alert" size={14} /> 떨어뜨리기
+                                        {seatPairSettings.mustNotPair.length > 0 && <span className="bg-[#FF6B6B] text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">{seatPairSettings.mustNotPair.length}</span>}
+                                    </button>
+                                </div>
+
+                                {/* 입력 영역 */}
+                                <div className="px-5 sm:px-6 pt-4 shrink-0">
+                                    <div className={`flex gap-2 items-center p-3 rounded-xl border-2 transition-all ${pairSettingTab === 'must' ? 'bg-[#F0FFF0] border-[#C8E6C9]' : 'bg-[#FFF0F0] border-[#FFCDD2]'}`}>
+                                        <input type="text" value={pairInputA} onChange={e => setPairInputA(e.target.value)} 
+                                            className="flex-1 bg-white p-2.5 rounded-lg text-center font-bold text-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" 
+                                            placeholder={placementType === 'number' ? '번호' : '이름'} 
+                                            onKeyDown={e => e.key === 'Enter' && addPairSetting()} />
+                                        <span className="text-lg">{pairSettingTab === 'must' ? '💕' : '🚫'}</span>
+                                        <input type="text" value={pairInputB} onChange={e => setPairInputB(e.target.value)} 
+                                            className="flex-1 bg-white p-2.5 rounded-lg text-center font-bold text-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" 
+                                            placeholder={placementType === 'number' ? '번호' : '이름'} 
+                                            onKeyDown={e => e.key === 'Enter' && addPairSetting()} />
+                                        <button onClick={addPairSetting} className={`p-2.5 rounded-lg text-white shadow-sm active:scale-95 transition-all ${pairSettingTab === 'must' ? 'bg-[#4CAF50] hover:bg-[#43A047]' : 'bg-[#FF6B6B] hover:bg-[#EF5350]'}`}>
+                                            <Icon name="plus" size={18} />
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 font-bold mt-2 ml-1">
+                                        {pairSettingTab === 'must' ? '반드시 짝꿍으로 앉힐 학생 조합' : '절대 짝꿍으로 앉히지 않을 학생 조합'}
+                                    </p>
+                                </div>
+
+                                {/* 등록된 목록 */}
+                                <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-3 min-h-0">
+                                    {pairSettingTab === 'must' && (
+                                        <div className="space-y-2">
+                                            {seatPairSettings.mustPair.length === 0 ? (
+                                                <div className="text-center py-8 text-gray-300">
+                                                    <Icon name="heart" size={32} className="mx-auto opacity-30 mb-2" />
+                                                    <p className="text-sm font-bold">등록된 조합이 없습니다</p>
+                                                </div>
+                                            ) : seatPairSettings.mustPair.map((pair, idx) => (
+                                                <div key={idx} className="flex items-center justify-between bg-[#F0FFF0] p-3 rounded-xl border border-[#C8E6C9]">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="bg-white px-3 py-1.5 rounded-lg font-bold text-sm text-[#4CAF50] border border-[#C8E6C9]">{pair[0]}</span>
+                                                        <span className="text-sm">💕</span>
+                                                        <span className="bg-white px-3 py-1.5 rounded-lg font-bold text-sm text-[#4CAF50] border border-[#C8E6C9]">{pair[1]}</span>
+                                                    </div>
+                                                    <button onClick={() => removePairSetting('mustPair', idx)} className="p-1.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                                        <Icon name="x" size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {pairSettingTab === 'mustNot' && (
+                                        <div className="space-y-2">
+                                            {seatPairSettings.mustNotPair.length === 0 ? (
+                                                <div className="text-center py-8 text-gray-300">
+                                                    <Icon name="shield-alert" size={32} className="mx-auto opacity-30 mb-2" />
+                                                    <p className="text-sm font-bold">등록된 조합이 없습니다</p>
+                                                </div>
+                                            ) : seatPairSettings.mustNotPair.map((pair, idx) => (
+                                                <div key={idx} className="flex items-center justify-between bg-[#FFF0F0] p-3 rounded-xl border border-[#FFCDD2]">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="bg-white px-3 py-1.5 rounded-lg font-bold text-sm text-[#FF6B6B] border border-[#FFCDD2]">{pair[0]}</span>
+                                                        <span className="text-sm">🚫</span>
+                                                        <span className="bg-white px-3 py-1.5 rounded-lg font-bold text-sm text-[#FF6B6B] border border-[#FFCDD2]">{pair[1]}</span>
+                                                    </div>
+                                                    <button onClick={() => removePairSetting('mustNotPair', idx)} className="p-1.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                                        <Icon name="x" size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 하단 버튼 */}
+                                <div className="p-5 sm:p-6 border-t border-gray-100 flex gap-2 shrink-0">
+                                    {(seatPairSettings.mustPair.length + seatPairSettings.mustNotPair.length) > 0 && (
+                                        <button onClick={() => { playSound('click'); setSeatPairSettings({ mustPair: [], mustNotPair: [] }); }} 
+                                            className="px-4 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">
+                                            전체 삭제
+                                        </button>
+                                    )}
+                                    <button onClick={() => { playSound('click'); setShowPairSettings(false); }} 
+                                        className="flex-1 py-3 bg-[#FFD3B6] hover:bg-[#F2C2A2] text-white rounded-xl font-bold shadow-md active:scale-95 transition-all">
+                                        설정 완료
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* 시스템 모달 */}
                     {systemModal && (
