@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- ★ YouTube Error 153 핵심 수정: Referrer Policy 설정 -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>송쌤과학 교실 도우미</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -14,214 +16,318 @@
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&family=Gamja+Flower&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-        body{
-            font-family:'Jua',sans-serif;
-            background:#F8F6F1;
-            background-image:
-                radial-gradient(circle at 20% 80%, rgba(181,234,215,0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255,183,178,0.12) 0%, transparent 50%),
-                radial-gradient(#E8DDD0 0.8px, transparent 0.8px);
-            background-size:100% 100%, 100% 100%, 20px 20px;
-            color:#4A4A4A;
-            touch-action:manipulation;
-            overflow-x:hidden;
-            -webkit-font-smoothing:antialiased;
-            overscroll-behavior-y:none;
-            margin:0;padding:0;
-        }
-        ::-webkit-scrollbar{width:4px;height:4px;}
-        ::-webkit-scrollbar-track{background:transparent;}
-        ::-webkit-scrollbar-thumb{background:#DDD4C8;border-radius:2px;}
-        .no-scrollbar::-webkit-scrollbar{display:none;}
-        .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
-
+        body{font-family:'Jua',sans-serif;background:#F8F6F1;background-image:radial-gradient(circle at 20% 80%,rgba(181,234,215,.15) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,183,178,.12) 0%,transparent 50%),radial-gradient(#E8DDD0 .8px,transparent .8px);background-size:100% 100%,100% 100%,20px 20px;color:#4A4A4A;touch-action:manipulation;overflow-x:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none;margin:0;padding:0;}
+        ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#DDD4C8;border-radius:2px;}
+        .no-scrollbar::-webkit-scrollbar{display:none;}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
         .card-enter{animation:cardPop .4s cubic-bezier(.34,1.56,.64,1);}
-        @keyframes cardPop{from{opacity:0;transform:scale(.92) translateY(16px);}to{opacity:1;transform:scale(1) translateY(0);}}
-
+        @keyframes cardPop{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
         .winner-pulse{animation:winPulse 1.5s infinite;}
-        @keyframes winPulse{0%{box-shadow:0 0 0 0 rgba(255,138,128,.6);transform:scale(1.1);}70%{box-shadow:0 0 0 14px rgba(255,138,128,0);transform:scale(1.1);}100%{box-shadow:0 0 0 0 rgba(255,138,128,0);transform:scale(1.1);}}
-
+        @keyframes winPulse{0%{box-shadow:0 0 0 0 rgba(255,138,128,.6);transform:scale(1.1)}70%{box-shadow:0 0 0 14px rgba(255,138,128,0);transform:scale(1.1)}100%{box-shadow:0 0 0 0 rgba(255,138,128,0);transform:scale(1.1)}}
         .highlight-anim{transition:all .08s;transform:scale(1.14);background:#B5EAD7!important;border-color:#7ECDB0!important;color:#1B5E3F!important;z-index:10;}
-
         .selected-item{border-color:#FF8A80!important;background:#FFF0F0!important;color:#E53935!important;transform:scale(.95);border-style:dashed!important;animation:bDance 1s infinite linear;}
-        @keyframes bDance{0%{border-color:#FF8A80;}50%{border-color:#FFDAC1;}100%{border-color:#FF8A80;}}
-
-        .glass-panel{
-            background:rgba(255,255,255,.88);
-            backdrop-filter:blur(20px);
-            -webkit-backdrop-filter:blur(20px);
-            border-bottom:1px solid rgba(255,255,255,.6);
-            box-shadow:0 1px 8px rgba(0,0,0,.04);
-        }
-        .soft-shadow{box-shadow:0 2px 12px rgba(0,0,0,.04),0 0.5px 2px rgba(0,0,0,.06);}
+        @keyframes bDance{0%{border-color:#FF8A80}50%{border-color:#FFDAC1}100%{border-color:#FF8A80}}
+        .glass-panel{background:rgba(255,255,255,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.6);box-shadow:0 1px 8px rgba(0,0,0,.04);}
+        .soft-shadow{box-shadow:0 2px 12px rgba(0,0,0,.04),0 .5px 2px rgba(0,0,0,.06);}
         .center-content{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;line-height:1;word-break:keep-all;}
         .timer-circle{transition:stroke-dashoffset 1s linear;}
-
         footer{font-family:'Do Hyeon',sans-serif;}
-
         .mini-float{animation:miniIn .35s cubic-bezier(.34,1.56,.64,1);}
-        @keyframes miniIn{from{opacity:0;transform:scale(.5) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+        @keyframes miniIn{from{opacity:0;transform:scale(.5) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
         .mini-pulse{animation:mPulse 2s infinite;}
-        @keyframes mPulse{0%,100%{box-shadow:0 2px 10px rgba(255,183,178,.25);}50%{box-shadow:0 2px 18px rgba(255,183,178,.55);}}
-
+        @keyframes mPulse{0%,100%{box-shadow:0 2px 10px rgba(255,183,178,.25)}50%{box-shadow:0 2px 18px rgba(255,183,178,.55)}}
         .t-input{background:transparent;border:none;outline:none;text-align:center;font-family:'Jua',sans-serif;caret-color:#FFDAC1;}
         .t-input:focus{background:rgba(255,218,193,.12);border-radius:10px;}
-        .t-input::-webkit-inner-spin-button,.t-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
-        .t-input{-moz-appearance:textfield;}
-
+        .t-input::-webkit-inner-spin-button,.t-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.t-input{-moz-appearance:textfield;}
         .modal-up{animation:mUp .3s cubic-bezier(.34,1.56,.64,1);}
-        @keyframes mUp{from{opacity:0;transform:translateY(30px) scale(.96);}to{opacity:1;transform:translateY(0) scale(1);}}
-
+        @keyframes mUp{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
         .touch-target{min-height:44px;min-width:44px;}
         .safe-b{padding-bottom:max(env(safe-area-inset-bottom,0px),8px);}
-
         .excluded-badge{display:inline-flex;align-items:center;gap:2px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:bold;background:#FFF0F0;color:#FF8A80;border:1.5px solid #FFD6D2;}
         .excluded-cell{background:repeating-linear-gradient(135deg,#F8F8F8,#F8F8F8 3px,#F0F0F0 3px,#F0F0F0 6px)!important;color:#CCC!important;border-color:#E8E8E8!important;cursor:default!important;pointer-events:none;}
-
-        /* 입력 화면 */
-        .intro-bg{
-            min-height:100vh;min-height:100dvh;
-            display:flex;align-items:center;justify-content:center;
-            background:linear-gradient(160deg,#FFF5F2 0%,#F0FAF5 40%,#F5F3FF 100%);
-            position:relative;overflow:hidden;
-        }
-        .intro-bg::before{
-            content:'';position:absolute;top:-60%;right:-30%;width:600px;height:600px;
-            background:radial-gradient(circle,rgba(255,183,178,.18) 0%,transparent 70%);
-            border-radius:50%;pointer-events:none;
-        }
-        .intro-bg::after{
-            content:'';position:absolute;bottom:-40%;left:-20%;width:500px;height:500px;
-            background:radial-gradient(circle,rgba(181,234,215,.18) 0%,transparent 70%);
-            border-radius:50%;pointer-events:none;
-        }
-        .intro-card{
-            background:rgba(255,255,255,.92);
-            backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-            border:1px solid rgba(255,255,255,.8);
-            animation:introIn .6s cubic-bezier(.34,1.56,.64,1);
-        }
-        @keyframes introIn{from{opacity:0;transform:scale(.9) translateY(24px);}to{opacity:1;transform:scale(1) translateY(0);}}
-
+        .intro-bg{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#FFF5F2 0%,#F0FAF5 40%,#F5F3FF 100%);position:relative;overflow:hidden;}
+        .intro-bg::before{content:'';position:absolute;top:-60%;right:-30%;width:600px;height:600px;background:radial-gradient(circle,rgba(255,183,178,.18) 0%,transparent 70%);border-radius:50%;pointer-events:none;}
+        .intro-bg::after{content:'';position:absolute;bottom:-40%;left:-20%;width:500px;height:500px;background:radial-gradient(circle,rgba(181,234,215,.18) 0%,transparent 70%);border-radius:50%;pointer-events:none;}
+        .intro-card{background:rgba(255,255,255,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.8);animation:introIn .6s cubic-bezier(.34,1.56,.64,1);}
+        @keyframes introIn{from{opacity:0;transform:scale(.9) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
         .intro-icon{animation:gentleBounce 3s ease-in-out infinite;}
-        @keyframes gentleBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
-
-        .input-glow:focus{
-            box-shadow:0 0 0 4px rgba(255,183,178,.2);
-        }
-
-        /* Nav pills improved */
-        .nav-pill{
-            display:flex;flex-direction:column;align-items:center;justify-content:center;
-            border-radius:14px;transition:all .2s;flex-shrink:0;
-            width:52px;height:56px;gap:2px;
-            -webkit-user-select:none;user-select:none;
-        }
-        @media(min-width:640px){.nav-pill{width:64px;height:62px;}}
-        @media(min-width:768px){.nav-pill{flex-direction:row;width:auto;height:auto;padding:10px 16px;gap:6px;}}
-        .nav-pill.active{background:#FFB7B2;color:white;box-shadow:0 3px 12px rgba(255,183,178,.35);transform:scale(1.05);}
-        .nav-pill:not(.active){color:#A0A0A0;}
-        .nav-pill:not(.active):hover{background:rgba(255,255,255,.8);color:#FFB7B2;}
-
-        .sound-toggle{
-            display:flex;align-items:center;gap:6px;
-            padding:6px 12px;border-radius:999px;
-            font-size:11px;font-weight:bold;
-            cursor:pointer;transition:all .2s;
-            -webkit-user-select:none;user-select:none;
-        }
+        @keyframes gentleBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        .input-glow:focus{box-shadow:0 0 0 4px rgba(255,183,178,.2);}
+        .nav-pill{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;transition:all .2s;flex-shrink:0;width:46px;height:52px;gap:1px;-webkit-user-select:none;user-select:none;}
+        @media(min-width:640px){.nav-pill{width:58px;height:58px;gap:2px}}
+        @media(min-width:768px){.nav-pill{flex-direction:row;width:auto;height:auto;padding:10px 14px;gap:6px}}
+        .nav-pill.active{background:#FFB7B2;color:#fff;box-shadow:0 3px 12px rgba(255,183,178,.35);transform:scale(1.05);}
+        .nav-pill:not(.active){color:#A0A0A0}.nav-pill:not(.active):hover{background:rgba(255,255,255,.8);color:#FFB7B2;}
+        .sound-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:bold;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
         .sound-toggle.on{background:#E2F0CB;color:#6B8E23;border:1.5px solid #D4E8B4;}
         .sound-toggle.off{background:#F0F0F0;color:#AAA;border:1.5px solid #E0E0E0;}
-
-        /* better grid cells */
-        .student-cell{
-            aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;
-            font-weight:900;border:2px solid #EDE6DA;background:white;color:#5D5D5D;
-            transition:all .12s;cursor:default;position:relative;overflow:hidden;
-            font-size:14px;
-        }
-        @media(min-width:640px){.student-cell{border-radius:12px;font-size:18px;}}
-
+        .student-cell{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;border:2px solid #EDE6DA;background:#fff;color:#5D5D5D;transition:all .12s;cursor:default;position:relative;overflow:hidden;font-size:14px;}
+        @media(min-width:640px){.student-cell{border-radius:12px;font-size:18px}}
         .student-cell.done{background:#FAFAFA;border-color:#F0F0F0;color:#CCC;transform:scale(.9);filter:grayscale(1);}
-        .student-cell.winner{background:#FFB7B2;border-color:#FF9E99;color:white;z-index:20;}
+        .student-cell.winner{background:#FFB7B2;border-color:#FF9E99;color:#fff;z-index:20;}
+        .rec-pulse{animation:recPulse 1.2s ease-in-out infinite;}
+        @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
+        .clock-face{font-variant-numeric:tabular-nums;letter-spacing:-1px;}
+        .cal-day{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-weight:bold;font-size:13px;transition:all .15s;}
+        @media(min-width:640px){.cal-day{width:42px;height:42px;font-size:14px}}
+        .cal-today{background:#FFB7B2;color:#fff;font-weight:900;box-shadow:0 2px 8px rgba(255,183,178,.35);}
+        .cal-sun{color:#FF6B6B}.cal-sat{color:#64B5F6;}
+        @keyframes barBounce{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+        /* mobile audio player fix */
+        audio{max-width:100%;border-radius:8px;}
+        audio::-webkit-media-controls-panel{background:#f9f9f9;}
     </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useRef,useCallback,useMemo}=React;
+const {useState,useEffect,useRef,useMemo}=React;
 
-const Icon=({name,size=24,className=""})=>{
-    const ref=useRef(null);
-    useEffect(()=>{
-        if(window.lucide&&ref.current){
-            ref.current.innerHTML='';
-            const i=document.createElement('i');
-            i.setAttribute('data-lucide',name);
-            i.setAttribute('class',className);
-            ref.current.appendChild(i);
-            window.lucide.createIcons({root:ref.current,nameAttr:'data-lucide',attrs:{width:size,height:size}});
-        }
-    },[name,size,className]);
-    return <span ref={ref} className="inline-flex items-center justify-center"/>;
-};
-
-const Copyright=({fixed})=>(
-    <footer className={`w-full text-center py-4 text-[10px] text-gray-400 font-bold tracking-widest uppercase ${fixed?'fixed bottom-0 left-0 bg-white/50 backdrop-blur-sm safe-b':'mt-6'}`}>
-        ⓒ 송쌤과학 Class Helper
-    </footer>
-);
+const Icon=({name,size=24,className=""})=>{const ref=useRef(null);useEffect(()=>{if(window.lucide&&ref.current){ref.current.innerHTML='';const i=document.createElement('i');i.setAttribute('data-lucide',name);i.setAttribute('class',className);ref.current.appendChild(i);window.lucide.createIcons({root:ref.current,nameAttr:'data-lucide',attrs:{width:size,height:size}});}},[name,size,className]);return <span ref={ref} className="inline-flex items-center justify-center"/>;};
+const Copyright=({fixed})=>(<footer className={`w-full text-center py-4 text-[10px] text-gray-400 font-bold tracking-widest uppercase ${fixed?'fixed bottom-0 left-0 bg-white/50 backdrop-blur-sm safe-b':'mt-6'}`}>ⓒ 송쌤과학 Class Helper</footer>);
 
 function SystemModal({modal,closeModal}){
-    return(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="modal-up bg-white p-5 sm:p-7 rounded-2xl shadow-2xl max-w-xs sm:max-w-sm w-full text-center border-4 border-[#FFB7B2]">
-                <p className="text-base sm:text-lg font-bold text-gray-700 mb-5 whitespace-pre-wrap leading-relaxed">{modal.msg}</p>
-                <div className="flex gap-2 justify-center">
-                    {modal.type==='confirm'&&<button onClick={closeModal} className="flex-1 py-2.5 bg-gray-100 rounded-xl font-bold text-gray-500 touch-target">취소</button>}
-                    <button onClick={()=>{if(modal.action)modal.action();closeModal();}} className="flex-1 py-2.5 bg-[#FFB7B2] rounded-xl font-bold text-white touch-target">확인</button>
-                </div>
-            </div>
-        </div>
-    );
+    return(<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"><div className="modal-up bg-white p-5 sm:p-7 rounded-2xl shadow-2xl max-w-xs sm:max-w-sm w-full text-center border-4 border-[#FFB7B2]"><p className="text-base sm:text-lg font-bold text-gray-700 mb-5 whitespace-pre-wrap leading-relaxed">{modal.msg}</p><div className="flex gap-2 justify-center">{modal.type==='confirm'&&<button onClick={closeModal} className="flex-1 py-2.5 bg-gray-100 rounded-xl font-bold text-gray-500 touch-target">취소</button>}<button onClick={()=>{if(modal.action)modal.action();closeModal();}} className="flex-1 py-2.5 bg-[#FFB7B2] rounded-xl font-bold text-white touch-target">확인</button></div></div></div>);
 }
 
-/* ── 제외 번호 입력 컴포넌트 ── */
 function ExcludeBar({excludedInput,setExcludedInput,excludedNums,totalCount,accentColor,playSound}){
     const activeCount=totalCount-excludedNums.length;
-    return(
-        <div className="bg-white/80 backdrop-blur rounded-xl p-2.5 border border-gray-100 soft-shadow">
-            <div className="flex items-center gap-2">
-                <div className="shrink-0 p-1.5 rounded-lg" style={{background:accentColor+'22'}}><Icon name="user-minus" size={15}/></div>
-                <input type="text" value={excludedInput} onChange={e=>setExcludedInput(e.target.value)}
-                    className="flex-1 p-2 bg-[#F7F7F7] rounded-lg border-2 border-transparent focus:border-gray-200 outline-none font-bold text-xs min-w-0"
-                    placeholder="제외 번호 (예: 3, 7, 15)"/>
-                {excludedNums.length>0&&(
-                    <button onClick={()=>{playSound('click');setExcludedInput('');}} className="shrink-0 p-1.5 text-gray-300 hover:text-red-400 touch-target"><Icon name="x" size={14}/></button>
-                )}
-            </div>
-            {excludedNums.length>0&&(
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] text-gray-400 font-bold shrink-0">제외:</span>
-                    {excludedNums.map(n=>(<span key={n} className="excluded-badge">{n}번</span>))}
-                    <span className="ml-auto text-[10px] font-bold" style={{color:accentColor}}>참여 {activeCount}명</span>
-                </div>
-            )}
-        </div>
-    );
+    return(<div className="bg-white/80 backdrop-blur rounded-xl p-2.5 border border-gray-100 soft-shadow"><div className="flex items-center gap-2"><div className="shrink-0 p-1.5 rounded-lg" style={{background:accentColor+'22'}}><Icon name="user-minus" size={15}/></div><input type="text" value={excludedInput} onChange={e=>setExcludedInput(e.target.value)} className="flex-1 p-2 bg-[#F7F7F7] rounded-lg border-2 border-transparent focus:border-gray-200 outline-none font-bold text-xs min-w-0" placeholder="제외 번호 (예: 3, 7, 15)"/>{excludedNums.length>0&&<button onClick={()=>{playSound('click');setExcludedInput('');}} className="shrink-0 p-1.5 text-gray-300 hover:text-red-400 touch-target"><Icon name="x" size={14}/></button>}</div>{excludedNums.length>0&&<div className="mt-2 flex flex-wrap items-center gap-1.5"><span className="text-[10px] text-gray-400 font-bold shrink-0">제외:</span>{excludedNums.map(n=><span key={n} className="excluded-badge">{n}번</span>)}<span className="ml-auto text-[10px] font-bold" style={{color:accentColor}}>참여 {activeCount}명</span></div>}</div>);
 }
 
-/* ── 소리 토글 버튼 ── */
 function SoundToggle({isSoundOn,setIsSoundOn,playSound}){
-    return(
-        <button onClick={()=>{if(isSoundOn){}else{playSound('click');}setIsSoundOn(!isSoundOn);}}
-            className={`sound-toggle ${isSoundOn?'on':'off'}`}>
-            <Icon name={isSoundOn?"volume-2":"volume-x"} size={13}/>
-            소리 {isSoundOn?"ON":"OFF"}
-        </button>
-    );
+    return(<button onClick={()=>{if(!isSoundOn)playSound('click');setIsSoundOn(!isSoundOn);}} className={`sound-toggle ${isSoundOn?'on':'off'}`}><Icon name={isSoundOn?"volume-2":"volume-x"} size={13}/>소리 {isSoundOn?"ON":"OFF"}</button>);
 }
 
+/* ══ 실시간 시계 ══ */
+function LiveClock({size='lg'}){
+    const [now,setNow]=useState(new Date());
+    useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t);},[]);
+    const h=now.getHours(),m=now.getMinutes(),s=now.getSeconds();
+    const period=h>=12?'오후':'오전';const h12=h%12||12;
+    const dateStr=`${now.getFullYear()}. ${now.getMonth()+1}. ${now.getDate()}. ${['일','월','화','수','목','금','토'][now.getDay()]}요일`;
+    if(size==='md') return(<div className="text-center"><div className="text-sm font-bold text-gray-400 mb-1">{period}</div><div className="text-3xl sm:text-5xl font-black text-[#4A4A4A] clock-face">{String(h12).padStart(2,'0')}:{String(m).padStart(2,'0')}<span className="text-xl sm:text-3xl text-gray-300 ml-0.5">:{String(s).padStart(2,'0')}</span></div><div className="text-xs font-bold text-gray-400 mt-1.5">{dateStr}</div></div>);
+    return(<div className="text-center"><div className="text-base font-bold text-gray-400 mb-1">{period}</div><div className="text-5xl sm:text-7xl font-black text-[#4A4A4A] clock-face">{String(h12).padStart(2,'0')}:{String(m).padStart(2,'0')}<span className="text-3xl sm:text-5xl text-gray-300 ml-1">:{String(s).padStart(2,'0')}</span></div><div className="text-sm font-bold text-gray-400 mt-2">{now.getFullYear()}년 {now.getMonth()+1}월 {now.getDate()}일 {['일','월','화','수','목','금','토'][now.getDay()]}요일</div></div>);
+}
+
+/* ══ 달력 ══ */
+function CalendarWidget(){
+    const today=new Date();const [year,setYear]=useState(today.getFullYear());const [month,setMonth]=useState(today.getMonth());
+    const firstDay=new Date(year,month,1).getDay();const daysInMonth=new Date(year,month+1,0).getDate();
+    const prev=()=>{if(month===0){setMonth(11);setYear(y=>y-1);}else setMonth(m=>m-1);};
+    const next=()=>{if(month===11){setMonth(0);setYear(y=>y+1);}else setMonth(m=>m+1);};
+    const goToday=()=>{setYear(today.getFullYear());setMonth(today.getMonth());};
+    const isToday=d=>d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
+    const days=[];for(let i=0;i<firstDay;i++)days.push(null);for(let d=1;d<=daysInMonth;d++)days.push(d);
+    return(<div className="bg-white rounded-2xl p-4 sm:p-5 soft-shadow border border-gray-100 max-w-sm mx-auto w-full"><div className="flex items-center justify-between mb-4"><button onClick={prev} className="p-2 rounded-lg hover:bg-gray-100 touch-target"><Icon name="chevron-left" size={18}/></button><div className="text-center cursor-pointer" onClick={goToday}><span className="text-lg sm:text-xl font-black text-[#4A4A4A]">{year}년 {month+1}월</span></div><button onClick={next} className="p-2 rounded-lg hover:bg-gray-100 touch-target"><Icon name="chevron-right" size={18}/></button></div><div className="grid grid-cols-7 gap-1 mb-2">{['일','월','화','수','목','금','토'].map((d,i)=><div key={d} className={`text-center text-[11px] font-bold py-1 ${i===0?'text-red-400':i===6?'text-blue-400':'text-gray-400'}`}>{d}</div>)}</div><div className="grid grid-cols-7 gap-1">{days.map((d,i)=>d?<div key={i} className={`cal-day ${isToday(d)?'cal-today':i%7===0?'cal-sun':i%7===6?'cal-sat':'text-gray-600'} ${!isToday(d)?'hover:bg-gray-100':''}`}>{d}</div>:<div key={i}/>)}</div><div className="mt-3 text-center"><button onClick={goToday} className="text-[10px] font-bold text-[#FFB7B2] hover:underline">오늘로 이동</button></div></div>);
+}
+
+/* ══════════════════════════════════════════
+   ▼ 녹음 (WAV — 외부 라이브러리 불필요, 빠른 처리)
+   ══════════════════════════════════════════ */
+function RecorderWidget({playSound:ps}){
+    const [isRecording,setIsRecording]=useState(false);
+    const [isPaused,setIsPaused]=useState(false);
+    const [elapsed,setElapsed]=useState(0);
+    const [recordings,setRecordings]=useState([]);
+    const [isConverting,setIsConverting]=useState(false);
+    const mediaRecRef=useRef(null);
+    const chunksRef=useRef([]);
+    const timerRef=useRef(null);
+    const streamRef=useRef(null);
+    const elapsedRef=useRef(0);
+
+    useEffect(()=>{return()=>{if(streamRef.current)streamRef.current.getTracks().forEach(t=>t.stop());clearInterval(timerRef.current);};},[]); // eslint-disable-line
+
+    /* WebM Blob → WAV Blob (브라우저 내장 API만 사용) */
+    const toWav=(blob)=>new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        reader.onload=async()=>{
+            try{
+                const ctx=new(window.AudioContext||window.webkitAudioContext)();
+                const buf=await ctx.decodeAudioData(reader.result);
+                ctx.close();
+                const nCh=1, sr=buf.sampleRate, samples=buf.getChannelData(0);
+                const len=samples.length;
+                const wavBuf=new ArrayBuffer(44+len*2);
+                const v=new DataView(wavBuf);
+                const writeStr=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+                writeStr(0,'RIFF');v.setUint32(4,36+len*2,true);writeStr(8,'WAVE');
+                writeStr(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,nCh,true);
+                v.setUint32(24,sr,true);v.setUint32(28,sr*nCh*2,true);v.setUint16(32,nCh*2,true);v.setUint16(34,16,true);
+                writeStr(36,'data');v.setUint32(40,len*2,true);
+                let off=44;
+                for(let i=0;i<len;i++,off+=2){const s=Math.max(-1,Math.min(1,samples[i]));v.setInt16(off,s<0?s*0x8000:s*0x7FFF,true);}
+                resolve(new Blob([wavBuf],{type:'audio/wav'}));
+            }catch(e){reject(e);}
+        };
+        reader.onerror=reject;
+        reader.readAsArrayBuffer(blob);
+    });
+
+    const startRecording=async()=>{
+        try{
+            const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,sampleRate:44100}});
+            streamRef.current=stream;
+            // 모바일 호환: mimeType 자동 선택
+            const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'';
+            const opts=mimeType?{mimeType}:{};
+            const mr=new MediaRecorder(stream,opts);
+            mediaRecRef.current=mr;chunksRef.current=[];
+            mr.ondataavailable=e=>{if(e.data.size>0)chunksRef.current.push(e.data);};
+            mr.onstop=async()=>{
+                const webmBlob=new Blob(chunksRef.current,{type:mr.mimeType||'audio/webm'});
+                const now=new Date();
+                const name=`녹음_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
+                setIsConverting(true);
+                try{
+                    const wavBlob=await toWav(webmBlob);
+                    const url=URL.createObjectURL(wavBlob);
+                    const dur=elapsedRef.current;
+                    setRecordings(prev=>[{id:Date.now(),url,name,duration:dur,blob:wavBlob,ext:'wav'},...prev]);
+                    const a=document.createElement('a');a.href=url;a.download=name+'.wav';document.body.appendChild(a);a.click();document.body.removeChild(a);
+                }catch(err){
+                    console.warn('WAV 변환 실패, 원본 저장:',err);
+                    const url=URL.createObjectURL(webmBlob);
+                    setRecordings(prev=>[{id:Date.now(),url,name,duration:elapsedRef.current,blob:webmBlob,ext:'webm'},...prev]);
+                    const a=document.createElement('a');a.href=url;a.download=name+'.webm';document.body.appendChild(a);a.click();document.body.removeChild(a);
+                }
+                setIsConverting(false);
+                stream.getTracks().forEach(t=>t.stop());streamRef.current=null;
+            };
+            mr.start(250);
+            setIsRecording(true);setIsPaused(false);setElapsed(0);elapsedRef.current=0;
+            timerRef.current=setInterval(()=>{elapsedRef.current++;setElapsed(e=>e+1);},1000);
+            ps('click');
+        }catch(e){alert("마이크 권한을 허용해주세요.\n\n브라우저 설정 > 사이트 설정 > 마이크 에서 '허용'으로 변경 후 다시 시도하세요.");}
+    };
+    const pauseRec=()=>{if(mediaRecRef.current?.state==='recording'){mediaRecRef.current.pause();setIsPaused(true);clearInterval(timerRef.current);ps('click');}};
+    const resumeRec=()=>{if(mediaRecRef.current?.state==='paused'){mediaRecRef.current.resume();setIsPaused(false);timerRef.current=setInterval(()=>{elapsedRef.current++;setElapsed(e=>e+1);},1000);ps('click');}};
+    const stopRec=()=>{if(mediaRecRef.current?.state!=='inactive'){mediaRecRef.current.stop();setIsRecording(false);setIsPaused(false);clearInterval(timerRef.current);ps('win');}};
+    const dlRec=r=>{const a=document.createElement('a');a.href=r.url;a.download=r.name+'.'+r.ext;document.body.appendChild(a);a.click();document.body.removeChild(a);};
+    const delRec=id=>{setRecordings(prev=>{const t=prev.find(r=>r.id===id);if(t?.url)URL.revokeObjectURL(t.url);return prev.filter(r=>r.id!==id);});ps('click');};
+    const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+
+    return(<div className="w-full max-w-lg mx-auto space-y-4">
+        <div className="bg-white rounded-2xl p-5 sm:p-7 soft-shadow border-2 border-[#FFCDD2] text-center">
+            <h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-1 flex items-center justify-center gap-2"><Icon name="mic" size={20}/> 음성 녹음</h2>
+            <p className="text-[10px] text-gray-400 font-bold mb-5">녹음 완료 시 WAV 파일로 자동 다운로드</p>
+            <div className={`text-4xl sm:text-6xl font-black clock-face mb-6 ${isRecording&&!isPaused?'text-red-500':'text-[#4A4A4A]'}`}>{fmt(elapsed)}</div>
+            {isRecording&&!isPaused&&<div className="flex items-center justify-center gap-[3px] mb-5 h-8">{Array.from({length:24}).map((_,i)=><div key={i} className="w-[3px] bg-red-400 rounded-full origin-bottom" style={{height:'24px',animation:`barBounce ${.4+Math.random()*.4}s ease-in-out infinite`,animationDelay:`${i*.04}s`}}/>)}</div>}
+            {isRecording&&isPaused&&<div className="flex items-center justify-center gap-2 mb-5 h-8 text-gray-400 font-bold text-sm"><span className="animate-pulse">⏸</span> 일시정지</div>}
+            {!isRecording&&!isConverting&&<div className="h-8 mb-5"/>}
+            {isConverting&&<div className="flex items-center justify-center gap-2 mb-5 h-8 text-blue-500 font-bold text-sm"><Icon name="loader-2" size={16} className="animate-spin"/> WAV 변환 중...</div>}
+            <div className="flex gap-3 justify-center flex-wrap">
+                {!isRecording?<button onClick={startRecording} disabled={isConverting} className="flex items-center gap-2 px-6 py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-base font-black shadow-lg shadow-red-500/25 active:scale-95 touch-target transition-all disabled:opacity-50"><Icon name="mic" size={20}/> 녹음 시작</button>:<>
+                    {!isPaused?<button onClick={pauseRec} className="px-5 py-3.5 bg-yellow-500 text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5"><Icon name="pause" size={18}/> 일시정지</button>:<button onClick={resumeRec} className="px-5 py-3.5 bg-green-500 text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5"><Icon name="play" size={18}/> 계속</button>}
+                    <button onClick={stopRec} className={`px-5 py-3.5 bg-[#FFB7B2] text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5 ${isRecording&&!isPaused?'rec-pulse':''}`}><Icon name="square" size={18}/> 녹음 완료</button>
+                </>}
+            </div>
+        </div>
+        <div className="bg-[#F0F8FF] rounded-xl p-3 border border-[#D6EBFF] flex items-start gap-2">
+            <div className="shrink-0 mt-0.5"><Icon name="shield-check" size={16} className="text-blue-400"/></div>
+            <div className="text-[11px] text-gray-500 font-bold leading-relaxed">
+                <p>녹음 파일은 서버에 저장되지 않으며, 사용자의 기기에서만 처리됩니다.</p>
+                <p className="mt-0.5 text-gray-400">브라우저 탭을 닫거나 페이지를 새로고침하면 녹음 파일이 자동으로 삭제됩니다.</p>
+            </div>
+        </div>
+        {recordings.length>0&&<div className="space-y-2">
+            <h3 className="text-sm font-black text-gray-500 px-1">녹음 목록 ({recordings.length})</h3>
+            {recordings.map(rec=><div key={rec.id} className="bg-white rounded-xl p-3 soft-shadow border border-gray-100 flex items-center gap-3">
+                <div className="shrink-0 p-2 bg-red-50 rounded-lg text-red-400"><Icon name="file-audio" size={18}/></div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-gray-600 truncate">{rec.name}.{rec.ext}</p>
+                    <p className="text-[10px] text-gray-400 font-bold">{fmt(rec.duration)}</p>
+                    <audio controls controlsList="nodownload" preload="metadata" className="w-full mt-1.5 h-8"><source src={rec.url} type={`audio/${rec.ext}`}/></audio>
+                </div>
+                <div className="flex flex-col gap-1 shrink-0">
+                    <button onClick={()=>dlRec(rec)} className="p-1.5 text-blue-400 hover:bg-blue-50 rounded-lg touch-target"><Icon name="download" size={16}/></button>
+                    <button onClick={()=>delRec(rec.id)} className="p-1.5 text-red-300 hover:bg-red-50 rounded-lg touch-target"><Icon name="trash-2" size={16}/></button>
+                </div>
+            </div>)}
+        </div>}
+    </div>);
+}
+
+/* ══════════════════════════════════════════
+   ▼ 유튜브 (Error 153 완전 수정)
+   ══════════════════════════════════════════
+   원인: YouTube embed가 Referer 헤더를 요구하는데,
+   sandbox 속성이나 잘못된 referrerpolicy가 이를 차단.
+   해결: referrerpolicy="strict-origin-when-cross-origin"
+   + sandbox 제거 + <meta name="referrer"> 추가
+   ══════════════════════════════════════════ */
+function YouTubePlayer({playSound:ps}){
+    const [embedInput,setEmbedInput]=useState('');
+    const [videoId,setVideoId]=useState(null);
+    const [history,setHistory]=useState([]);
+    const [errorMsg,setErrorMsg]=useState('');
+
+    const extractId=input=>{
+        const c=input.trim();
+        // youtube.com/watch?v=ID, youtu.be/ID, /embed/ID, /shorts/ID, /live/ID
+        let m=c.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
+        if(m)return m[1];
+        // iframe src에서 추출
+        m=c.match(/src=["'](?:https?:)?\/\/(?:www\.)?(?:youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/i);
+        if(m)return m[1];
+        // 11자리 ID만
+        if(/^[a-zA-Z0-9_-]{11}$/.test(c))return c;
+        return null;
+    };
+
+    const loadVideo=()=>{
+        if(!embedInput.trim())return;
+        ps('click');setErrorMsg('');
+        const id=extractId(embedInput.trim());
+        if(id){
+            setVideoId(id);
+            setHistory(prev=>{const f=prev.filter(h=>h.id!==id);return[{id,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})},...f].slice(0,10);});
+        }else{
+            setVideoId(null);
+            setErrorMsg("올바른 YouTube URL 또는 임베드 코드를 입력해주세요.\n\n예시:\nhttps://www.youtube.com/watch?v=VIDEO_ID\nhttps://youtu.be/VIDEO_ID\n<iframe> 임베드 코드");
+        }
+    };
+
+    return(<div className="w-full max-w-3xl mx-auto space-y-3">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 soft-shadow border-2 border-[#FF6B6B]/20">
+            <h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2"><Icon name="youtube" size={20} className="text-red-500"/> 유튜브 플레이어</h2>
+            <div className="flex gap-2 mb-2">
+                <input type="text" value={embedInput} onChange={e=>setEmbedInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&loadVideo()} className="flex-1 p-2.5 bg-[#FFF5F5] rounded-xl border-2 border-transparent focus:border-red-200 outline-none font-bold text-xs sm:text-sm min-w-0" placeholder="YouTube URL 또는 임베드 코드 붙여넣기"/>
+                <button onClick={loadVideo} className="px-4 bg-red-500 text-white rounded-xl font-black shadow-md touch-target active:scale-95 transition-all text-sm shrink-0">재생</button>
+            </div>
+            <p className="text-[10px] text-gray-400 font-bold mb-3 px-1">YouTube 링크, 공유 URL, 또는 &lt;iframe&gt; 임베드 코드를 입력하세요</p>
+            {errorMsg&&<div className="mb-3 bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-500 font-bold whitespace-pre-wrap">{errorMsg}</div>}
+            {videoId?(<div className="relative w-full rounded-xl overflow-hidden shadow-lg bg-black" style={{paddingBottom:'56.25%'}}>
+                {/*
+                    ★ Error 153 핵심 수정:
+                    1) referrerpolicy="strict-origin-when-cross-origin" — Referer 헤더 전송 보장
+                    2) sandbox 속성 제거 — sandbox가 Referer를 차단하는 주요 원인
+                    3) youtube.com 도메인 사용 (nocookie도 가능하지만 일부 환경에서 추가 문제)
+                    4) <head>에 <meta name="referrer" content="strict-origin-when-cross-origin"> 추가
+                */}
+                <iframe
+                    key={videoId}
+                    src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&enablejsapi=0`}
+                    className="absolute inset-0 w-full h-full"
+                    frameBorder="0"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    title="YouTube video player"
+                />
+            </div>):(<div className="w-full rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center py-16 sm:py-24 text-gray-300"><Icon name="play-circle" size={48} className="opacity-30 mb-2"/><span className="font-bold text-sm">영상을 불러와주세요</span></div>)}
+        </div>
+        {history.length>0&&<div className="bg-white/80 rounded-xl p-3 soft-shadow border border-gray-100">
+            <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-gray-400">최근 재생</span><button onClick={()=>{ps('click');setHistory([]);}} className="text-[10px] text-red-300 font-bold">전체삭제</button></div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{history.map(h=><button key={h.id} onClick={()=>{ps('click');setVideoId(h.id);setErrorMsg('');}} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-[#FFF5F5] rounded-lg border border-red-100 text-xs font-bold text-gray-600 active:scale-95 touch-target"><Icon name="play" size={11} className="text-red-400"/><span className="max-w-[80px] truncate">{h.time}</span></button>)}</div>
+        </div>}
+    </div>);
+}
+
+
+/* ══════════════════════════════════════════
+   ▼ 메인 앱
+   ══════════════════════════════════════════ */
 function App(){
     const [step,setStep]=useState('input');
     const [studentCount,setStudentCount]=useState('');
@@ -255,639 +361,185 @@ function App(){
     const [initialTime,setInitialTime]=useState(300);
     const [isTimerRunning,setIsTimerRunning]=useState(false);
     const [timerEverStarted,setTimerEverStarted]=useState(false);
-    const [minEdit,setMinEdit]=useState('');
-    const [secEdit,setSecEdit]=useState('');
-    const [editingMin,setEditingMin]=useState(false);
-    const [editingSec,setEditingSec]=useState(false);
-    const [qrInput,setQrInput]=useState('');
-    const [qrUrl,setQrUrl]=useState(null);
-    const [memos,setMemos]=useState([]);
-    const [memoInput,setMemoInput]=useState('');
+    const [minEdit,setMinEdit]=useState('');const [secEdit,setSecEdit]=useState('');
+    const [editingMin,setEditingMin]=useState(false);const [editingSec,setEditingSec]=useState(false);
+    const [showClockInTimer,setShowClockInTimer]=useState(false);
+    const [qrInput,setQrInput]=useState('');const [qrUrl,setQrUrl]=useState(null);
+    const [memos,setMemos]=useState([]);const [memoInput,setMemoInput]=useState('');
     const [uploadedImg,setUploadedImg]=useState(null);
-    const [fullScreenContent,setFullScreenContent]=useState(null);
-    const [fsFontSize,setFsFontSize]=useState(60);
+    const [fullScreenContent,setFullScreenContent]=useState(null);const [fsFontSize,setFsFontSize]=useState(60);
 
-    const audioCtx=useRef(null);
-    const timerRef=useRef(null);
-    const captureRef=useRef(null);
-    const fileInputRef=useRef(null);
+    const audioCtx=useRef(null);const timerRef=useRef(null);const captureRef=useRef(null);const fileInputRef=useRef(null);
 
-    const excludedNums=useMemo(()=>{
-        return excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length);
-    },[excludedInput,students.length]);
+    const excludedNums=useMemo(()=>excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length),[excludedInput,students.length]);
+    const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
 
-    const activeStudents=useMemo(()=>{
-        return students.filter(s=>!excludedNums.includes(s));
-    },[students,excludedNums]);
-
-    // Audio
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
-    const playSound=(type)=>{
+    const playSound=type=>{
         if(!isSoundOn)return;initAudio();const ctx=audioCtx.current;const t=ctx.currentTime;
-        if(type==='click'){const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(800,t);g.gain.setValueAtTime(.04,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);o.start(t);o.stop(t+.08);}
-        else if(type==='tick'){const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='triangle';o.frequency.setValueAtTime(600,t);g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);o.start(t);o.stop(t+.04);}
-        else if(type==='win'){[523.25,659.25,783.99,1046.5].forEach((f,i)=>{const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(f,t+i*.1);g.gain.setValueAtTime(0,t+i*.1);g.gain.linearRampToValueAtTime(.08,t+i*.1+.04);g.gain.exponentialRampToValueAtTime(.001,t+i*.1+.5);o.start(t+i*.1);o.stop(t+i*.1+.5);});}
-        else if(type==='alarm'){for(let i=0;i<3;i++){const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='square';o.frequency.setValueAtTime(880,t+i*.2);o.frequency.setValueAtTime(698,t+i*.2+.1);g.gain.setValueAtTime(.04,t+i*.2);g.gain.linearRampToValueAtTime(0,t+i*.2+.15);o.start(t+i*.2);o.stop(t+i*.2+.2);}}
+        if(type==='click'){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(800,t);g.gain.setValueAtTime(.04,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);o.start(t);o.stop(t+.08);}
+        else if(type==='tick'){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='triangle';o.frequency.setValueAtTime(600,t);g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);o.start(t);o.stop(t+.04);}
+        else if(type==='win'){[523.25,659.25,783.99,1046.5].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(f,t+i*.1);g.gain.setValueAtTime(0,t+i*.1);g.gain.linearRampToValueAtTime(.08,t+i*.1+.04);g.gain.exponentialRampToValueAtTime(.001,t+i*.1+.5);o.start(t+i*.1);o.stop(t+i*.1+.5);});}
+        else if(type==='alarm'){for(let i=0;i<3;i++){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='square';o.frequency.setValueAtTime(880,t+i*.2);o.frequency.setValueAtTime(698,t+i*.2+.1);g.gain.setValueAtTime(.04,t+i*.2);g.gain.linearRampToValueAtTime(0,t+i*.2+.15);o.start(t+i*.2);o.stop(t+i*.2+.2);}}
     };
-
     const fireConfetti=()=>{confetti({particleCount:120,spread:65,origin:{y:.6},colors:['#FFB7B2','#B5EAD7','#C7CEEA','#E2F0CB','#FFDAC1'],disableForReducedMotion:true});};
-    const showAlert=(msg)=>setSystemModal({type:'alert',msg});
+    const showAlert=msg=>setSystemModal({type:'alert',msg});
     const showConfirm=(msg,action)=>setSystemModal({type:'confirm',msg,action});
     const closeModal=()=>{playSound('click');setSystemModal(null);};
 
-    const handleCapture=async()=>{
-        if(!captureRef.current)return;playSound('click');
-        try{await document.fonts.ready;
-            const canvas=await html2canvas(captureRef.current,{scale:2,backgroundColor:'#FDFBF7',useCORS:true,logging:false,allowTaint:true,
-                onclone:(doc)=>{doc.querySelectorAll('.center-content').forEach(el=>{el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.style.paddingBottom='12px';el.style.lineHeight='1';el.style.height='100%';});}});
-            const link=document.createElement('a');link.download=`송쌤과학_${mode}_${Date.now()}.png`;link.href=canvas.toDataURL();link.click();
-            showAlert("이미지가 저장되었습니다 📸");
-        }catch(e){console.error(e);showAlert("저장 실패. 다시 시도해주세요.");}
-    };
+    const handleCapture=async()=>{if(!captureRef.current)return;playSound('click');try{await document.fonts.ready;const canvas=await html2canvas(captureRef.current,{scale:2,backgroundColor:'#FDFBF7',useCORS:true,logging:false,allowTaint:true,onclone:doc=>{doc.querySelectorAll('.center-content').forEach(el=>{el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.style.paddingBottom='12px';el.style.lineHeight='1';el.style.height='100%';});}});const link=document.createElement('a');link.download=`송쌤과학_${mode}_${Date.now()}.png`;link.href=canvas.toDataURL();link.click();showAlert("이미지가 저장되었습니다 📸");}catch(e){console.error(e);showAlert("저장 실패. 다시 시도해주세요.");}};
 
-    const startClass=(e)=>{
-        e.preventDefault();
-        const c=parseInt(studentCount);
-        if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");
-        playSound('click');
-        setStudents(Array.from({length:c},(_,i)=>i+1));
-        setStep('main');
-        setTimeout(initAudio,300);
-    };
-
+    const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
     const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});});};
 
-    // Timer
-    const adjustTime=(sec)=>{playSound('click');const v=Math.max(0,Math.min(5999,timeLeft+sec));setTimeLeft(v);if(!isTimerRunning)setInitialTime(v);};
+    const adjustTime=sec=>{playSound('click');const v=Math.max(0,Math.min(5999,timeLeft+sec));setTimeLeft(v);if(!isTimerRunning)setInitialTime(v);};
     const onMinFocus=()=>{setEditingMin(true);setMinEdit(String(Math.floor(timeLeft/60)));};
-    const onMinBlur=()=>{setEditingMin(false);const m=Math.max(0,Math.min(99,parseInt(minEdit)||0));const s=timeLeft%60;const v=m*60+s;setTimeLeft(v);setInitialTime(v);};
+    const onMinBlur=()=>{setEditingMin(false);const m=Math.max(0,Math.min(99,parseInt(minEdit)||0)),s=timeLeft%60,v=m*60+s;setTimeLeft(v);setInitialTime(v);};
     const onSecFocus=()=>{setEditingSec(true);setSecEdit(String(timeLeft%60));};
-    const onSecBlur=()=>{setEditingSec(false);const m=Math.floor(timeLeft/60);const s=Math.max(0,Math.min(59,parseInt(secEdit)||0));const v=m*60+s;setTimeLeft(v);setInitialTime(v);};
+    const onSecBlur=()=>{setEditingSec(false);const m=Math.floor(timeLeft/60),s=Math.max(0,Math.min(59,parseInt(secEdit)||0)),v=m*60+s;setTimeLeft(v);setInitialTime(v);};
 
-    useEffect(()=>{
-        if(isTimerRunning&&timeLeft>0){timerRef.current=setInterval(()=>{setTimeLeft(p=>{if(p<=1){clearInterval(timerRef.current);setIsTimerRunning(false);playSound('alarm');fireConfetti();return 0;}return p-1;});},1000);}
-        else clearInterval(timerRef.current);
-        return()=>clearInterval(timerRef.current);
-    },[isTimerRunning]);
+    useEffect(()=>{if(isTimerRunning&&timeLeft>0){timerRef.current=setInterval(()=>{setTimeLeft(p=>{if(p<=1){clearInterval(timerRef.current);setIsTimerRunning(false);playSound('alarm');fireConfetti();return 0;}return p-1;});},1000);}else clearInterval(timerRef.current);return()=>clearInterval(timerRef.current);},[isTimerRunning]);
 
-    // Data
-    const parseData=()=>{
-        if(placementType==='number'){return activeStudents;}
-        else if(placementType==='name'){const l=inputNames.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return l.length?l:null;}
-        else if(placementType==='gender'){const m=maleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);const f=femaleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return m.length+f.length?{m,f}:null;}
-        return[];
-    };
-    const buildPool=(data)=>{
-        let pool=[];
-        if(placementType==='gender'){let{m,f}=data;m=[...m].sort(()=>Math.random()-.5);f=[...f].sort(()=>Math.random()-.5);
-            if(genderOption==='mixed'){const mx=Math.max(m.length,f.length);for(let i=0;i<mx;i++){if(i<m.length)pool.push(m[i]);if(i<f.length)pool.push(f[i]);}}
-            else pool=[...m,...f];
-        }else pool=[...data].sort(()=>Math.random()-.5);
-        return pool;
-    };
+    const parseData=()=>{if(placementType==='number')return activeStudents;if(placementType==='name'){const l=inputNames.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return l.length?l:null;}if(placementType==='gender'){const m=maleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s),f=femaleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return m.length+f.length?{m,f}:null;}return[];};
+    const buildPool=data=>{let pool=[];if(placementType==='gender'){let{m,f}=data;m=[...m].sort(()=>Math.random()-.5);f=[...f].sort(()=>Math.random()-.5);if(genderOption==='mixed'){const mx=Math.max(m.length,f.length);for(let i=0;i<mx;i++){if(i<m.length)pool.push(m[i]);if(i<f.length)pool.push(f[i]);}}else pool=[...m,...f];}else pool=[...data].sort(()=>Math.random()-.5);return pool;};
 
-    const createTeams=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.\n제외 번호를 확인해주세요.");playSound('click');setIsPicking(true);setTeams([]);setTimeout(()=>{const pool=buildPool(data);const t=Array.from({length:teamCount},()=>[]);pool.forEach((s,i)=>t[i%teamCount].push(s));setTeams(t);setIsPicking(false);playSound('win');},350);};
-
-    const createSeats=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.\n제외 번호를 확인해주세요.");playSound('click');setIsPicking(true);setSeats([]);
-        setTimeout(()=>{let pool=buildPool(data);if(seatType==='pair'&&(seatPairSettings.mustPair.length>0||seatPairSettings.mustNotPair.length>0))pool=applyPC(pool,seatPairSettings);setSeats(pool);setIsPicking(false);playSound('win');},350);};
-
-    const applyPC=(pool,settings)=>{
-        const{mustPair,mustNotPair}=settings;const s=v=>String(v);
-        for(let a=0;a<200;a++){
-            let arr=[...pool].sort(()=>Math.random()-.5);
-            for(const p of mustPair){const iA=arr.findIndex(x=>s(x)===s(p[0]));const iB=arr.findIndex(x=>s(x)===s(p[1]));if(iA===-1||iB===-1)continue;const big=Math.max(iA,iB),sm=Math.min(iA,iB);const pB=arr.splice(big,1)[0];const pS=arr.splice(sm,1)[0];arr.splice(0,0,pS,pB);}
-            let ok=true;
-            for(const p of mustPair){let f=false;for(let i=0;i+1<arr.length;i+=2){if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){f=true;break;}}if(!f){ok=false;break;}}
-            if(!ok)continue;
-            for(const p of mustNotPair){for(let i=0;i+1<arr.length;i+=2){if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){ok=false;break;}}if(!ok)break;}
-            if(ok)return arr;
-        }
-        return[...pool].sort(()=>Math.random()-.5);
-    };
+    const createTeams=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");playSound('click');setIsPicking(true);setTeams([]);setTimeout(()=>{const pool=buildPool(data);const t=Array.from({length:teamCount},()=>[]);pool.forEach((s,i)=>t[i%teamCount].push(s));setTeams(t);setIsPicking(false);playSound('win');},350);};
+    const createSeats=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");playSound('click');setIsPicking(true);setSeats([]);setTimeout(()=>{let pool=buildPool(data);if(seatType==='pair'&&(seatPairSettings.mustPair.length>0||seatPairSettings.mustNotPair.length>0))pool=applyPC(pool,seatPairSettings);setSeats(pool);setIsPicking(false);playSound('win');},350);};
+    const applyPC=(pool,settings)=>{const{mustPair,mustNotPair}=settings;const s=v=>String(v);for(let a=0;a<200;a++){let arr=[...pool].sort(()=>Math.random()-.5);for(const p of mustPair){const iA=arr.findIndex(x=>s(x)===s(p[0])),iB=arr.findIndex(x=>s(x)===s(p[1]));if(iA===-1||iB===-1)continue;const big=Math.max(iA,iB),sm=Math.min(iA,iB);const pB=arr.splice(big,1)[0],pS=arr.splice(sm,1)[0];arr.splice(0,0,pS,pB);}let ok=true;for(const p of mustPair){let f=false;for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){f=true;break;}if(!f){ok=false;break;}}if(!ok)continue;for(const p of mustNotPair){for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){ok=false;break;}if(!ok)break;}if(ok)return arr;}return[...pool].sort(()=>Math.random()-.5);};
 
     const addPairSetting=()=>{const a=pairInputA.trim(),b=pairInputB.trim();if(!a||!b)return showAlert("두 학생 모두 입력해주세요.");if(a===b)return showAlert("같은 학생을 입력할 수 없습니다.");const key=pairSettingTab==='must'?'mustPair':'mustNotPair';if(seatPairSettings[key].some(p=>(String(p[0])===a&&String(p[1])===b)||(String(p[0])===b&&String(p[1])===a)))return showAlert("이미 등록된 조합입니다.");setSeatPairSettings(prev=>({...prev,[key]:[...prev[key],[a,b]]}));setPairInputA('');setPairInputB('');playSound('click');};
     const removePairSetting=(key,idx)=>{playSound('click');setSeatPairSettings(prev=>({...prev,[key]:prev[key].filter((_,i)=>i!==idx)}));};
 
-    const performSwap=(src,tgt)=>{if(src.type==='team'){const t=[...teams.map(x=>[...x])];const tmp=t[src.index][src.subIndex];t[src.index][src.subIndex]=t[tgt.index][tgt.subIndex];t[tgt.index][tgt.subIndex]=tmp;setTeams(t);}else if(src.type==='seat'){const s=[...seats];const tmp=s[src.index];s[src.index]=s[tgt.index];s[tgt.index]=tmp;setSeats(s);}};
+    const performSwap=(src,tgt)=>{if(src.type==='team'){const t=[...teams.map(x=>[...x])];const tmp=t[src.index][src.subIndex];t[src.index][src.subIndex]=t[tgt.index][tgt.subIndex];t[tgt.index][tgt.subIndex]=tmp;setTeams(t);}else{const s=[...seats];[s[src.index],s[tgt.index]]=[s[tgt.index],s[src.index]];setSeats(s);}};
     const handleItemTap=(type,index,subIndex=null)=>{if(isPicking)return;playSound('click');if(selectedItem){if(selectedItem.type===type&&selectedItem.index===index&&selectedItem.subIndex===subIndex){setSelectedItem(null);return;}if(selectedItem.type!==type){setSelectedItem({type,index,subIndex});return;}performSwap(selectedItem,{type,index,subIndex});setSelectedItem(null);playSound('win');}else setSelectedItem({type,index,subIndex});};
 
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
+    const NavBtn=({active,icon,label,onClick})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
 
-    const NavBtn=({active,icon,label,onClick})=>(
-        <button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}>
-            <Icon name={icon} size={17}/>
-            <span className="text-[9px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span>
-        </button>
-    );
-
-    // ═══ 입력화면 ═══
-    if(step==='input'){
-        return(
-            <div className="intro-bg p-4">
-                <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
-                    {/* Top gradient bar */}
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFB7B2] via-[#B5EAD7] to-[#C7CEEA]"></div>
-
-                    {/* Icon */}
-                    <div className="mb-4 sm:mb-6 inline-block p-5 rounded-full bg-gradient-to-br from-[#FFF0F0] to-[#FFE8E6] shadow-inner intro-icon">
-                        <Icon name="sprout" size={36} className="text-[#FFB7B2]"/>
+    /* ═══ 입력화면 ═══ */
+    if(step==='input') return(
+        <div className="intro-bg p-4">
+            <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFB7B2] via-[#B5EAD7] to-[#C7CEEA]"/>
+                <div className="mb-4 sm:mb-6 inline-block p-5 rounded-full bg-gradient-to-br from-[#FFF0F0] to-[#FFE8E6] shadow-inner intro-icon"><Icon name="sprout" size={36} className="text-[#FFB7B2]"/></div>
+                <h1 className="text-2xl sm:text-4xl font-black text-[#4A4A4A] mb-1">송쌤과학</h1>
+                <p className="text-gray-400 font-bold mb-6 sm:mb-8 text-xs sm:text-sm">행복한 교실을 위한 스마트 도우미</p>
+                <form onSubmit={startClass} className="space-y-4 sm:space-y-5">
+                    <div className="text-left">
+                        <label className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-gray-500 mb-2 pl-1"><Icon name="users" size={16} className="text-[#FFB7B2]"/>우리 반 마지막 번호를 입력하세요</label>
+                        <div className="relative"><input type="number" inputMode="numeric" pattern="[0-9]*" value={studentCount} onChange={e=>setStudentCount(e.target.value)} className="w-full h-16 sm:h-20 text-center text-4xl sm:text-5xl font-black text-[#4A4A4A] bg-[#F9F7F4] rounded-2xl border-2 border-[#EDE6DA] focus:border-[#FFB7B2] focus:bg-white focus:outline-none input-glow placeholder-gray-300 transition-all" placeholder="30" autoFocus/><span className="absolute right-5 top-1/2 -translate-y-1/2 text-base font-bold text-gray-400">번</span></div>
+                        <p className="text-[11px] text-gray-400 mt-1.5 pl-1 font-bold">예: 30번까지 있으면 → 30 입력 (1~30번 생성)</p>
                     </div>
-
-                    {/* Title */}
-                    <h1 className="text-2xl sm:text-4xl font-black text-[#4A4A4A] mb-1">송쌤과학</h1>
-                    <p className="text-gray-400 font-bold mb-6 sm:mb-8 text-xs sm:text-sm">행복한 교실을 위한 스마트 도우미</p>
-
-                    {/* Form */}
-                    <form onSubmit={startClass} className="space-y-4 sm:space-y-5">
-                        {/* Label */}
-                        <div className="text-left">
-                            <label className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-gray-500 mb-2 pl-1">
-                                <Icon name="users" size={16} className="text-[#FFB7B2]"/>
-                                우리 반 마지막 번호를 입력하세요
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="number" inputMode="numeric" pattern="[0-9]*"
-                                    value={studentCount}
-                                    onChange={e=>setStudentCount(e.target.value)}
-                                    className="w-full h-16 sm:h-20 text-center text-4xl sm:text-5xl font-black text-[#4A4A4A] bg-[#F9F7F4] rounded-2xl border-2 border-[#EDE6DA] focus:border-[#FFB7B2] focus:bg-white focus:outline-none input-glow placeholder-gray-300 transition-all"
-                                    placeholder="30"
-                                    autoFocus
-                                />
-                                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-base font-bold text-gray-400">번</span>
-                            </div>
-                            <p className="text-[11px] text-gray-400 mt-1.5 pl-1 font-bold">
-                                예: 30번까지 있으면 → 30 입력 (1~30번 생성)
-                            </p>
-                        </div>
-
-                        <button type="submit" className="w-full py-4 sm:py-5 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-2xl text-lg sm:text-2xl font-black shadow-lg shadow-[#FFB7B2]/25 active:scale-[.97] flex items-center justify-center gap-2 touch-target transition-all">
-                            수업 시작하기 <Icon name="arrow-right" size={20}/>
-                        </button>
-                    </form>
-
-                    {/* Sound toggle */}
-                    <div className="mt-5 flex justify-center">
-                        <SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/>
-                    </div>
-                </div>
-                <Copyright fixed/>
-                {systemModal&&<SystemModal modal={systemModal} closeModal={closeModal}/>}
+                    <button type="submit" className="w-full py-4 sm:py-5 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-2xl text-lg sm:text-2xl font-black shadow-lg shadow-[#FFB7B2]/25 active:scale-[.97] flex items-center justify-center gap-2 touch-target transition-all">수업 시작하기 <Icon name="arrow-right" size={20}/></button>
+                </form>
+                <div className="mt-5 flex justify-center"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/></div>
             </div>
-        );
-    }
-
-    // ═══ 메인화면 ═══
-    return(
-        <div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden">
-            {/* ─── 상단 네비게이션 ─── */}
-            <nav className="sticky top-0 z-40 glass-panel px-2 sm:px-4 py-2">
-                <div className="max-w-7xl mx-auto flex items-center gap-1.5 sm:gap-2">
-                    {/* 홈 / 학급 정보 */}
-                    <div className="flex items-center gap-1.5 cursor-pointer shrink-0" onClick={goHome}>
-                        <div className="bg-[#B5EAD7] p-1.5 sm:p-2 rounded-xl text-white shadow-sm"><Icon name="flask-conical" size={18}/></div>
-                        <span className="hidden sm:block text-sm font-black text-gray-500">
-                            {students.length}명
-                            {excludedNums.length>0&&<span className="text-[10px] text-gray-400 font-bold ml-0.5">(-{excludedNums.length})</span>}
-                        </span>
-                    </div>
-
-                    {/* 네비게이션 탭 */}
-                    <div className="flex gap-0.5 sm:gap-1 overflow-x-auto no-scrollbar flex-1 py-1 px-1 bg-white/50 rounded-2xl border border-white/60">
-                        <NavBtn active={mode==='pick'} icon="trophy" label="발표" onClick={()=>setMode('pick')}/>
-                        <NavBtn active={mode==='team'} icon="users" label="모둠" onClick={()=>setMode('team')}/>
-                        <NavBtn active={mode==='seat'} icon="armchair" label="좌석" onClick={()=>setMode('seat')}/>
-                        <NavBtn active={mode==='timer'} icon="timer" label="타이머" onClick={()=>setMode('timer')}/>
-                        <NavBtn active={mode==='qr'} icon="qr-code" label="QR" onClick={()=>setMode('qr')}/>
-                        <NavBtn active={mode==='memo'} icon="sticky-note" label="메모" onClick={()=>setMode('memo')}/>
-                        <NavBtn active={mode==='img'} icon="image" label="사진" onClick={()=>setMode('img')}/>
-                    </div>
-
-                    {/* 소리 토글 (네비 오른쪽) */}
-                    <div className="shrink-0 hidden sm:block">
-                        <SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/>
-                    </div>
-                    {/* 모바일: 소리 아이콘만 */}
-                    <button onClick={()=>{setIsSoundOn(!isSoundOn);}} className="sm:hidden shrink-0 p-2 rounded-xl touch-target" style={{color:isSoundOn?'#6B8E23':'#AAA'}}>
-                        <Icon name={isSoundOn?"volume-2":"volume-x"} size={18}/>
-                    </button>
-                </div>
-            </nav>
-
-            {/* 미니 타이머 */}
-            {showMiniTimer&&(
-                <div className={`fixed top-[68px] sm:top-[76px] left-2 z-50 mini-float ${isTimerRunning?'mini-pulse':''}`} onClick={()=>{playSound('click');setMode('timer');}}>
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shadow-lg border-2 cursor-pointer active:scale-95 ${isTimerRunning?'bg-white border-[#FFB7B2]':'bg-white/90 border-gray-200'}`}>
-                        <svg viewBox="0 0 32 32" className="w-6 h-6 -rotate-90"><circle cx="16" cy="16" r="13" stroke="#F0F0F0" strokeWidth="2.5" fill="none"/><circle cx="16" cy="16" r="13" stroke={isTimerRunning?"#FFDAC1":"#D1D5DB"} strokeWidth="2.5" fill="none" strokeDasharray={2*Math.PI*13} strokeDashoffset={(2*Math.PI*13)-(timeLeft/(initialTime||1))*(2*Math.PI*13)} strokeLinecap="round"/></svg>
-                        <span className={`text-sm font-black tabular-nums ${isTimerRunning?'text-[#5D5D5D]':'text-gray-400'}`}>{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span>
-                    </div>
-                </div>
-            )}
-
-            <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
-
-                {/* ═══ 1. 발표자 ═══ */}
-                {mode==='pick'&&(
-                    <div className="card-enter w-full">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1">
-                            <div>
-                                <h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">발표자 뽑기</h2>
-                                <p className="text-[10px] sm:text-sm text-gray-400 font-bold">오늘의 행운의 주인공은?</p>
-                            </div>
-                            <div className="flex gap-1.5">
-                                <button onClick={()=>setIsNoRepeat(!isNoRepeat)} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-[10px] sm:text-sm font-bold border-2 touch-target transition-all ${isNoRepeat?'bg-[#FFB7B2] border-[#FFB7B2] text-white':'bg-white border-gray-200 text-gray-400'}`}>
-                                    중복방지 {isNoRepeat?'ON':'OFF'}
-                                </button>
-                                <button onClick={()=>setPickHistory([])} className="flex-1 sm:flex-none px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[10px] sm:text-sm font-bold touch-target">
-                                    초기화 ({pickHistory.length})
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* 제외 번호 입력 */}
-                        <div className="mb-3">
-                            <ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFB7B2" playSound={playSound}/>
-                        </div>
-
-                        <div className="bg-white rounded-2xl p-3 sm:p-5 soft-shadow border border-[#F0EBE3] relative overflow-hidden">
-                            <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5 sm:gap-2 relative z-10">
-                                {students.map(num=>{
-                                    const isExcluded=excludedNums.includes(num);
-                                    const isWin=pickWinner===num;
-                                    const isHL=currentPick===num;
-                                    const isDone=pickHistory.includes(num);
-                                    return(
-                                        <div key={num} className={`student-cell ${isExcluded?'excluded-cell':isWin?'winner winner-pulse':isHL?'highlight-anim':isDone?'done':''}`}>
-                                            {isExcluded?<span className="text-gray-300 text-[11px]">✕</span>:num}
-                                            {!isExcluded&&isDone&&<div className="absolute inset-0 flex items-center justify-center opacity-25 bg-gray-100/40"><Icon name="check" size={14}/></div>}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="mt-5 text-center">
-                            <button onClick={()=>{
-                                if(isPicking)return;
-                                let pool=isNoRepeat?activeStudents.filter(s=>!pickHistory.includes(s)):activeStudents;
-                                if(!pool.length)return showAlert(activeStudents.length===0?"참여할 학생이 없습니다.\n제외 번호를 확인해주세요.":"모든 학생이 발표했습니다!\n기록을 초기화해주세요.");
-                                playSound('click');setIsPicking(true);setPickWinner(null);
-                                let cnt=0;const mx=20+Math.floor(Math.random()*10);let d=50;
-                                const loop=()=>{
-                                    setCurrentPick(activeStudents[Math.floor(Math.random()*activeStudents.length)]);
-                                    playSound('tick');cnt++;
-                                    if(cnt>mx){
-                                        const w=pool[Math.floor(Math.random()*pool.length)];
-                                        setCurrentPick(w);setPickWinner(w);
-                                        if(isNoRepeat)setPickHistory(prev=>[...prev,w]);
-                                        playSound('win');fireConfetti();setIsPicking(false);
-                                    }else{d*=1.1;setTimeout(loop,d);}
-                                };loop();
-                            }} disabled={isPicking} className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-full text-lg sm:text-xl font-black shadow-lg shadow-[#FFB7B2]/25 active:scale-95 flex items-center justify-center gap-2 mx-auto touch-target transition-all">
-                                {isPicking?<Icon name="loader-2" size={18} className="animate-spin"/>:<Icon name="sparkles" size={18}/>}
-                                {isPicking?'두구두구...':'발표자 뽑기'}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* ═══ 2. 모둠 ═══ */}
-                {mode==='team'&&(
-                    <div className="card-enter space-y-3 w-full">
-                        <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
-                            <div className="flex gap-1.5">
-                                {['number','name','gender'].map(t=>(
-                                    <button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#C7CEEA] border-[#C7CEEA] text-white':'bg-white border-gray-100 text-gray-400'}`}>
-                                        {t==='number'?'번호':t==='name'?'이름':'남녀'}
-                                    </button>
-                                ))}
-                            </div>
-                            {placementType==='number'&&(
-                                <ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#C7CEEA" playSound={playSound}/>
-                            )}
-                            {placementType==='name'&&<textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-2.5 bg-[#F7F9FC] rounded-xl border-2 border-transparent focus:border-[#C7CEEA] resize-none h-16 outline-none text-sm" placeholder="학생 이름 (쉼표/줄바꿈 구분)"/>}
-                            {placementType==='gender'&&<div className="flex gap-2"><textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#F0F8FF] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#90CAF9] outline-none" placeholder="남학생"/><textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#FFF0F5] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#F48FB1] outline-none" placeholder="여학생"/></div>}
-                            <div className="flex gap-2 items-end">
-                                <div className="flex items-center gap-1 bg-[#F7F9FC] p-1 rounded-lg border border-gray-100">
-                                    {[2,3].map(c=>(
-                                        <button key={c} onClick={()=>setTeamColumns(c)} className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${teamColumns===c?'bg-white shadow-sm text-[#5C6B9E]':'text-gray-400'}`}>{c}열</button>
-                                    ))}
-                                </div>
-                                <div className="flex items-center bg-[#F7F9FC] rounded-lg border border-gray-100 px-1.5 gap-1">
-                                    <button onClick={()=>setTeamCount(Math.max(2,teamCount-1))} className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="minus" size={14}/></button>
-                                    <span className="text-sm font-black text-[#5C6B9E] min-w-[2rem] text-center">{teamCount}</span>
-                                    <button onClick={()=>setTeamCount(Math.min(20,teamCount+1))} className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="plus" size={14}/></button>
-                                </div>
-                                <button onClick={createTeams} className="ml-auto py-2.5 px-4 bg-[#C7CEEA] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm transition-all"><Icon name="wand-2" size={16}/> 생성</button>
-                            </div>
-                        </div>
-                        {teams.length>0&&(
-                            <div className="w-full">
-                                <div className="flex justify-between items-center gap-2 mb-2 px-1">
-                                    <p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p>
-                                    <div className="flex gap-1.5">
-                                        <button onClick={createTeams} className="text-[#C7CEEA] bg-white border border-[#C7CEEA] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button>
-                                        <button onClick={handleCapture} className="text-[#C7CEEA] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button>
-                                    </div>
-                                </div>
-                                <div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#C7CEEA] shadow-lg">
-                                    <div className={`grid gap-2 sm:gap-3 ${teamColumns===2?'grid-cols-2':'grid-cols-2 sm:grid-cols-3'}`}>
-                                        {teams.map((team,tIdx)=>(
-                                            <div key={tIdx} className="bg-[#F7F9FC] rounded-xl p-2.5 border border-[#E2E8F0]">
-                                                <div className="flex items-center gap-1.5 mb-2">
-                                                    <div className="bg-[#C7CEEA] text-white w-6 h-6 flex items-center justify-center rounded-lg font-black text-xs">{tIdx+1}</div>
-                                                    <span className="text-[10px] font-bold text-gray-400">{team.length}명</span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    {team.map((student,sIdx)=>{
-                                                        const isSel=selectedItem?.type==='team'&&selectedItem?.index===tIdx&&selectedItem?.subIndex===sIdx;
-                                                        return(
-                                                            <div key={sIdx} onClick={()=>handleItemTap('team',tIdx,sIdx)} className={`bg-white border-2 rounded-lg font-bold text-gray-600 cursor-pointer select-none center-content py-1.5 px-2 text-sm touch-target transition-all ${isSel?'selected-item':'border-transparent active:border-[#C7CEEA]'}`}>{student}</div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* ═══ 3. 좌석 ═══ */}
-                {mode==='seat'&&(
-                    <div className="card-enter space-y-3 w-full">
-                        <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
-                            <div className="flex gap-1.5">
-                                {['number','name','gender'].map(t=>(
-                                    <button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#FFD3B6] border-[#FFD3B6] text-white':'bg-white border-gray-100 text-gray-400'}`}>
-                                        {t==='number'?'번호':t==='name'?'이름':'남녀'}
-                                    </button>
-                                ))}
-                            </div>
-                            {placementType==='number'&&(
-                                <ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFD3B6" playSound={playSound}/>
-                            )}
-                            {placementType==='name'&&<textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-2.5 bg-[#FFF8F0] rounded-xl border-2 border-transparent focus:border-[#FFD3B6] resize-none h-16 outline-none text-sm" placeholder="학생 이름 입력"/>}
-                            {placementType==='gender'&&(
-                                <div className="space-y-2">
-                                    <div className="flex bg-[#FFF8F0] p-0.5 rounded-lg">
-                                        <button onClick={()=>setGenderOption('mixed')} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${genderOption==='mixed'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>이성끼리 👫</button>
-                                        <button onClick={()=>setGenderOption('same')} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${genderOption==='same'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>동성끼리</button>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#F0F8FF] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#90CAF9] outline-none" placeholder="남학생"/>
-                                        <textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#FFF0F5] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#F48FB1] outline-none" placeholder="여학생"/>
-                                    </div>
-                                </div>
-                            )}
-                            <div className="flex gap-2 items-end flex-wrap">
-                                <div className="flex bg-[#FFF8F0] p-0.5 rounded-lg border border-gray-100">
-                                    <button onClick={()=>setSeatType('single')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target transition-all ${seatType==='single'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>혼자</button>
-                                    <button onClick={()=>setSeatType('pair')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target transition-all ${seatType==='pair'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>짝꿍</button>
-                                </div>
-                                {seatType==='pair'&&<button onClick={()=>{playSound('click');setShowPairSettings(true);}} className="relative py-2 px-3 bg-white border-2 border-dashed border-[#FFD3B6] text-[#D68C60] rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="settings-2" size={14}/> 조건{(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<span className="absolute -top-1.5 -right-1.5 bg-[#FFB7B2] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">{seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length}</span>}</button>}
-                                <button onClick={createSeats} className="ml-auto py-2.5 px-4 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm transition-all"><Icon name="layout-grid" size={16}/> 생성</button>
-                            </div>
-                        </div>
-                        {seats.length>0&&(
-                            <div className="w-full">
-                                <div className="flex justify-between items-center gap-2 mb-2 px-1">
-                                    <p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p>
-                                    <div className="flex gap-1.5">
-                                        <button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button>
-                                        <button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button>
-                                    </div>
-                                </div>
-                                <div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg">
-                                    <div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div>
-                                    <div className={`grid gap-1.5 sm:gap-2.5 ${seatType==='single'?'grid-cols-4 sm:grid-cols-5':'grid-cols-2 sm:grid-cols-3'}`}>
-                                        {seatType==='single'?seats.map((s,i)=>{
-                                            const isSel=selectedItem?.type==='seat'&&selectedItem?.index===i;
-                                            return(
-                                                <div key={i} onClick={()=>handleItemTap('seat',i)} className={`py-2.5 flex items-center justify-center bg-white border-2 rounded-lg text-xs sm:text-sm font-black text-gray-600 cursor-pointer touch-target transition-all ${isSel?'selected-item':'border-gray-100 active:bg-[#FFF8F0]'}`}>{s}</div>
-                                            );
-                                        }):Array.from({length:Math.ceil(seats.length/2)}).map((_,g)=>{
-                                            const i1=g*2,i2=g*2+1;
-                                            const s1=selectedItem?.type==='seat'&&selectedItem?.index===i1;
-                                            const s2=selectedItem?.type==='seat'&&selectedItem?.index===i2;
-                                            return(
-                                                <div key={g} className="flex bg-[#FFF8F0] border-2 border-[#FFD3B6] rounded-lg overflow-hidden h-11 sm:h-12">
-                                                    <div onClick={()=>handleItemTap('seat',i1)} className={`flex-1 flex items-center justify-center border-r border-[#FFD3B6]/30 cursor-pointer active:bg-white touch-target transition-all ${s1?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i1]}</span></div>
-                                                    <div onClick={()=>handleItemTap('seat',i2)} className={`flex-1 flex items-center justify-center cursor-pointer active:bg-white touch-target transition-all ${s2?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i2]||''}</span></div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* ═══ 4. 타이머 ═══ */}
-                {mode==='timer'&&(
-                    <div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
-                        <div className="relative mb-5 sm:mb-8 w-52 h-52 sm:w-72 sm:h-72">
-                            <svg viewBox="0 0 300 300" className="w-full h-full -rotate-90 drop-shadow-lg">
-                                <circle cx="150" cy="150" r="120" stroke="#F0F0F0" strokeWidth="14" fill="none"/>
-                                <circle cx="150" cy="150" r="120" stroke="#FFDAC1" strokeWidth="14" fill="none"
-                                    strokeDasharray={2*Math.PI*120}
-                                    strokeDashoffset={(2*Math.PI*120)-(timeLeft/(initialTime||1))*(2*Math.PI*120)}
-                                    strokeLinecap="round" className="timer-circle"/>
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                {isTimerRunning?(
-                                    <span className="text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter">
-                                        {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}
-                                    </span>
-                                ):(
-                                    <div className="flex items-center">
-                                        <input type="number" inputMode="numeric" className="t-input text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter w-[2.2ch] sm:w-[2.5ch]" value={editingMin?minEdit:Math.floor(timeLeft/60).toString().padStart(2,'0')} onFocus={onMinFocus} onBlur={onMinBlur} onChange={e=>setMinEdit(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/>
-                                        <span className="text-4xl sm:text-7xl font-black text-[#4A4A4A] tracking-tighter select-none">:</span>
-                                        <input type="number" inputMode="numeric" className="t-input text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter w-[2.2ch] sm:w-[2.5ch]" value={editingSec?secEdit:(timeLeft%60).toString().padStart(2,'0')} onFocus={onSecFocus} onBlur={onSecBlur} onChange={e=>setSecEdit(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/>
-                                    </div>
-                                )}
-                                <span className="text-[10px] sm:text-xs text-gray-400 font-bold mt-1.5">
-                                    {isTimerRunning?<><span className="animate-pulse text-[#FF9E99]">● </span>진행 중</>:'터치하여 시간 입력'}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap justify-center gap-1.5 mb-3 sm:mb-5">
-                            {[{l:'+10초',v:10},{l:'+1분',v:60},{l:'+5분',v:300}].map(b=>(
-                                <button key={b.l} onClick={()=>adjustTime(b.v)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-gray-500 shadow-sm border border-gray-100 active:scale-95 touch-target">{b.l}</button>
-                            ))}
-                            <button onClick={()=>adjustTime(-10)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-red-400 shadow-sm border border-red-50 active:scale-95 touch-target">-10초</button>
-                        </div>
-                        <div className="flex flex-wrap justify-center gap-1.5 mb-5 sm:mb-7">
-                            {[{l:'1분',s:60},{l:'3분',s:180},{l:'5분',s:300},{l:'10분',s:600}].map(p=>(
-                                <button key={p.l} onClick={()=>{playSound('click');setTimeLeft(p.s);setInitialTime(p.s);setIsTimerRunning(false);}} className={`px-3.5 py-2 rounded-lg text-xs font-bold border-2 active:scale-95 touch-target transition-all ${timeLeft===p.s&&!isTimerRunning?'bg-[#FFDAC1] border-[#FFDAC1] text-white':'bg-white border-gray-100 text-gray-400'}`}>{p.l}</button>
-                            ))}
-                        </div>
-                        <div className="flex gap-2.5 w-full max-w-xs">
-                            <button onClick={()=>{playSound('click');if(!isTimerRunning){setTimerEverStarted(true);if(timeLeft>0)setInitialTime(timeLeft);}setIsTimerRunning(!isTimerRunning);}} className={`flex-1 py-3.5 rounded-2xl text-lg font-black text-white shadow-lg active:scale-95 flex items-center justify-center gap-2 touch-target transition-all ${isTimerRunning?'bg-[#FF9E99] shadow-[#FF9E99]/25':'bg-[#B5EAD7] shadow-[#B5EAD7]/25'}`}>
-                                <Icon name={isTimerRunning?"pause":"play"} size={20}/>{isTimerRunning?'일시정지':'시작'}
-                            </button>
-                            <button onClick={()=>{playSound('click');setIsTimerRunning(false);setTimeLeft(initialTime);}} className="py-3.5 px-5 rounded-2xl bg-gray-200 text-gray-500 font-bold active:scale-95 touch-target flex items-center justify-center transition-all"><Icon name="rotate-ccw" size={20}/></button>
-                        </div>
-                    </div>
-                )}
-
-                {/* ═══ 5. QR ═══ */}
-                {mode==='qr'&&(
-                    <div className="card-enter flex flex-col items-center w-full">
-                        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[#B5EAD7] w-full max-w-lg text-center">
-                            <h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2"><Icon name="scan-line" size={18}/> QR코드</h2>
-                            <div className="flex gap-2 mb-4">
-                                <input type="url" value={qrInput} onChange={e=>setQrInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&qrInput&&setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`)} className="flex-1 p-2.5 bg-[#F0FDF4] rounded-xl border-2 border-transparent focus:border-[#B5EAD7] outline-none font-bold text-sm" placeholder="URL 입력"/>
-                                <button onClick={()=>{if(qrInput){playSound('click');setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`);}}} className="px-4 bg-[#B5EAD7] text-white rounded-xl font-black shadow-md touch-target">생성</button>
-                            </div>
-                            {qrUrl?(
-                                <div className="inline-block p-3 bg-white rounded-2xl shadow-md border border-gray-100 cursor-pointer" onClick={()=>setFullScreenContent({type:'qr',data:qrUrl})}>
-                                    <img src={qrUrl} alt="QR" className="w-40 h-40 sm:w-52 sm:h-52 mix-blend-multiply"/>
-                                    <p className="text-gray-400 text-[10px] font-bold mt-2">터치하여 확대</p>
-                                </div>
-                            ):(
-                                <div className="w-40 h-40 sm:w-52 sm:h-52 mx-auto bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-gray-300 border-2 border-dashed border-gray-200">
-                                    <Icon name="link" size={28} className="opacity-40 mb-1"/>
-                                    <span className="font-bold text-xs">주소를 입력하세요</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* ═══ 6. 메모 ═══ */}
-                {mode==='memo'&&(
-                    <div className="card-enter w-full max-w-3xl mx-auto">
-                        <div className="flex gap-2 mb-3">
-                            <div className="flex-1 relative">
-                                <input type="text" value={memoInput} onChange={e=>setMemoInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&memoInput.trim()){playSound('click');setMemos([{id:Date.now(),text:memoInput,color:['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF'][Math.floor(Math.random()*5)]},...memos]);setMemoInput('');}}} className="w-full p-2.5 pl-8 bg-white rounded-xl border-2 border-[#C7CEEA] font-bold text-sm focus:outline-none" placeholder="기억할 내용"/>
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#C7CEEA]"><Icon name="pencil" size={14}/></span>
-                            </div>
-                            <button onClick={()=>{if(!memoInput.trim())return;playSound('click');setMemos([{id:Date.now(),text:memoInput,color:['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF'][Math.floor(Math.random()*5)]},...memos]);setMemoInput('');}} className="px-3 bg-[#C7CEEA] text-white rounded-xl font-black shadow-md touch-target"><Icon name="plus" size={18}/></button>
-                            {memos.length>0&&<button onClick={()=>{playSound('click');setMemos([]);}} className="px-3 bg-red-100 text-red-400 rounded-xl font-bold touch-target"><Icon name="trash-2" size={16}/></button>}
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-                            {memos.map(m=>(
-                                <div key={m.id} onClick={()=>{setFullScreenContent({type:'text',data:m.text,color:m.color});setFsFontSize(window.innerWidth<500?40:70);}} className="relative p-3 sm:p-4 rounded-xl min-h-[80px] sm:min-h-[130px] flex items-center justify-center text-center cursor-pointer shadow-sm transition-all hover:shadow-md" style={{backgroundColor:m.color}}>
-                                    <p className="font-black text-gray-700 text-xs sm:text-base whitespace-pre-wrap line-clamp-3" style={{fontFamily:'Gamja Flower'}}>{m.text}</p>
-                                    <button onClick={e=>{e.stopPropagation();playSound('click');setMemos(memos.filter(x=>x.id!==m.id));}} className="absolute top-1.5 right-1.5 p-1 bg-white/50 rounded-full text-red-400"><Icon name="trash-2" size={11}/></button>
-                                </div>
-                            ))}
-                            {!memos.length&&(
-                                <div className="col-span-full py-10 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-2xl bg-white/50">
-                                    <Icon name="sticky-note" size={28} className="mx-auto opacity-30 mb-1"/>
-                                    <p className="text-xs">메모를 추가해보세요!</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* ═══ 7. 사진 ═══ */}
-                {mode==='img'&&(
-                    <div className="card-enter flex flex-col items-center w-full">
-                        <div className="bg-white p-3 sm:p-5 rounded-2xl shadow-lg border-2 border-[#FFC3A0] w-full max-w-3xl min-h-[220px] sm:min-h-[400px] flex items-center justify-center relative">
-                            {uploadedImg?(
-                                <div className="relative w-full flex items-center justify-center">
-                                    <img src={uploadedImg} className="max-w-full max-h-[50vh] rounded-xl shadow-sm cursor-pointer" onClick={()=>setFullScreenContent({type:'img',data:uploadedImg})}/>
-                                    <button onClick={()=>{setUploadedImg(null);fileInputRef.current.value='';}} className="absolute top-2 right-2 p-2 bg-white text-[#FFC3A0] rounded-full shadow-md touch-target"><Icon name="x" size={18}/></button>
-                                </div>
-                            ):(
-                                <div onClick={()=>fileInputRef.current.click()} className="flex flex-col items-center justify-center gap-3 cursor-pointer p-8 sm:p-14 hover:bg-[#FFF5EB] rounded-2xl w-full h-full border-2 border-dashed border-[#FFC3A0]/30 transition-all">
-                                    <div className="p-5 bg-[#FFEDD5] rounded-full text-[#FFC3A0]"><Icon name="image-plus" size={32}/></div>
-                                    <p className="text-base font-bold text-[#FFC3A0]">터치하여 사진 업로드</p>
-                                </div>
-                            )}
-                            <input type="file" ref={fileInputRef} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=res=>{setUploadedImg(res.target.result);playSound('win');};r.readAsDataURL(f);}}} accept="image/*" className="hidden"/>
-                        </div>
-                    </div>
-                )}
-                <Copyright/>
-            </main>
-
-            {/* ─── 짝꿍 설정 모달 ─── */}
-            {showPairSettings&&(
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={()=>setShowPairSettings(false)}>
-                    <div className="modal-up bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl border-t-4 sm:border-4 border-[#FFD3B6] max-h-[80vh] flex flex-col safe-b" onClick={e=>e.stopPropagation()}>
-                        <div className="flex items-center justify-between p-3.5 border-b border-gray-100 shrink-0">
-                            <div className="flex items-center gap-2">
-                                <div className="bg-[#FFD3B6] p-1.5 rounded-lg text-white"><Icon name="settings-2" size={16}/></div>
-                                <div><h3 className="text-sm font-black text-[#4A4A4A]">짝꿍 조건 설정</h3><p className="text-[9px] text-gray-400 font-bold">비밀 설정</p></div>
-                            </div>
-                            <button onClick={()=>setShowPairSettings(false)} className="p-2 text-gray-400 rounded-lg touch-target"><Icon name="x" size={18}/></button>
-                        </div>
-                        <div className="flex mx-3.5 mt-2.5 bg-[#FFF8F0] p-0.5 rounded-lg shrink-0">
-                            <button onClick={()=>setPairSettingTab('must')} className={`flex-1 py-2 rounded-md text-xs font-bold flex items-center justify-center gap-1 transition-all ${pairSettingTab==='must'?'bg-white shadow-sm text-[#4CAF50]':'text-gray-400'}`}><Icon name="heart" size={12}/> 같이 앉기 {seatPairSettings.mustPair.length>0&&<span className="bg-[#4CAF50] text-white text-[9px] px-1 rounded-full">{seatPairSettings.mustPair.length}</span>}</button>
-                            <button onClick={()=>setPairSettingTab('mustNot')} className={`flex-1 py-2 rounded-md text-xs font-bold flex items-center justify-center gap-1 transition-all ${pairSettingTab==='mustNot'?'bg-white shadow-sm text-[#FF6B6B]':'text-gray-400'}`}><Icon name="shield-alert" size={12}/> 떨어뜨리기 {seatPairSettings.mustNotPair.length>0&&<span className="bg-[#FF6B6B] text-white text-[9px] px-1 rounded-full">{seatPairSettings.mustNotPair.length}</span>}</button>
-                        </div>
-                        <div className="px-3.5 pt-2.5 shrink-0">
-                            <div className={`flex gap-1.5 items-center p-2 rounded-lg border-2 ${pairSettingTab==='must'?'bg-[#F0FFF0] border-[#C8E6C9]':'bg-[#FFF0F0] border-[#FFCDD2]'}`}>
-                                <input type="text" value={pairInputA} onChange={e=>setPairInputA(e.target.value)} className="flex-1 bg-white p-2 rounded-md text-center font-bold text-xs border border-gray-100 focus:outline-none min-w-0" placeholder={placementType==='number'?'번호':'이름'} onKeyDown={e=>e.key==='Enter'&&addPairSetting()}/>
-                                <span className="text-sm shrink-0">{pairSettingTab==='must'?'💕':'🚫'}</span>
-                                <input type="text" value={pairInputB} onChange={e=>setPairInputB(e.target.value)} className="flex-1 bg-white p-2 rounded-md text-center font-bold text-xs border border-gray-100 focus:outline-none min-w-0" placeholder={placementType==='number'?'번호':'이름'} onKeyDown={e=>e.key==='Enter'&&addPairSetting()}/>
-                                <button onClick={addPairSetting} className={`p-2 rounded-md text-white shrink-0 active:scale-95 touch-target ${pairSettingTab==='must'?'bg-[#4CAF50]':'bg-[#FF6B6B]'}`}><Icon name="plus" size={16}/></button>
-                            </div>
-                        </div>
-                        <div className="flex-1 overflow-y-auto px-3.5 py-2 min-h-0">
-                            {pairSettingTab==='must'?(
-                                seatPairSettings.mustPair.length?seatPairSettings.mustPair.map((p,i)=>(
-                                    <div key={i} className="flex items-center justify-between bg-[#F0FFF0] p-2 rounded-lg border border-[#C8E6C9] mb-1.5">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#4CAF50] border border-[#C8E6C9]">{p[0]}</span>
-                                            <span className="text-xs">💕</span>
-                                            <span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#4CAF50] border border-[#C8E6C9]">{p[1]}</span>
-                                        </div>
-                                        <button onClick={()=>removePairSetting('mustPair',i)} className="p-1 text-red-300 touch-target"><Icon name="x" size={14}/></button>
-                                    </div>
-                                )):<div className="text-center py-6 text-gray-300"><Icon name="heart" size={24} className="mx-auto opacity-30 mb-1"/><p className="text-xs font-bold">등록된 조합 없음</p></div>
-                            ):(
-                                seatPairSettings.mustNotPair.length?seatPairSettings.mustNotPair.map((p,i)=>(
-                                    <div key={i} className="flex items-center justify-between bg-[#FFF0F0] p-2 rounded-lg border border-[#FFCDD2] mb-1.5">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#FF6B6B] border border-[#FFCDD2]">{p[0]}</span>
-                                            <span className="text-xs">🚫</span>
-                                            <span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#FF6B6B] border border-[#FFCDD2]">{p[1]}</span>
-                                        </div>
-                                        <button onClick={()=>removePairSetting('mustNotPair',i)} className="p-1 text-red-300 touch-target"><Icon name="x" size={14}/></button>
-                                    </div>
-                                )):<div className="text-center py-6 text-gray-300"><Icon name="shield-alert" size={24} className="mx-auto opacity-30 mb-1"/><p className="text-xs font-bold">등록된 조합 없음</p></div>
-                            )}
-                        </div>
-                        <div className="p-3.5 border-t border-gray-100 flex gap-2 shrink-0">
-                            {(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<button onClick={()=>{playSound('click');setSeatPairSettings({mustPair:[],mustNotPair:[]});}} className="px-3 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs touch-target">전체삭제</button>}
-                            <button onClick={()=>{playSound('click');setShowPairSettings(false);}} className="flex-1 py-2.5 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 touch-target">설정 완료</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {systemModal&&<SystemModal modal={systemModal} closeModal={closeModal}/>}
-
-            {fullScreenContent&&(
-                <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2 cursor-pointer" onClick={()=>setFullScreenContent(null)}>
-                    {fullScreenContent.type==='qr'&&<div className="bg-white p-5 rounded-2xl" onClick={e=>e.stopPropagation()}><img src={fullScreenContent.data} className="w-[75vw] h-[75vw] max-w-[400px] max-h-[400px]"/></div>}
-                    {fullScreenContent.type==='img'&&<img src={fullScreenContent.data} className="max-w-[98vw] max-h-[95vh] object-contain rounded-lg"/>}
-                    {fullScreenContent.type==='text'&&(
-                        <div className="p-5 sm:p-8 rounded-2xl max-w-4xl w-full text-center max-h-[88vh] flex flex-col items-center relative" style={{backgroundColor:fullScreenContent.color}} onClick={e=>e.stopPropagation()}>
-                            <div className="flex-1 overflow-y-auto w-full flex items-center justify-center min-h-[100px] no-scrollbar">
-                                <p className="font-black text-gray-700 leading-tight whitespace-pre-wrap select-text" style={{fontSize:`${fsFontSize}px`,fontFamily:'Gamja Flower'}}>{fullScreenContent.data}</p>
-                            </div>
-                            <div className="mt-3 flex items-center gap-3 bg-white/60 px-4 py-2 rounded-full" onClick={e=>e.stopPropagation()}>
-                                <button onClick={()=>setFsFontSize(s=>Math.max(16,s-8))} className="w-9 h-9 rounded-full bg-white font-bold text-gray-500 touch-target flex items-center justify-center"><Icon name="minus" size={16}/></button>
-                                <span className="font-bold text-gray-600 text-sm min-w-[2.5rem] text-center">{fsFontSize}</span>
-                                <button onClick={()=>setFsFontSize(s=>Math.min(200,s+8))} className="w-9 h-9 rounded-full bg-white font-bold text-gray-500 touch-target flex items-center justify-center"><Icon name="plus" size={16}/></button>
-                            </div>
-                            <button onClick={()=>setFullScreenContent(null)} className="absolute top-3 right-3 p-2 bg-white/50 rounded-full text-gray-500 touch-target"><Icon name="x" size={18}/></button>
-                        </div>
-                    )}
-                </div>
-            )}
-            <div id="confetti-holder" className="fixed inset-0 pointer-events-none z-50"></div>
+            <Copyright fixed/>{systemModal&&<SystemModal modal={systemModal} closeModal={closeModal}/>}
         </div>
     );
+
+    /* ═══ 메인화면 ═══ */
+    return(<div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden">
+        <nav className="sticky top-0 z-40 glass-panel px-1.5 sm:px-4 py-2"><div className="max-w-7xl mx-auto flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 cursor-pointer shrink-0" onClick={goHome}><div className="bg-[#B5EAD7] p-1.5 sm:p-2 rounded-xl text-white shadow-sm"><Icon name="flask-conical" size={16}/></div><span className="hidden sm:block text-sm font-black text-gray-500">{students.length}명{excludedNums.length>0&&<span className="text-[10px] text-gray-400 font-bold ml-0.5">(-{excludedNums.length})</span>}</span></div>
+            <div className="flex gap-px sm:gap-0.5 overflow-x-auto no-scrollbar flex-1 py-1 px-0.5 bg-white/50 rounded-2xl border border-white/60">
+                <NavBtn active={mode==='pick'} icon="trophy" label="발표" onClick={()=>setMode('pick')}/>
+                <NavBtn active={mode==='team'} icon="users" label="모둠" onClick={()=>setMode('team')}/>
+                <NavBtn active={mode==='seat'} icon="armchair" label="좌석" onClick={()=>setMode('seat')}/>
+                <NavBtn active={mode==='timer'} icon="timer" label="타이머" onClick={()=>setMode('timer')}/>
+                <NavBtn active={mode==='youtube'} icon="youtube" label="영상" onClick={()=>setMode('youtube')}/>
+                <NavBtn active={mode==='calendar'} icon="calendar" label="달력" onClick={()=>setMode('calendar')}/>
+                <NavBtn active={mode==='record'} icon="mic" label="녹음" onClick={()=>setMode('record')}/>
+                <NavBtn active={mode==='qr'} icon="qr-code" label="QR" onClick={()=>setMode('qr')}/>
+                <NavBtn active={mode==='memo'} icon="sticky-note" label="메모" onClick={()=>setMode('memo')}/>
+                <NavBtn active={mode==='img'} icon="image" label="사진" onClick={()=>setMode('img')}/>
+            </div>
+            <div className="shrink-0 hidden sm:block"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/></div>
+            <button onClick={()=>setIsSoundOn(!isSoundOn)} className="sm:hidden shrink-0 p-1.5 rounded-xl touch-target" style={{color:isSoundOn?'#6B8E23':'#AAA'}}><Icon name={isSoundOn?"volume-2":"volume-x"} size={16}/></button>
+        </div></nav>
+
+        {showMiniTimer&&<div className={`fixed top-[68px] sm:top-[76px] left-2 z-50 mini-float ${isTimerRunning?'mini-pulse':''}`} onClick={()=>{playSound('click');setMode('timer');}}><div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shadow-lg border-2 cursor-pointer active:scale-95 ${isTimerRunning?'bg-white border-[#FFB7B2]':'bg-white/90 border-gray-200'}`}><svg viewBox="0 0 32 32" className="w-6 h-6 -rotate-90"><circle cx="16" cy="16" r="13" stroke="#F0F0F0" strokeWidth="2.5" fill="none"/><circle cx="16" cy="16" r="13" stroke={isTimerRunning?"#FFDAC1":"#D1D5DB"} strokeWidth="2.5" fill="none" strokeDasharray={2*Math.PI*13} strokeDashoffset={(2*Math.PI*13)-(timeLeft/(initialTime||1))*(2*Math.PI*13)} strokeLinecap="round"/></svg><span className={`text-sm font-black tabular-nums ${isTimerRunning?'text-[#5D5D5D]':'text-gray-400'}`}>{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span></div></div>}
+
+        <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
+
+            {/* 1 발표자 */}
+            {mode==='pick'&&<div className="card-enter w-full">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1"><div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">발표자 뽑기</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">오늘의 행운의 주인공은?</p></div><div className="flex gap-1.5"><button onClick={()=>setIsNoRepeat(!isNoRepeat)} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-[10px] sm:text-sm font-bold border-2 touch-target transition-all ${isNoRepeat?'bg-[#FFB7B2] border-[#FFB7B2] text-white':'bg-white border-gray-200 text-gray-400'}`}>중복방지 {isNoRepeat?'ON':'OFF'}</button><button onClick={()=>setPickHistory([])} className="flex-1 sm:flex-none px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[10px] sm:text-sm font-bold touch-target">초기화 ({pickHistory.length})</button></div></div>
+                <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFB7B2" playSound={playSound}/></div>
+                <div className="bg-white rounded-2xl p-3 sm:p-5 soft-shadow border border-[#F0EBE3] relative overflow-hidden"><div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5 sm:gap-2 relative z-10">{students.map(num=>{const isExcluded=excludedNums.includes(num),isWin=pickWinner===num,isHL=currentPick===num,isDone=pickHistory.includes(num);return<div key={num} className={`student-cell ${isExcluded?'excluded-cell':isWin?'winner winner-pulse':isHL?'highlight-anim':isDone?'done':''}`}>{isExcluded?<span className="text-gray-300 text-[11px]">✕</span>:num}{!isExcluded&&isDone&&<div className="absolute inset-0 flex items-center justify-center opacity-25 bg-gray-100/40"><Icon name="check" size={14}/></div>}</div>;})}</div></div>
+                <div className="mt-5 text-center"><button onClick={()=>{if(isPicking)return;let pool=isNoRepeat?activeStudents.filter(s=>!pickHistory.includes(s)):activeStudents;if(!pool.length)return showAlert(activeStudents.length===0?"참여할 학생이 없습니다.":"모든 학생이 발표했습니다!\n기록을 초기화해주세요.");playSound('click');setIsPicking(true);setPickWinner(null);let cnt=0;const mx=20+Math.floor(Math.random()*10);let d=50;const loop=()=>{setCurrentPick(activeStudents[Math.floor(Math.random()*activeStudents.length)]);playSound('tick');cnt++;if(cnt>mx){const w=pool[Math.floor(Math.random()*pool.length)];setCurrentPick(w);setPickWinner(w);if(isNoRepeat)setPickHistory(prev=>[...prev,w]);playSound('win');fireConfetti();setIsPicking(false);}else{d*=1.1;setTimeout(loop,d);}};loop();}} disabled={isPicking} className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-full text-lg sm:text-xl font-black shadow-lg shadow-[#FFB7B2]/25 active:scale-95 flex items-center justify-center gap-2 mx-auto touch-target transition-all">{isPicking?<Icon name="loader-2" size={18} className="animate-spin"/>:<Icon name="sparkles" size={18}/>}{isPicking?'두구두구...':'발표자 뽑기'}</button></div>
+            </div>}
+
+            {/* 2 모둠 */}
+            {mode==='team'&&<div className="card-enter space-y-3 w-full">
+                <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
+                    <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#C7CEEA] border-[#C7CEEA] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
+                    {placementType==='number'&&<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#C7CEEA" playSound={playSound}/>}
+                    {placementType==='name'&&<textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-2.5 bg-[#F7F9FC] rounded-xl border-2 border-transparent focus:border-[#C7CEEA] resize-none h-16 outline-none text-sm" placeholder="학생 이름 (쉼표/줄바꿈 구분)"/>}
+                    {placementType==='gender'&&<div className="flex gap-2"><textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#F0F8FF] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#90CAF9] outline-none" placeholder="남학생"/><textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#FFF0F5] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#F48FB1] outline-none" placeholder="여학생"/></div>}
+                    <div className="flex gap-2 items-end"><div className="flex items-center gap-1 bg-[#F7F9FC] p-1 rounded-lg border border-gray-100">{[2,3].map(c=><button key={c} onClick={()=>setTeamColumns(c)} className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${teamColumns===c?'bg-white shadow-sm text-[#5C6B9E]':'text-gray-400'}`}>{c}열</button>)}</div><div className="flex items-center bg-[#F7F9FC] rounded-lg border border-gray-100 px-1.5 gap-1"><button onClick={()=>setTeamCount(Math.max(2,teamCount-1))} className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="minus" size={14}/></button><span className="text-sm font-black text-[#5C6B9E] min-w-[2rem] text-center">{teamCount}</span><button onClick={()=>setTeamCount(Math.min(20,teamCount+1))} className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="plus" size={14}/></button></div><button onClick={createTeams} className="ml-auto py-2.5 px-4 bg-[#C7CEEA] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm"><Icon name="wand-2" size={16}/> 생성</button></div>
+                </div>
+                {teams.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createTeams} className="text-[#C7CEEA] bg-white border border-[#C7CEEA] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#C7CEEA] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div><div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#C7CEEA] shadow-lg"><div className={`grid gap-2 sm:gap-3 ${teamColumns===2?'grid-cols-2':'grid-cols-2 sm:grid-cols-3'}`}>{teams.map((team,tIdx)=><div key={tIdx} className="bg-[#F7F9FC] rounded-xl p-2.5 border border-[#E2E8F0]"><div className="flex items-center gap-1.5 mb-2"><div className="bg-[#C7CEEA] text-white w-6 h-6 flex items-center justify-center rounded-lg font-black text-xs">{tIdx+1}</div><span className="text-[10px] font-bold text-gray-400">{team.length}명</span></div><div className="flex flex-col gap-1">{team.map((s,sIdx)=>{const isSel=selectedItem?.type==='team'&&selectedItem?.index===tIdx&&selectedItem?.subIndex===sIdx;return<div key={sIdx} onClick={()=>handleItemTap('team',tIdx,sIdx)} className={`bg-white border-2 rounded-lg font-bold text-gray-600 cursor-pointer select-none center-content py-1.5 px-2 text-sm touch-target transition-all ${isSel?'selected-item':'border-transparent active:border-[#C7CEEA]'}`}>{s}</div>;})}</div></div>)}</div></div></div>}
+            </div>}
+
+            {/* 3 좌석 */}
+            {mode==='seat'&&<div className="card-enter space-y-3 w-full">
+                <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
+                    <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#FFD3B6] border-[#FFD3B6] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
+                    {placementType==='number'&&<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFD3B6" playSound={playSound}/>}
+                    {placementType==='name'&&<textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-2.5 bg-[#FFF8F0] rounded-xl border-2 border-transparent focus:border-[#FFD3B6] resize-none h-16 outline-none text-sm" placeholder="학생 이름 입력"/>}
+                    {placementType==='gender'&&<div className="space-y-2"><div className="flex bg-[#FFF8F0] p-0.5 rounded-lg"><button onClick={()=>setGenderOption('mixed')} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold ${genderOption==='mixed'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>이성끼리 👫</button><button onClick={()=>setGenderOption('same')} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold ${genderOption==='same'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>동성끼리</button></div><div className="flex gap-2"><textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#F0F8FF] rounded-xl h-16 resize-none text-xs outline-none" placeholder="남학생"/><textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#FFF0F5] rounded-xl h-16 resize-none text-xs outline-none" placeholder="여학생"/></div></div>}
+                    <div className="flex gap-2 items-end flex-wrap">
+                        <div className="flex bg-[#FFF8F0] p-0.5 rounded-lg border border-gray-100"><button onClick={()=>setSeatType('single')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target ${seatType==='single'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>혼자</button><button onClick={()=>setSeatType('pair')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target ${seatType==='pair'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>짝꿍</button></div>
+                        {seatType==='pair'&&<button onClick={()=>{playSound('click');setShowPairSettings(true);}} className="relative py-2 px-3 bg-white border-2 border-dashed border-[#FFD3B6] text-[#D68C60] rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="settings-2" size={14}/> 조건{(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<span className="absolute -top-1.5 -right-1.5 bg-[#FFB7B2] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">{seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length}</span>}</button>}
+                        <button onClick={createSeats} className="ml-auto py-2.5 px-4 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm"><Icon name="layout-grid" size={16}/> 생성</button>
+                    </div>
+                </div>
+                {seats.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div><div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg"><div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div><div className={`grid gap-1.5 sm:gap-2.5 ${seatType==='single'?'grid-cols-4 sm:grid-cols-5':'grid-cols-2 sm:grid-cols-3'}`}>{seatType==='single'?seats.map((s,i)=>{const isSel=selectedItem?.type==='seat'&&selectedItem?.index===i;return<div key={i} onClick={()=>handleItemTap('seat',i)} className={`py-2.5 flex items-center justify-center bg-white border-2 rounded-lg text-xs sm:text-sm font-black text-gray-600 cursor-pointer touch-target ${isSel?'selected-item':'border-gray-100 active:bg-[#FFF8F0]'}`}>{s}</div>;}):Array.from({length:Math.ceil(seats.length/2)}).map((_,g)=>{const i1=g*2,i2=g*2+1,s1=selectedItem?.type==='seat'&&selectedItem?.index===i1,s2=selectedItem?.type==='seat'&&selectedItem?.index===i2;return<div key={g} className="flex bg-[#FFF8F0] border-2 border-[#FFD3B6] rounded-lg overflow-hidden h-11 sm:h-12"><div onClick={()=>handleItemTap('seat',i1)} className={`flex-1 flex items-center justify-center border-r border-[#FFD3B6]/30 cursor-pointer touch-target ${s1?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i1]}</span></div><div onClick={()=>handleItemTap('seat',i2)} className={`flex-1 flex items-center justify-center cursor-pointer touch-target ${s2?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i2]||''}</span></div></div>;})}</div></div></div>}
+            </div>}
+
+            {/* 4 타이머 */}
+            {mode==='timer'&&<div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
+                {showClockInTimer&&<div className="mb-5 bg-white rounded-2xl p-5 sm:p-6 soft-shadow border-2 border-[#C7CEEA] w-full max-w-sm text-center card-enter"><LiveClock size="md"/></div>}
+                <div className="relative mb-5 sm:mb-8 w-52 h-52 sm:w-72 sm:h-72"><svg viewBox="0 0 300 300" className="w-full h-full -rotate-90 drop-shadow-lg"><circle cx="150" cy="150" r="120" stroke="#F0F0F0" strokeWidth="14" fill="none"/><circle cx="150" cy="150" r="120" stroke="#FFDAC1" strokeWidth="14" fill="none" strokeDasharray={2*Math.PI*120} strokeDashoffset={(2*Math.PI*120)-(timeLeft/(initialTime||1))*(2*Math.PI*120)} strokeLinecap="round" className="timer-circle"/></svg><div className="absolute inset-0 flex flex-col items-center justify-center">{isTimerRunning?<span className="text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter">{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span>:<div className="flex items-center"><input type="number" inputMode="numeric" className="t-input text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter w-[2.2ch] sm:w-[2.5ch]" value={editingMin?minEdit:Math.floor(timeLeft/60).toString().padStart(2,'0')} onFocus={onMinFocus} onBlur={onMinBlur} onChange={e=>setMinEdit(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/><span className="text-4xl sm:text-7xl font-black text-[#4A4A4A] tracking-tighter select-none">:</span><input type="number" inputMode="numeric" className="t-input text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter w-[2.2ch] sm:w-[2.5ch]" value={editingSec?secEdit:(timeLeft%60).toString().padStart(2,'0')} onFocus={onSecFocus} onBlur={onSecBlur} onChange={e=>setSecEdit(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/></div>}<span className="text-[10px] sm:text-xs text-gray-400 font-bold mt-1.5">{isTimerRunning?<><span className="animate-pulse text-[#FF9E99]">● </span>진행 중</>:'터치하여 시간 입력'}</span></div></div>
+                <div className="flex flex-wrap justify-center gap-1.5 mb-3 sm:mb-5">{[{l:'+10초',v:10},{l:'+1분',v:60},{l:'+5분',v:300}].map(b=><button key={b.l} onClick={()=>adjustTime(b.v)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-gray-500 shadow-sm border border-gray-100 active:scale-95 touch-target">{b.l}</button>)}<button onClick={()=>adjustTime(-10)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-red-400 shadow-sm border border-red-50 active:scale-95 touch-target">-10초</button></div>
+                <div className="flex flex-wrap justify-center gap-1.5 mb-5 sm:mb-7">{[{l:'1분',s:60},{l:'3분',s:180},{l:'5분',s:300},{l:'10분',s:600}].map(p=><button key={p.l} onClick={()=>{playSound('click');setTimeLeft(p.s);setInitialTime(p.s);setIsTimerRunning(false);}} className={`px-3.5 py-2 rounded-lg text-xs font-bold border-2 active:scale-95 touch-target ${timeLeft===p.s&&!isTimerRunning?'bg-[#FFDAC1] border-[#FFDAC1] text-white':'bg-white border-gray-100 text-gray-400'}`}>{p.l}</button>)}</div>
+                <div className="flex gap-2.5 w-full max-w-xs"><button onClick={()=>{playSound('click');if(!isTimerRunning){setTimerEverStarted(true);if(timeLeft>0)setInitialTime(timeLeft);}setIsTimerRunning(!isTimerRunning);}} className={`flex-1 py-3.5 rounded-2xl text-lg font-black text-white shadow-lg active:scale-95 flex items-center justify-center gap-2 touch-target ${isTimerRunning?'bg-[#FF9E99]':'bg-[#B5EAD7]'}`}><Icon name={isTimerRunning?"pause":"play"} size={20}/>{isTimerRunning?'일시정지':'시작'}</button><button onClick={()=>{playSound('click');setIsTimerRunning(false);setTimeLeft(initialTime);}} className="py-3.5 px-5 rounded-2xl bg-gray-200 text-gray-500 font-bold active:scale-95 touch-target flex items-center justify-center"><Icon name="rotate-ccw" size={20}/></button><button onClick={()=>{playSound('click');setShowClockInTimer(!showClockInTimer);}} className={`py-3.5 px-5 rounded-2xl font-bold active:scale-95 touch-target flex items-center justify-center ${showClockInTimer?'bg-[#C7CEEA] text-white shadow-lg':'bg-gray-200 text-gray-500'}`}><Icon name="clock" size={20}/></button></div>
+            </div>}
+
+            {/* 5 유튜브 */}
+            {mode==='youtube'&&<div className="card-enter w-full"><YouTubePlayer playSound={playSound}/></div>}
+            {/* 6 달력 */}
+            {mode==='calendar'&&<div className="card-enter w-full space-y-4"><div className="bg-white rounded-2xl p-5 sm:p-7 soft-shadow border border-gray-100 text-center"><LiveClock size="lg"/></div><CalendarWidget/></div>}
+            {/* 7 녹음 */}
+            {mode==='record'&&<div className="card-enter w-full"><RecorderWidget playSound={playSound}/></div>}
+            {/* 8 QR */}
+            {mode==='qr'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[#B5EAD7] w-full max-w-lg text-center"><h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2"><Icon name="scan-line" size={18}/> QR코드</h2><div className="flex gap-2 mb-4"><input type="url" value={qrInput} onChange={e=>setQrInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&qrInput&&setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`)} className="flex-1 p-2.5 bg-[#F0FDF4] rounded-xl border-2 border-transparent focus:border-[#B5EAD7] outline-none font-bold text-sm" placeholder="URL 입력"/><button onClick={()=>{if(qrInput){playSound('click');setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`);}}} className="px-4 bg-[#B5EAD7] text-white rounded-xl font-black shadow-md touch-target">생성</button></div>{qrUrl?<div className="inline-block p-3 bg-white rounded-2xl shadow-md border border-gray-100 cursor-pointer" onClick={()=>setFullScreenContent({type:'qr',data:qrUrl})}><img src={qrUrl} alt="QR" className="w-40 h-40 sm:w-52 sm:h-52 mix-blend-multiply"/><p className="text-gray-400 text-[10px] font-bold mt-2">터치하여 확대</p></div>:<div className="w-40 h-40 sm:w-52 sm:h-52 mx-auto bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-gray-300 border-2 border-dashed border-gray-200"><Icon name="link" size={28} className="opacity-40 mb-1"/><span className="font-bold text-xs">주소를 입력하세요</span></div>}</div></div>}
+            {/* 9 메모 */}
+            {mode==='memo'&&<div className="card-enter w-full max-w-3xl mx-auto"><div className="flex gap-2 mb-3"><div className="flex-1 relative"><input type="text" value={memoInput} onChange={e=>setMemoInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&memoInput.trim()){playSound('click');setMemos([{id:Date.now(),text:memoInput,color:['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF'][Math.floor(Math.random()*5)]},...memos]);setMemoInput('');}}} className="w-full p-2.5 pl-8 bg-white rounded-xl border-2 border-[#C7CEEA] font-bold text-sm focus:outline-none" placeholder="기억할 내용"/><span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#C7CEEA]"><Icon name="pencil" size={14}/></span></div><button onClick={()=>{if(!memoInput.trim())return;playSound('click');setMemos([{id:Date.now(),text:memoInput,color:['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF'][Math.floor(Math.random()*5)]},...memos]);setMemoInput('');}} className="px-3 bg-[#C7CEEA] text-white rounded-xl font-black shadow-md touch-target"><Icon name="plus" size={18}/></button>{memos.length>0&&<button onClick={()=>{playSound('click');setMemos([]);}} className="px-3 bg-red-100 text-red-400 rounded-xl font-bold touch-target"><Icon name="trash-2" size={16}/></button>}</div><div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">{memos.map(m=><div key={m.id} onClick={()=>{setFullScreenContent({type:'text',data:m.text,color:m.color});setFsFontSize(window.innerWidth<500?40:70);}} className="relative p-3 sm:p-4 rounded-xl min-h-[80px] sm:min-h-[130px] flex items-center justify-center text-center cursor-pointer shadow-sm hover:shadow-md" style={{backgroundColor:m.color}}><p className="font-black text-gray-700 text-xs sm:text-base whitespace-pre-wrap line-clamp-3" style={{fontFamily:'Gamja Flower'}}>{m.text}</p><button onClick={e=>{e.stopPropagation();playSound('click');setMemos(memos.filter(x=>x.id!==m.id));}} className="absolute top-1.5 right-1.5 p-1 bg-white/50 rounded-full text-red-400"><Icon name="trash-2" size={11}/></button></div>)}{!memos.length&&<div className="col-span-full py-10 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-2xl bg-white/50"><Icon name="sticky-note" size={28} className="mx-auto opacity-30 mb-1"/><p className="text-xs">메모를 추가해보세요!</p></div>}</div></div>}
+            {/* 10 사진 */}
+            {mode==='img'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-3 sm:p-5 rounded-2xl shadow-lg border-2 border-[#FFC3A0] w-full max-w-3xl min-h-[220px] sm:min-h-[400px] flex items-center justify-center relative">{uploadedImg?<div className="relative w-full flex items-center justify-center"><img src={uploadedImg} className="max-w-full max-h-[50vh] rounded-xl shadow-sm cursor-pointer" onClick={()=>setFullScreenContent({type:'img',data:uploadedImg})}/><button onClick={()=>{setUploadedImg(null);fileInputRef.current.value='';}} className="absolute top-2 right-2 p-2 bg-white text-[#FFC3A0] rounded-full shadow-md touch-target"><Icon name="x" size={18}/></button></div>:<div onClick={()=>fileInputRef.current.click()} className="flex flex-col items-center justify-center gap-3 cursor-pointer p-8 sm:p-14 hover:bg-[#FFF5EB] rounded-2xl w-full h-full border-2 border-dashed border-[#FFC3A0]/30"><div className="p-5 bg-[#FFEDD5] rounded-full text-[#FFC3A0]"><Icon name="image-plus" size={32}/></div><p className="text-base font-bold text-[#FFC3A0]">터치하여 사진 업로드</p></div>}<input type="file" ref={fileInputRef} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=res=>{setUploadedImg(res.target.result);playSound('win');};r.readAsDataURL(f);}}} accept="image/*" className="hidden"/></div></div>}
+            <Copyright/>
+        </main>
+
+        {/* 짝꿍 모달 */}
+        {showPairSettings&&<div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={()=>setShowPairSettings(false)}><div className="modal-up bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl border-t-4 sm:border-4 border-[#FFD3B6] max-h-[80vh] flex flex-col safe-b" onClick={e=>e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3.5 border-b border-gray-100 shrink-0"><div className="flex items-center gap-2"><div className="bg-[#FFD3B6] p-1.5 rounded-lg text-white"><Icon name="settings-2" size={16}/></div><div><h3 className="text-sm font-black text-[#4A4A4A]">짝꿍 조건 설정</h3><p className="text-[9px] text-gray-400 font-bold">비밀 설정</p></div></div><button onClick={()=>setShowPairSettings(false)} className="p-2 text-gray-400 rounded-lg touch-target"><Icon name="x" size={18}/></button></div>
+            <div className="flex mx-3.5 mt-2.5 bg-[#FFF8F0] p-0.5 rounded-lg shrink-0"><button onClick={()=>setPairSettingTab('must')} className={`flex-1 py-2 rounded-md text-xs font-bold flex items-center justify-center gap-1 ${pairSettingTab==='must'?'bg-white shadow-sm text-[#4CAF50]':'text-gray-400'}`}><Icon name="heart" size={12}/> 같이 앉기 {seatPairSettings.mustPair.length>0&&<span className="bg-[#4CAF50] text-white text-[9px] px-1 rounded-full">{seatPairSettings.mustPair.length}</span>}</button><button onClick={()=>setPairSettingTab('mustNot')} className={`flex-1 py-2 rounded-md text-xs font-bold flex items-center justify-center gap-1 ${pairSettingTab==='mustNot'?'bg-white shadow-sm text-[#FF6B6B]':'text-gray-400'}`}><Icon name="shield-alert" size={12}/> 떨어뜨리기 {seatPairSettings.mustNotPair.length>0&&<span className="bg-[#FF6B6B] text-white text-[9px] px-1 rounded-full">{seatPairSettings.mustNotPair.length}</span>}</button></div>
+            <div className="px-3.5 pt-2.5 shrink-0"><div className={`flex gap-1.5 items-center p-2 rounded-lg border-2 ${pairSettingTab==='must'?'bg-[#F0FFF0] border-[#C8E6C9]':'bg-[#FFF0F0] border-[#FFCDD2]'}`}><input type="text" value={pairInputA} onChange={e=>setPairInputA(e.target.value)} className="flex-1 bg-white p-2 rounded-md text-center font-bold text-xs border border-gray-100 focus:outline-none min-w-0" placeholder={placementType==='number'?'번호':'이름'} onKeyDown={e=>e.key==='Enter'&&addPairSetting()}/><span className="text-sm shrink-0">{pairSettingTab==='must'?'💕':'🚫'}</span><input type="text" value={pairInputB} onChange={e=>setPairInputB(e.target.value)} className="flex-1 bg-white p-2 rounded-md text-center font-bold text-xs border border-gray-100 focus:outline-none min-w-0" placeholder={placementType==='number'?'번호':'이름'} onKeyDown={e=>e.key==='Enter'&&addPairSetting()}/><button onClick={addPairSetting} className={`p-2 rounded-md text-white shrink-0 active:scale-95 touch-target ${pairSettingTab==='must'?'bg-[#4CAF50]':'bg-[#FF6B6B]'}`}><Icon name="plus" size={16}/></button></div></div>
+            <div className="flex-1 overflow-y-auto px-3.5 py-2 min-h-0">{pairSettingTab==='must'?(seatPairSettings.mustPair.length?seatPairSettings.mustPair.map((p,i)=><div key={i} className="flex items-center justify-between bg-[#F0FFF0] p-2 rounded-lg border border-[#C8E6C9] mb-1.5"><div className="flex items-center gap-1.5"><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#4CAF50] border border-[#C8E6C9]">{p[0]}</span><span className="text-xs">💕</span><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#4CAF50] border border-[#C8E6C9]">{p[1]}</span></div><button onClick={()=>removePairSetting('mustPair',i)} className="p-1 text-red-300 touch-target"><Icon name="x" size={14}/></button></div>):<div className="text-center py-6 text-gray-300"><p className="text-xs font-bold">등록된 조합 없음</p></div>):(seatPairSettings.mustNotPair.length?seatPairSettings.mustNotPair.map((p,i)=><div key={i} className="flex items-center justify-between bg-[#FFF0F0] p-2 rounded-lg border border-[#FFCDD2] mb-1.5"><div className="flex items-center gap-1.5"><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#FF6B6B] border border-[#FFCDD2]">{p[0]}</span><span className="text-xs">🚫</span><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#FF6B6B] border border-[#FFCDD2]">{p[1]}</span></div><button onClick={()=>removePairSetting('mustNotPair',i)} className="p-1 text-red-300 touch-target"><Icon name="x" size={14}/></button></div>):<div className="text-center py-6 text-gray-300"><p className="text-xs font-bold">등록된 조합 없음</p></div>)}</div>
+            <div className="p-3.5 border-t border-gray-100 flex gap-2 shrink-0">{(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<button onClick={()=>{playSound('click');setSeatPairSettings({mustPair:[],mustNotPair:[]});}} className="px-3 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs touch-target">전체삭제</button>}<button onClick={()=>{playSound('click');setShowPairSettings(false);}} className="flex-1 py-2.5 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 touch-target">설정 완료</button></div>
+        </div></div>}
+
+        {systemModal&&<SystemModal modal={systemModal} closeModal={closeModal}/>}
+
+        {fullScreenContent&&<div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2 cursor-pointer" onClick={()=>setFullScreenContent(null)}>
+            {fullScreenContent.type==='qr'&&<div className="bg-white p-5 rounded-2xl" onClick={e=>e.stopPropagation()}><img src={fullScreenContent.data} className="w-[75vw] h-[75vw] max-w-[400px] max-h-[400px]"/></div>}
+            {fullScreenContent.type==='img'&&<img src={fullScreenContent.data} className="max-w-[98vw] max-h-[95vh] object-contain rounded-lg"/>}
+            {fullScreenContent.type==='text'&&<div className="p-5 sm:p-8 rounded-2xl max-w-4xl w-full text-center max-h-[88vh] flex flex-col items-center relative" style={{backgroundColor:fullScreenContent.color}} onClick={e=>e.stopPropagation()}><div className="flex-1 overflow-y-auto w-full flex items-center justify-center min-h-[100px] no-scrollbar"><p className="font-black text-gray-700 leading-tight whitespace-pre-wrap select-text" style={{fontSize:`${fsFontSize}px`,fontFamily:'Gamja Flower'}}>{fullScreenContent.data}</p></div><div className="mt-3 flex items-center gap-3 bg-white/60 px-4 py-2 rounded-full" onClick={e=>e.stopPropagation()}><button onClick={()=>setFsFontSize(s=>Math.max(16,s-8))} className="w-9 h-9 rounded-full bg-white font-bold text-gray-500 touch-target flex items-center justify-center"><Icon name="minus" size={16}/></button><span className="font-bold text-gray-600 text-sm min-w-[2.5rem] text-center">{fsFontSize}</span><button onClick={()=>setFsFontSize(s=>Math.min(200,s+8))} className="w-9 h-9 rounded-full bg-white font-bold text-gray-500 touch-target flex items-center justify-center"><Icon name="plus" size={16}/></button></div><button onClick={()=>setFullScreenContent(null)} className="absolute top-3 right-3 p-2 bg-white/50 rounded-full text-gray-500 touch-target"><Icon name="x" size={18}/></button></div>}
+        </div>}
+        <div id="confetti-holder" className="fixed inset-0 pointer-events-none z-50"/>
+    </div>);
 }
 
 const root=ReactDOM.createRoot(document.getElementById('root'));
