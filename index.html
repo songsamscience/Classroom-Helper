@@ -212,7 +212,8 @@ function RecorderWidget({playSound:ps}){
         <div className="bg-white rounded-2xl p-5 sm:p-7 soft-shadow border-2 border-[#FFCDD2] text-center">
             <h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-1 flex items-center justify-center gap-2"><Icon name="mic" size={20}/> 음성 녹음</h2>
             <p className="text-[10px] text-gray-400 font-bold mb-5">녹음 완료 시 WAV 파일로 자동 다운로드</p>
-            <div className={`text-4xl sm:text-6xl font-black clock-face mb-6 ${isRecording&&!isPaused?'text-red-500':'text-[#4A4A4A]'}`}>{fmt(elapsed)}</div>
+            <div className={`text-4xl sm:text-6xl font-black clock-face mb-2 ${isRecording&&!isPaused?'text-red-500':'text-[#4A4A4A]'}`}>{fmt(elapsed)}</div>
+            {(isRecording||elapsed>0)&&<p className="text-[11px] font-bold text-gray-400 mb-4">예상 용량 <span className="text-gray-600">{((44100*2*elapsed)/1024/1024).toFixed(1)} MB</span></p>}
             {isRecording&&!isPaused&&<div className="flex items-center justify-center gap-[3px] mb-5 h-8">{Array.from({length:24}).map((_,i)=><div key={i} className="w-[3px] bg-red-400 rounded-full origin-bottom" style={{height:'24px',animation:`barBounce ${.4+Math.random()*.4}s ease-in-out infinite`,animationDelay:`${i*.04}s`}}/>)}</div>}
             {isRecording&&isPaused&&<div className="flex items-center justify-center gap-2 mb-5 h-8 text-gray-400 font-bold text-sm"><span className="animate-pulse">⏸</span> 일시정지</div>}
             {!isRecording&&!isConverting&&<div className="h-8 mb-5"/>}
@@ -222,6 +223,13 @@ function RecorderWidget({playSound:ps}){
                     {!isPaused?<button onClick={pauseRec} className="px-5 py-3.5 bg-yellow-500 text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5"><Icon name="pause" size={18}/> 일시정지</button>:<button onClick={resumeRec} className="px-5 py-3.5 bg-green-500 text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5"><Icon name="play" size={18}/> 계속</button>}
                     <button onClick={stopRec} className={`px-5 py-3.5 bg-[#FFB7B2] text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5 ${isRecording&&!isPaused?'rec-pulse':''}`}><Icon name="square" size={18}/> 녹음 완료</button>
                 </>}
+            </div>
+        </div>
+        <div className="bg-[#FFF8E1] rounded-xl p-3 border border-[#FFE082] flex items-start gap-2">
+            <div className="shrink-0 mt-0.5"><Icon name="clock" size={16} className="text-[#FFA000]"/></div>
+            <div className="text-[11px] text-gray-600 font-bold leading-relaxed">
+                <p>안정적인 녹음을 위해 <span className="text-[#E65100]">최대 10분 이내</span>로 녹음하는 것을 권장합니다.</p>
+                <p className="mt-0.5 text-gray-400">긴 녹음은 WAV 변환 시 메모리 부족으로 실패할 수 있습니다. (10분 ≈ 약 53MB)</p>
             </div>
         </div>
         <div className="bg-[#F0F8FF] rounded-xl p-3 border border-[#D6EBFF] flex items-start gap-2">
