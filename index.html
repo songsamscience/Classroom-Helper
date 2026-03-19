@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- ★ YouTube Error 153 핵심 수정: Referrer Policy 설정 -->
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>송쌤과학 교실 도우미</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -72,15 +71,24 @@
         .cal-today{background:#FFB7B2;color:#fff;font-weight:900;box-shadow:0 2px 8px rgba(255,183,178,.35);}
         .cal-sun{color:#FF6B6B}.cal-sat{color:#64B5F6;}
         @keyframes barBounce{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
-        /* mobile audio player fix */
         audio{max-width:100%;border-radius:8px;}
         audio::-webkit-media-controls-panel{background:#f9f9f9;}
+        /* 돌림판 styles */
+        .wheel-container{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+        .wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:20;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));}
+        .wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:15;width:44px;height:44px;border-radius:50%;background:white;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;}
+        @media(min-width:640px){.wheel-center{width:56px;height:56px;}}
+        .wheel-result-pop{animation:resultPop .5s cubic-bezier(.34,1.56,.64,1);}
+        @keyframes resultPop{from{opacity:0;transform:scale(.5) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0;}
+        .color-dot:hover{transform:scale(1.15);}
+        .color-dot.active{border-color:#4A4A4A;transform:scale(1.15);box-shadow:0 2px 8px rgba(0,0,0,.15);}
     </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const {useState,useEffect,useRef,useMemo}=React;
+const {useState,useEffect,useRef,useMemo,useCallback}=React;
 
 const Icon=({name,size=24,className=""})=>{const ref=useRef(null);useEffect(()=>{if(window.lucide&&ref.current){ref.current.innerHTML='';const i=document.createElement('i');i.setAttribute('data-lucide',name);i.setAttribute('class',className);ref.current.appendChild(i);window.lucide.createIcons({root:ref.current,nameAttr:'data-lucide',attrs:{width:size,height:size}});}},[name,size,className]);return <span ref={ref} className="inline-flex items-center justify-center"/>;};
 const Copyright=({fixed})=>(<footer className={`w-full text-center py-4 text-[10px] text-gray-400 font-bold tracking-widest uppercase ${fixed?'fixed bottom-0 left-0 bg-white/50 backdrop-blur-sm safe-b':'mt-6'}`}>ⓒ 송쌤과학 Class Helper</footer>);
@@ -98,7 +106,6 @@ function SoundToggle({isSoundOn,setIsSoundOn,playSound}){
     return(<button onClick={()=>{if(!isSoundOn)playSound('click');setIsSoundOn(!isSoundOn);}} className={`sound-toggle ${isSoundOn?'on':'off'}`}><Icon name={isSoundOn?"volume-2":"volume-x"} size={13}/>소리 {isSoundOn?"ON":"OFF"}</button>);
 }
 
-/* ══ 실시간 시계 ══ */
 function LiveClock({size='lg'}){
     const [now,setNow]=useState(new Date());
     useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t);},[]);
@@ -109,7 +116,6 @@ function LiveClock({size='lg'}){
     return(<div className="text-center"><div className="text-base font-bold text-gray-400 mb-1">{period}</div><div className="text-5xl sm:text-7xl font-black text-[#4A4A4A] clock-face">{String(h12).padStart(2,'0')}:{String(m).padStart(2,'0')}<span className="text-3xl sm:text-5xl text-gray-300 ml-1">:{String(s).padStart(2,'0')}</span></div><div className="text-sm font-bold text-gray-400 mt-2">{now.getFullYear()}년 {now.getMonth()+1}월 {now.getDate()}일 {['일','월','화','수','목','금','토'][now.getDay()]}요일</div></div>);
 }
 
-/* ══ 달력 ══ */
 function CalendarWidget(){
     const today=new Date();const [year,setYear]=useState(today.getFullYear());const [month,setMonth]=useState(today.getMonth());
     const firstDay=new Date(year,month,1).getDay();const daysInMonth=new Date(year,month+1,0).getDate();
@@ -121,9 +127,6 @@ function CalendarWidget(){
     return(<div className="bg-white rounded-2xl p-4 sm:p-5 soft-shadow border border-gray-100 max-w-sm mx-auto w-full"><div className="flex items-center justify-between mb-4"><button onClick={prev} className="p-2 rounded-lg hover:bg-gray-100 touch-target"><Icon name="chevron-left" size={18}/></button><div className="text-center cursor-pointer" onClick={goToday}><span className="text-lg sm:text-xl font-black text-[#4A4A4A]">{year}년 {month+1}월</span></div><button onClick={next} className="p-2 rounded-lg hover:bg-gray-100 touch-target"><Icon name="chevron-right" size={18}/></button></div><div className="grid grid-cols-7 gap-1 mb-2">{['일','월','화','수','목','금','토'].map((d,i)=><div key={d} className={`text-center text-[11px] font-bold py-1 ${i===0?'text-red-400':i===6?'text-blue-400':'text-gray-400'}`}>{d}</div>)}</div><div className="grid grid-cols-7 gap-1">{days.map((d,i)=>d?<div key={i} className={`cal-day ${isToday(d)?'cal-today':i%7===0?'cal-sun':i%7===6?'cal-sat':'text-gray-600'} ${!isToday(d)?'hover:bg-gray-100':''}`}>{d}</div>:<div key={i}/>)}</div><div className="mt-3 text-center"><button onClick={goToday} className="text-[10px] font-bold text-[#FFB7B2] hover:underline">오늘로 이동</button></div></div>);
 }
 
-/* ══════════════════════════════════════════
-   ▼ 녹음 (WAV — 외부 라이브러리 불필요, 빠른 처리)
-   ══════════════════════════════════════════ */
 function RecorderWidget({playSound:ps}){
     const [isRecording,setIsRecording]=useState(false);
     const [isPaused,setIsPaused]=useState(false);
@@ -136,9 +139,8 @@ function RecorderWidget({playSound:ps}){
     const streamRef=useRef(null);
     const elapsedRef=useRef(0);
 
-    useEffect(()=>{return()=>{if(streamRef.current)streamRef.current.getTracks().forEach(t=>t.stop());clearInterval(timerRef.current);};},[]); // eslint-disable-line
+    useEffect(()=>{return()=>{if(streamRef.current)streamRef.current.getTracks().forEach(t=>t.stop());clearInterval(timerRef.current);};},[]);
 
-    /* WebM Blob → WAV Blob (브라우저 내장 API만 사용) */
     const toWav=(blob)=>new Promise((resolve,reject)=>{
         const reader=new FileReader();
         reader.onload=async()=>{
@@ -146,7 +148,7 @@ function RecorderWidget({playSound:ps}){
                 const ctx=new(window.AudioContext||window.webkitAudioContext)();
                 const buf=await ctx.decodeAudioData(reader.result);
                 ctx.close();
-                const nCh=1, sr=buf.sampleRate, samples=buf.getChannelData(0);
+                const nCh=1,sr=buf.sampleRate,samples=buf.getChannelData(0);
                 const len=samples.length;
                 const wavBuf=new ArrayBuffer(44+len*2);
                 const v=new DataView(wavBuf);
@@ -168,7 +170,6 @@ function RecorderWidget({playSound:ps}){
         try{
             const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,sampleRate:44100}});
             streamRef.current=stream;
-            // 모바일 호환: mimeType 자동 선택
             const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'';
             const opts=mimeType?{mimeType}:{};
             const mr=new MediaRecorder(stream,opts);
@@ -248,14 +249,6 @@ function RecorderWidget({playSound:ps}){
     </div>);
 }
 
-/* ══════════════════════════════════════════
-   ▼ 유튜브 (Error 153 완전 수정)
-   ══════════════════════════════════════════
-   원인: YouTube embed가 Referer 헤더를 요구하는데,
-   sandbox 속성이나 잘못된 referrerpolicy가 이를 차단.
-   해결: referrerpolicy="strict-origin-when-cross-origin"
-   + sandbox 제거 + <meta name="referrer"> 추가
-   ══════════════════════════════════════════ */
 function YouTubePlayer({playSound:ps}){
     const [embedInput,setEmbedInput]=useState('');
     const [videoId,setVideoId]=useState(null);
@@ -264,13 +257,10 @@ function YouTubePlayer({playSound:ps}){
 
     const extractId=input=>{
         const c=input.trim();
-        // youtube.com/watch?v=ID, youtu.be/ID, /embed/ID, /shorts/ID, /live/ID
         let m=c.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/);
         if(m)return m[1];
-        // iframe src에서 추출
         m=c.match(/src=["'](?:https?:)?\/\/(?:www\.)?(?:youtube\.com|youtube-nocookie\.com)\/embed\/([a-zA-Z0-9_-]{11})/i);
         if(m)return m[1];
-        // 11자리 ID만
         if(/^[a-zA-Z0-9_-]{11}$/.test(c))return c;
         return null;
     };
@@ -298,13 +288,6 @@ function YouTubePlayer({playSound:ps}){
             <p className="text-[10px] text-gray-400 font-bold mb-3 px-1">YouTube 링크, 공유 URL, 또는 &lt;iframe&gt; 임베드 코드를 입력하세요</p>
             {errorMsg&&<div className="mb-3 bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-500 font-bold whitespace-pre-wrap">{errorMsg}</div>}
             {videoId?(<div className="relative w-full rounded-xl overflow-hidden shadow-lg bg-black" style={{paddingBottom:'56.25%'}}>
-                {/*
-                    ★ Error 153 핵심 수정:
-                    1) referrerpolicy="strict-origin-when-cross-origin" — Referer 헤더 전송 보장
-                    2) sandbox 속성 제거 — sandbox가 Referer를 차단하는 주요 원인
-                    3) youtube.com 도메인 사용 (nocookie도 가능하지만 일부 환경에서 추가 문제)
-                    4) <head>에 <meta name="referrer" content="strict-origin-when-cross-origin"> 추가
-                */}
                 <iframe
                     key={videoId}
                     src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&enablejsapi=0`}
@@ -320,6 +303,242 @@ function YouTubePlayer({playSound:ps}){
         {history.length>0&&<div className="bg-white/80 rounded-xl p-3 soft-shadow border border-gray-100">
             <div className="flex items-center justify-between mb-2"><span className="text-[10px] font-bold text-gray-400">최근 재생</span><button onClick={()=>{ps('click');setHistory([]);}} className="text-[10px] text-red-300 font-bold">전체삭제</button></div>
             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">{history.map(h=><button key={h.id} onClick={()=>{ps('click');setVideoId(h.id);setErrorMsg('');}} className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 bg-[#FFF5F5] rounded-lg border border-red-100 text-xs font-bold text-gray-600 active:scale-95 touch-target"><Icon name="play" size={11} className="text-red-400"/><span className="max-w-[80px] truncate">{h.time}</span></button>)}</div>
+        </div>}
+    </div>);
+}
+
+/* ══════════════════════════════════════════
+   ▼ 돌림판 (Spinning Wheel)
+   ══════════════════════════════════════════ */
+const WHEEL_COLORS=['#FF6B6B','#FECA57','#48DBFB','#FF9FF3','#54A0FF','#5F27CD','#01A3A4','#F368E0','#FF6348','#2ED573','#FFA502','#3742FA','#EE5A24','#7BED9F','#E056CF','#6C5CE7'];
+
+function SpinWheel({playSound:ps,isSoundOn}){
+    const [itemsInput,setItemsInput]=useState('');
+    const [items,setItems]=useState([]);
+    const [isSpinning,setIsSpinning]=useState(false);
+    const [rotation,setRotation]=useState(0);
+    const [result,setResult]=useState(null);
+    const [history,setHistory]=useState([]);
+    const canvasRef=useRef(null);
+    const audioCtxRef=useRef(null);
+    const spinTimerRef=useRef(null);
+    const tickCountRef=useRef(0);
+
+    const getAudioCtx=()=>{
+        if(!audioCtxRef.current)audioCtxRef.current=new(window.AudioContext||window.webkitAudioContext)();
+        if(audioCtxRef.current.state==='suspended')audioCtxRef.current.resume();
+        return audioCtxRef.current;
+    };
+
+    const playTickSound=useCallback(()=>{
+        if(!isSoundOn)return;
+        const ctx=getAudioCtx();const t=ctx.currentTime;
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='sine';
+        const pitch=600+Math.random()*200;
+        o.frequency.setValueAtTime(pitch,t);
+        g.gain.setValueAtTime(.06,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.05);
+        o.start(t);o.stop(t+.06);
+    },[isSoundOn]);
+
+    const playFanfare=useCallback(()=>{
+        if(!isSoundOn)return;
+        const ctx=getAudioCtx();const t=ctx.currentTime;
+        const notes=[523.25,659.25,783.99,1046.5,1318.5,1046.5];
+        notes.forEach((f,i)=>{
+            const o=ctx.createOscillator(),g=ctx.createGain();
+            o.connect(g);g.connect(ctx.destination);
+            o.type=i<4?'sine':'triangle';
+            o.frequency.setValueAtTime(f,t+i*.12);
+            g.gain.setValueAtTime(0,t+i*.12);
+            g.gain.linearRampToValueAtTime(.1,t+i*.12+.04);
+            g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.6);
+            o.start(t+i*.12);o.stop(t+i*.12+.6);
+        });
+    },[isSoundOn]);
+
+    const parseItems=()=>{
+        const list=itemsInput.split(/[\n,\t]+/).map(s=>s.trim()).filter(s=>s).slice(0,60);
+        if(list.length<2)return null;
+        return list;
+    };
+
+    const applyItems=()=>{
+        const list=parseItems();
+        if(!list)return;
+        ps('click');
+        setItems(list);
+        setResult(null);
+        setRotation(0);
+    };
+
+    // Draw wheel on canvas
+    useEffect(()=>{
+        const canvas=canvasRef.current;
+        if(!canvas||items.length<2)return;
+        const ctx=canvas.getContext('2d');
+        const size=canvas.width;
+        const cx=size/2,cy=size/2,r=size/2-4;
+        const n=items.length;
+        const arc=2*Math.PI/n;
+
+        ctx.clearRect(0,0,size,size);
+
+        // Draw shadow
+        ctx.save();
+        ctx.shadowColor='rgba(0,0,0,.1)';
+        ctx.shadowBlur=20;
+        ctx.beginPath();
+        ctx.arc(cx,cy,r,0,2*Math.PI);
+        ctx.fill();
+        ctx.restore();
+
+        for(let i=0;i<n;i++){
+            const startAngle=i*arc-Math.PI/2;
+            const endAngle=(i+1)*arc-Math.PI/2;
+            ctx.beginPath();
+            ctx.moveTo(cx,cy);
+            ctx.arc(cx,cy,r,startAngle,endAngle);
+            ctx.closePath();
+            ctx.fillStyle=WHEEL_COLORS[i%WHEEL_COLORS.length];
+            ctx.fill();
+            ctx.strokeStyle='rgba(255,255,255,.5)';
+            ctx.lineWidth=1.5;
+            ctx.stroke();
+
+            // Text
+            ctx.save();
+            ctx.translate(cx,cy);
+            ctx.rotate(startAngle+arc/2);
+            ctx.fillStyle='#fff';
+            ctx.font=`bold ${n>20?10:n>12?12:14}px 'Jua',sans-serif`;
+            ctx.textAlign='center';
+            ctx.textBaseline='middle';
+            const textR=r*(n>20?.62:.58);
+            const label=items[i].length>(n>20?5:8)?items[i].slice(0,(n>20?4:7))+'…':items[i];
+            ctx.fillText(label,textR,0);
+            ctx.restore();
+        }
+
+        // Outer ring
+        ctx.beginPath();
+        ctx.arc(cx,cy,r,0,2*Math.PI);
+        ctx.strokeStyle='rgba(255,255,255,.8)';
+        ctx.lineWidth=3;
+        ctx.stroke();
+    },[items]);
+
+    const spinWheel=()=>{
+        if(isSpinning||items.length<2)return;
+        ps('click');
+        setIsSpinning(true);
+        setResult(null);
+
+        const n=items.length;
+        const arc=360/n;
+        const extraSpins=5+Math.floor(Math.random()*5);
+        const targetIdx=Math.floor(Math.random()*n);
+        // The pointer is at top (0°). After rotation, segment at top is determined by rotation angle.
+        // Segment i is from i*arc to (i+1)*arc starting at -90° (top).
+        // To land on targetIdx, the center of that segment should be at top after rotation.
+        const targetAngle=targetIdx*arc+arc/2;
+        const totalRotation=extraSpins*360+(360-targetAngle);
+        const startRotation=rotation;
+        const endRotation=startRotation+totalRotation;
+
+        // Animate with easing
+        const duration=4000+Math.random()*2000;
+        const startTime=performance.now();
+        tickCountRef.current=0;
+        let lastTickAngle=0;
+
+        const animate=(now)=>{
+            const elapsed=now-startTime;
+            const progress=Math.min(elapsed/duration,1);
+            // Cubic ease-out
+            const eased=1-Math.pow(1-progress,3);
+            const currentRot=startRotation+totalRotation*eased;
+            setRotation(currentRot);
+
+            // Tick sound based on passing segment boundaries
+            const currentAngle=currentRot%360;
+            const segmentsPassed=Math.floor(currentRot/arc);
+            if(segmentsPassed>tickCountRef.current){
+                tickCountRef.current=segmentsPassed;
+                playTickSound();
+            }
+
+            if(progress<1){
+                spinTimerRef.current=requestAnimationFrame(animate);
+            }else{
+                setRotation(endRotation);
+                setIsSpinning(false);
+                const winner=items[targetIdx];
+                setResult(winner);
+                setHistory(prev=>[{text:winner,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},...prev].slice(0,20));
+                playFanfare();
+                confetti({particleCount:150,spread:80,origin:{y:.5},colors:['#FFB7B2','#B5EAD7','#C7CEEA','#FECA57','#FF6B6B'],disableForReducedMotion:true});
+            }
+        };
+        spinTimerRef.current=requestAnimationFrame(animate);
+    };
+
+    useEffect(()=>{return()=>{if(spinTimerRef.current)cancelAnimationFrame(spinTimerRef.current);};},[]);
+
+    const wheelSize=typeof window!=='undefined'?(window.innerWidth<640?280:360):360;
+
+    return(<div className="w-full max-w-2xl mx-auto space-y-3">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 soft-shadow border-2 border-[#FECA57]/40">
+            <h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2"><Icon name="circle-dot" size={20} className="text-[#FECA57]"/> 돌림판</h2>
+            <div className="mb-3">
+                <textarea value={itemsInput} onChange={e=>setItemsInput(e.target.value)} className="w-full p-2.5 bg-[#FFFDF0] rounded-xl border-2 border-transparent focus:border-[#FECA57] resize-none h-20 outline-none text-sm font-bold" placeholder="항목 입력 (쉼표, 줄바꿈, 탭으로 구분 · 최대 60개)&#10;예: 사과, 바나나, 딸기 또는 엑셀에서 복사+붙여넣기"/>
+                <div className="flex items-center justify-between mt-1.5 px-1">
+                    <p className="text-[10px] text-gray-400 font-bold">{parseItems()?`${parseItems().length}개 항목`:'최소 2개 이상 입력해주세요'}</p>
+                    <button onClick={applyItems} disabled={!parseItems()} className="px-4 py-1.5 bg-[#FECA57] text-white rounded-lg font-black text-xs shadow-md active:scale-95 touch-target disabled:opacity-40 disabled:cursor-not-allowed transition-all">적용</button>
+                </div>
+            </div>
+        </div>
+
+        {items.length>=2&&<div className="bg-white rounded-2xl p-4 sm:p-6 soft-shadow border border-gray-100 flex flex-col items-center">
+            {/* Result display */}
+            {result&&<div className="wheel-result-pop mb-4 px-6 py-3 rounded-2xl text-center" style={{background:'linear-gradient(135deg,#FECA57 0%,#FF6348 100%)'}}>
+                <p className="text-white text-[10px] font-bold mb-0.5">당첨!</p>
+                <p className="text-white text-xl sm:text-2xl font-black">{result}</p>
+            </div>}
+
+            {/* Wheel */}
+            <div className="wheel-container mb-4">
+                {/* Pointer */}
+                <svg className="wheel-pointer" width="30" height="30" viewBox="0 0 30 30">
+                    <polygon points="15,28 5,4 25,4" fill="#FF6348" stroke="white" strokeWidth="2"/>
+                </svg>
+                <div style={{transform:`rotate(${rotation}deg)`,transition:isSpinning?'none':'transform 0.1s'}}>
+                    <canvas ref={canvasRef} width={wheelSize} height={wheelSize} style={{width:wheelSize,height:wheelSize}}/>
+                </div>
+                <div className="wheel-center">
+                    <Icon name="circle-dot" size={20} className="text-gray-300"/>
+                </div>
+            </div>
+
+            <button onClick={spinWheel} disabled={isSpinning} className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#FECA57] to-[#FF6348] hover:from-[#FFD700] hover:to-[#FF4500] text-white rounded-full text-lg font-black shadow-lg active:scale-95 flex items-center justify-center gap-2 touch-target transition-all disabled:opacity-60">
+                {isSpinning?<><Icon name="loader-2" size={18} className="animate-spin"/>돌리는 중...</>:<><Icon name="zap" size={18}/>돌리기!</>}
+            </button>
+
+            {/* Items list */}
+            <div className="mt-4 w-full">
+                <div className="flex flex-wrap gap-1.5 justify-center">{items.map((item,i)=><span key={i} className="px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{backgroundColor:WHEEL_COLORS[i%WHEEL_COLORS.length]}}>{item}</span>)}</div>
+            </div>
+        </div>}
+
+        {/* History */}
+        {history.length>0&&<div className="bg-white/80 rounded-xl p-3 soft-shadow border border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-gray-400">추첨 기록 ({history.length})</span>
+                <button onClick={()=>{ps('click');setHistory([]);}} className="text-[10px] text-red-300 font-bold">전체삭제</button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">{history.map((h,i)=><div key={i} className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FFFDF0] rounded-lg border border-[#FECA57]/30 text-xs font-bold text-gray-600"><span className="text-[#FECA57] font-black">{i+1}.</span> {h.text} <span className="text-[9px] text-gray-400">({h.time})</span></div>)}</div>
         </div>}
     </div>);
 }
@@ -366,10 +585,14 @@ function App(){
     const [showClockInTimer,setShowClockInTimer]=useState(false);
     const [qrInput,setQrInput]=useState('');const [qrUrl,setQrUrl]=useState(null);
     const [memos,setMemos]=useState([]);const [memoInput,setMemoInput]=useState('');
+    const [memoColor,setMemoColor]=useState('#FFE0E0');
+    const [memoFontSize,setMemoFontSize]=useState(14);
     const [uploadedImg,setUploadedImg]=useState(null);
     const [fullScreenContent,setFullScreenContent]=useState(null);const [fsFontSize,setFsFontSize]=useState(60);
 
     const audioCtx=useRef(null);const timerRef=useRef(null);const captureRef=useRef(null);const fileInputRef=useRef(null);
+
+    const MEMO_COLORS=['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF','#FFDAC1','#C7CEEA','#B5EAD7','#FFB7B2','#FFFFCC','#F0F0F0','#D4F0FF'];
 
     const excludedNums=useMemo(()=>excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length),[excludedInput,students.length]);
     const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
@@ -413,6 +636,13 @@ function App(){
     const performSwap=(src,tgt)=>{if(src.type==='team'){const t=[...teams.map(x=>[...x])];const tmp=t[src.index][src.subIndex];t[src.index][src.subIndex]=t[tgt.index][tgt.subIndex];t[tgt.index][tgt.subIndex]=tmp;setTeams(t);}else{const s=[...seats];[s[src.index],s[tgt.index]]=[s[tgt.index],s[src.index]];setSeats(s);}};
     const handleItemTap=(type,index,subIndex=null)=>{if(isPicking)return;playSound('click');if(selectedItem){if(selectedItem.type===type&&selectedItem.index===index&&selectedItem.subIndex===subIndex){setSelectedItem(null);return;}if(selectedItem.type!==type){setSelectedItem({type,index,subIndex});return;}performSwap(selectedItem,{type,index,subIndex});setSelectedItem(null);playSound('win');}else setSelectedItem({type,index,subIndex});};
 
+    const addMemo=()=>{
+        if(!memoInput.trim())return;
+        playSound('click');
+        setMemos([{id:Date.now(),text:memoInput,color:memoColor,fontSize:memoFontSize},...memos]);
+        setMemoInput('');
+    };
+
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
     const NavBtn=({active,icon,label,onClick})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
 
@@ -446,6 +676,7 @@ function App(){
                 <NavBtn active={mode==='pick'} icon="trophy" label="발표" onClick={()=>setMode('pick')}/>
                 <NavBtn active={mode==='team'} icon="users" label="모둠" onClick={()=>setMode('team')}/>
                 <NavBtn active={mode==='seat'} icon="armchair" label="좌석" onClick={()=>setMode('seat')}/>
+                <NavBtn active={mode==='wheel'} icon="circle-dot" label="돌림판" onClick={()=>setMode('wheel')}/>
                 <NavBtn active={mode==='timer'} icon="timer" label="타이머" onClick={()=>setMode('timer')}/>
                 <NavBtn active={mode==='youtube'} icon="youtube" label="영상" onClick={()=>setMode('youtube')}/>
                 <NavBtn active={mode==='calendar'} icon="calendar" label="달력" onClick={()=>setMode('calendar')}/>
@@ -498,6 +729,9 @@ function App(){
                 {seats.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div><div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg"><div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div><div className={`grid gap-1.5 sm:gap-2.5 ${seatType==='single'?'grid-cols-4 sm:grid-cols-5':'grid-cols-2 sm:grid-cols-3'}`}>{seatType==='single'?seats.map((s,i)=>{const isSel=selectedItem?.type==='seat'&&selectedItem?.index===i;return<div key={i} onClick={()=>handleItemTap('seat',i)} className={`py-2.5 flex items-center justify-center bg-white border-2 rounded-lg text-xs sm:text-sm font-black text-gray-600 cursor-pointer touch-target ${isSel?'selected-item':'border-gray-100 active:bg-[#FFF8F0]'}`}>{s}</div>;}):Array.from({length:Math.ceil(seats.length/2)}).map((_,g)=>{const i1=g*2,i2=g*2+1,s1=selectedItem?.type==='seat'&&selectedItem?.index===i1,s2=selectedItem?.type==='seat'&&selectedItem?.index===i2;return<div key={g} className="flex bg-[#FFF8F0] border-2 border-[#FFD3B6] rounded-lg overflow-hidden h-11 sm:h-12"><div onClick={()=>handleItemTap('seat',i1)} className={`flex-1 flex items-center justify-center border-r border-[#FFD3B6]/30 cursor-pointer touch-target ${s1?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i1]}</span></div><div onClick={()=>handleItemTap('seat',i2)} className={`flex-1 flex items-center justify-center cursor-pointer touch-target ${s2?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i2]||''}</span></div></div>;})}</div></div></div>}
             </div>}
 
+            {/* ★ 돌림판 */}
+            {mode==='wheel'&&<div className="card-enter w-full"><SpinWheel playSound={playSound} isSoundOn={isSoundOn}/></div>}
+
             {/* 4 타이머 */}
             {mode==='timer'&&<div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
                 {showClockInTimer&&<div className="mb-5 bg-white rounded-2xl p-5 sm:p-6 soft-shadow border-2 border-[#C7CEEA] w-full max-w-sm text-center card-enter"><LiveClock size="md"/></div>}
@@ -515,8 +749,38 @@ function App(){
             {mode==='record'&&<div className="card-enter w-full"><RecorderWidget playSound={playSound}/></div>}
             {/* 8 QR */}
             {mode==='qr'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[#B5EAD7] w-full max-w-lg text-center"><h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2"><Icon name="scan-line" size={18}/> QR코드</h2><div className="flex gap-2 mb-4"><input type="url" value={qrInput} onChange={e=>setQrInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&qrInput&&setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`)} className="flex-1 p-2.5 bg-[#F0FDF4] rounded-xl border-2 border-transparent focus:border-[#B5EAD7] outline-none font-bold text-sm" placeholder="URL 입력"/><button onClick={()=>{if(qrInput){playSound('click');setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`);}}} className="px-4 bg-[#B5EAD7] text-white rounded-xl font-black shadow-md touch-target">생성</button></div>{qrUrl?<div className="inline-block p-3 bg-white rounded-2xl shadow-md border border-gray-100 cursor-pointer" onClick={()=>setFullScreenContent({type:'qr',data:qrUrl})}><img src={qrUrl} alt="QR" className="w-40 h-40 sm:w-52 sm:h-52 mix-blend-multiply"/><p className="text-gray-400 text-[10px] font-bold mt-2">터치하여 확대</p></div>:<div className="w-40 h-40 sm:w-52 sm:h-52 mx-auto bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-gray-300 border-2 border-dashed border-gray-200"><Icon name="link" size={28} className="opacity-40 mb-1"/><span className="font-bold text-xs">주소를 입력하세요</span></div>}</div></div>}
-            {/* 9 메모 */}
-            {mode==='memo'&&<div className="card-enter w-full max-w-3xl mx-auto"><div className="flex gap-2 mb-3"><div className="flex-1 relative"><input type="text" value={memoInput} onChange={e=>setMemoInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&memoInput.trim()){playSound('click');setMemos([{id:Date.now(),text:memoInput,color:['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF'][Math.floor(Math.random()*5)]},...memos]);setMemoInput('');}}} className="w-full p-2.5 pl-8 bg-white rounded-xl border-2 border-[#C7CEEA] font-bold text-sm focus:outline-none" placeholder="기억할 내용"/><span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#C7CEEA]"><Icon name="pencil" size={14}/></span></div><button onClick={()=>{if(!memoInput.trim())return;playSound('click');setMemos([{id:Date.now(),text:memoInput,color:['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF'][Math.floor(Math.random()*5)]},...memos]);setMemoInput('');}} className="px-3 bg-[#C7CEEA] text-white rounded-xl font-black shadow-md touch-target"><Icon name="plus" size={18}/></button>{memos.length>0&&<button onClick={()=>{playSound('click');setMemos([]);}} className="px-3 bg-red-100 text-red-400 rounded-xl font-bold touch-target"><Icon name="trash-2" size={16}/></button>}</div><div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">{memos.map(m=><div key={m.id} onClick={()=>{setFullScreenContent({type:'text',data:m.text,color:m.color});setFsFontSize(window.innerWidth<500?40:70);}} className="relative p-3 sm:p-4 rounded-xl min-h-[80px] sm:min-h-[130px] flex items-center justify-center text-center cursor-pointer shadow-sm hover:shadow-md" style={{backgroundColor:m.color}}><p className="font-black text-gray-700 text-xs sm:text-base whitespace-pre-wrap line-clamp-3" style={{fontFamily:'Gamja Flower'}}>{m.text}</p><button onClick={e=>{e.stopPropagation();playSound('click');setMemos(memos.filter(x=>x.id!==m.id));}} className="absolute top-1.5 right-1.5 p-1 bg-white/50 rounded-full text-red-400"><Icon name="trash-2" size={11}/></button></div>)}{!memos.length&&<div className="col-span-full py-10 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-2xl bg-white/50"><Icon name="sticky-note" size={28} className="mx-auto opacity-30 mb-1"/><p className="text-xs">메모를 추가해보세요!</p></div>}</div></div>}
+
+            {/* 9 메모 (Enhanced) */}
+            {mode==='memo'&&<div className="card-enter w-full max-w-3xl mx-auto">
+                <div className="bg-white rounded-2xl p-3 sm:p-4 soft-shadow border border-gray-100 mb-3 space-y-2.5">
+                    <div className="flex gap-2">
+                        <div className="flex-1 relative"><input type="text" value={memoInput} onChange={e=>setMemoInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&memoInput.trim())addMemo();}} className="w-full p-2.5 pl-8 bg-[#F9F9F9] rounded-xl border-2 border-[#C7CEEA] font-bold text-sm focus:outline-none" placeholder="기억할 내용"/><span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#C7CEEA]"><Icon name="pencil" size={14}/></span></div>
+                        <button onClick={addMemo} className="px-3 bg-[#C7CEEA] text-white rounded-xl font-black shadow-md touch-target"><Icon name="plus" size={18}/></button>
+                        {memos.length>0&&<button onClick={()=>{playSound('click');setMemos([]);}} className="px-3 bg-red-100 text-red-400 rounded-xl font-bold touch-target"><Icon name="trash-2" size={16}/></button>}
+                    </div>
+                    {/* Color picker */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-400 font-bold shrink-0">배경색</span>
+                        <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
+                            {MEMO_COLORS.map(c=><div key={c} onClick={()=>{playSound('click');setMemoColor(c);}} className={`color-dot ${memoColor===c?'active':''}`} style={{backgroundColor:c}}/>)}
+                        </div>
+                    </div>
+                    {/* Font size control */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-400 font-bold shrink-0">글자 크기</span>
+                        <div className="flex items-center gap-1.5 bg-[#F7F7F7] rounded-lg px-1.5 py-0.5 border border-gray-100">
+                            <button onClick={()=>{playSound('click');setMemoFontSize(s=>Math.max(10,s-2));}} className="w-7 h-7 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center text-xs font-bold">A-</button>
+                            <span className="text-xs font-black text-gray-500 min-w-[2rem] text-center">{memoFontSize}px</span>
+                            <button onClick={()=>{playSound('click');setMemoFontSize(s=>Math.min(32,s+2));}} className="w-7 h-7 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center text-xs font-bold">A+</button>
+                        </div>
+                        <div className="ml-2 px-3 py-1 rounded-lg border border-gray-100" style={{backgroundColor:memoColor}}>
+                            <span className="font-bold text-gray-600" style={{fontSize:`${memoFontSize}px`,fontFamily:'Gamja Flower'}}>미리보기</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">{memos.map(m=><div key={m.id} onClick={()=>{setFullScreenContent({type:'text',data:m.text,color:m.color,fontSize:m.fontSize});setFsFontSize(window.innerWidth<500?40:70);}} className="relative p-3 sm:p-4 rounded-xl min-h-[80px] sm:min-h-[130px] flex items-center justify-center text-center cursor-pointer shadow-sm hover:shadow-md transition-shadow" style={{backgroundColor:m.color}}><p className="font-black text-gray-700 whitespace-pre-wrap line-clamp-4" style={{fontFamily:'Gamja Flower',fontSize:`${m.fontSize||14}px`}}>{m.text}</p><button onClick={e=>{e.stopPropagation();playSound('click');setMemos(memos.filter(x=>x.id!==m.id));}} className="absolute top-1.5 right-1.5 p-1 bg-white/50 rounded-full text-red-400"><Icon name="trash-2" size={11}/></button></div>)}{!memos.length&&<div className="col-span-full py-10 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-2xl bg-white/50"><Icon name="sticky-note" size={28} className="mx-auto opacity-30 mb-1"/><p className="text-xs">메모를 추가해보세요!</p></div>}</div>
+            </div>}
+
             {/* 10 사진 */}
             {mode==='img'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-3 sm:p-5 rounded-2xl shadow-lg border-2 border-[#FFC3A0] w-full max-w-3xl min-h-[220px] sm:min-h-[400px] flex items-center justify-center relative">{uploadedImg?<div className="relative w-full flex items-center justify-center"><img src={uploadedImg} className="max-w-full max-h-[50vh] rounded-xl shadow-sm cursor-pointer" onClick={()=>setFullScreenContent({type:'img',data:uploadedImg})}/><button onClick={()=>{setUploadedImg(null);fileInputRef.current.value='';}} className="absolute top-2 right-2 p-2 bg-white text-[#FFC3A0] rounded-full shadow-md touch-target"><Icon name="x" size={18}/></button></div>:<div onClick={()=>fileInputRef.current.click()} className="flex flex-col items-center justify-center gap-3 cursor-pointer p-8 sm:p-14 hover:bg-[#FFF5EB] rounded-2xl w-full h-full border-2 border-dashed border-[#FFC3A0]/30"><div className="p-5 bg-[#FFEDD5] rounded-full text-[#FFC3A0]"><Icon name="image-plus" size={32}/></div><p className="text-base font-bold text-[#FFC3A0]">터치하여 사진 업로드</p></div>}<input type="file" ref={fileInputRef} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=res=>{setUploadedImg(res.target.result);playSound('win');};r.readAsDataURL(f);}}} accept="image/*" className="hidden"/></div></div>}
             <Copyright/>
