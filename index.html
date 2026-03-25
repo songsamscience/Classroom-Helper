@@ -83,6 +83,21 @@
         .color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0;}
         .color-dot:hover{transform:scale(1.15);}
         .color-dot.active{border-color:#4A4A4A;transform:scale(1.15);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+        /* 로또 styles */
+        .lotto-ball{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff;box-shadow:inset 0 -4px 8px rgba(0,0,0,.15),0 4px 12px rgba(0,0,0,.12);position:relative;overflow:hidden;}
+        @media(min-width:640px){.lotto-ball{width:64px;height:64px;font-size:24px;}}
+        .lotto-ball::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:60%;height:30%;background:rgba(255,255,255,.35);border-radius:50%;filter:blur(2px);}
+        .lotto-slot{width:52px;height:52px;border-radius:50%;background:#F0F0F0;border:3px dashed #DDD;display:flex;align-items:center;justify-content:center;}
+        @media(min-width:640px){.lotto-slot{width:64px;height:64px;}}
+        .lotto-rolling{animation:lottoRoll .1s linear infinite;}
+        @keyframes lottoRoll{0%{transform:translateY(-2px)}50%{transform:translateY(2px)}100%{transform:translateY(-2px)}}
+        .lotto-pop{animation:lottoPop .5s cubic-bezier(.34,1.56,.64,1);}
+        @keyframes lottoPop{from{opacity:0;transform:scale(0) rotate(-180deg)}to{opacity:1;transform:scale(1) rotate(0deg)}}
+        .lotto-machine{background:linear-gradient(180deg,#2D2D3F 0%,#1a1a2e 100%);border-radius:24px;padding:24px;position:relative;overflow:hidden;}
+        .lotto-machine::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);pointer-events:none;}
+        .lotto-glass{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;backdrop-filter:blur(10px);}
+        .lotto-bounce{animation:lottoBounce .4s ease-out;}
+        @keyframes lottoBounce{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
     </style>
 </head>
 <body>
@@ -316,7 +331,7 @@ function YouTubePlayer({playSound:ps}){
 }
 
 /* ══════════════════════════════════════════
-   ▼ 돌림판 (Spinning Wheel)
+   ▼ 돌림판 (Spinning Wheel) - BUG FIXED
    ══════════════════════════════════════════ */
 const WHEEL_COLORS=['#FF6B6B','#FECA57','#48DBFB','#FF9FF3','#54A0FF','#5F27CD','#01A3A4','#F368E0','#FF6348','#2ED573','#FFA502','#3742FA','#EE5A24','#7BED9F','#E056CF','#6C5CE7'];
 
@@ -394,7 +409,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
 
         ctx.clearRect(0,0,size,size);
 
-        // Draw shadow
         ctx.save();
         ctx.shadowColor='rgba(0,0,0,.1)';
         ctx.shadowBlur=20;
@@ -416,7 +430,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
             ctx.lineWidth=1.5;
             ctx.stroke();
 
-            // Text
             ctx.save();
             ctx.translate(cx,cy);
             ctx.rotate(startAngle+arc/2);
@@ -430,7 +443,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
             ctx.restore();
         }
 
-        // Outer ring
         ctx.beginPath();
         ctx.arc(cx,cy,r,0,2*Math.PI);
         ctx.strokeStyle='rgba(255,255,255,.8)';
@@ -438,6 +450,9 @@ function SpinWheel({playSound:ps,isSoundOn}){
         ctx.stroke();
     },[items]);
 
+    /* ★ BUG FIX: 최종 회전각도에서 당첨자를 역산하는 방식으로 변경
+       기존 버그: startRotation(누적 회전)을 고려하지 않아 시각적 결과와 당첨자가 불일치
+       수정: 최종 절대 회전각도에서 포인터 위치의 세그먼트를 계산하여 당첨자 결정 */
     const spinWheel=()=>{
         if(isSpinning||items.length<2)return;
         ps('click');
@@ -447,31 +462,23 @@ function SpinWheel({playSound:ps,isSoundOn}){
         const n=items.length;
         const arc=360/n;
         const extraSpins=5+Math.floor(Math.random()*5);
-        const targetIdx=Math.floor(Math.random()*n);
-        // The pointer is at top (0°). After rotation, segment at top is determined by rotation angle.
-        // Segment i is from i*arc to (i+1)*arc starting at -90° (top).
-        // To land on targetIdx, the center of that segment should be at top after rotation.
-        const targetAngle=targetIdx*arc+arc/2;
-        const totalRotation=extraSpins*360+(360-targetAngle);
+        // 랜덤 각도로 회전 (특정 인덱스를 미리 선택하지 않음)
+        const randomAngle=Math.random()*360;
+        const totalRotation=extraSpins*360+randomAngle;
         const startRotation=rotation;
         const endRotation=startRotation+totalRotation;
 
-        // Animate with easing
         const duration=4000+Math.random()*2000;
         const startTime=performance.now();
         tickCountRef.current=0;
-        let lastTickAngle=0;
 
         const animate=(now)=>{
             const elapsed=now-startTime;
             const progress=Math.min(elapsed/duration,1);
-            // Cubic ease-out
             const eased=1-Math.pow(1-progress,3);
             const currentRot=startRotation+totalRotation*eased;
             setRotation(currentRot);
 
-            // Tick sound based on passing segment boundaries
-            const currentAngle=currentRot%360;
             const segmentsPassed=Math.floor(currentRot/arc);
             if(segmentsPassed>tickCountRef.current){
                 tickCountRef.current=segmentsPassed;
@@ -483,7 +490,19 @@ function SpinWheel({playSound:ps,isSoundOn}){
             }else{
                 setRotation(endRotation);
                 setIsSpinning(false);
-                const winner=items[targetIdx];
+
+                /* ★ 핵심 수정: 최종 회전각도에서 포인터 아래의 세그먼트 인덱스를 계산
+                   - 포인터는 상단(12시)에 고정
+                   - 휠이 시계방향으로 endRotation도 만큼 회전한 상태
+                   - 원래 세그먼트 i는 i*arc ~ (i+1)*arc (상단=0도 기준, 시계방향)
+                   - 회전 후 상단에 위치하는 원래 각도 = (360 - endRotation%360) % 360
+                */
+                const finalAngle=((endRotation%360)+360)%360;
+                // 휠이 finalAngle만큼 시계방향 회전 → 포인터 아래의 원래 각도
+                const pointerOrigAngle=((360-finalAngle)%360+360)%360;
+                const winnerIdx=Math.floor(pointerOrigAngle/arc)%n;
+                const winner=items[winnerIdx];
+
                 setResult(winner);
                 setHistory(prev=>[{text:winner,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},...prev].slice(0,20));
                 playFanfare();
@@ -510,15 +529,12 @@ function SpinWheel({playSound:ps,isSoundOn}){
         </div>
 
         {items.length>=2&&<div className="bg-white rounded-2xl p-4 sm:p-6 soft-shadow border border-gray-100 flex flex-col items-center">
-            {/* Result display */}
             {result&&<div className="wheel-result-pop mb-4 px-6 py-3 rounded-2xl text-center" style={{background:'linear-gradient(135deg,#FECA57 0%,#FF6348 100%)'}}>
                 <p className="text-white text-[10px] font-bold mb-0.5">당첨!</p>
                 <p className="text-white text-xl sm:text-2xl font-black">{result}</p>
             </div>}
 
-            {/* Wheel */}
             <div className="wheel-container mb-4">
-                {/* Pointer */}
                 <svg className="wheel-pointer" width="30" height="30" viewBox="0 0 30 30">
                     <polygon points="15,28 5,4 25,4" fill="#FF6348" stroke="white" strokeWidth="2"/>
                 </svg>
@@ -534,19 +550,244 @@ function SpinWheel({playSound:ps,isSoundOn}){
                 {isSpinning?<><Icon name="loader-2" size={18} className="animate-spin"/>돌리는 중...</>:<><Icon name="zap" size={18}/>돌리기!</>}
             </button>
 
-            {/* Items list */}
             <div className="mt-4 w-full">
                 <div className="flex flex-wrap gap-1.5 justify-center">{items.map((item,i)=><span key={i} className="px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{backgroundColor:WHEEL_COLORS[i%WHEEL_COLORS.length]}}>{item}</span>)}</div>
             </div>
         </div>}
 
-        {/* History */}
         {history.length>0&&<div className="bg-white/80 rounded-xl p-3 soft-shadow border border-gray-100">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-gray-400">추첨 기록 ({history.length})</span>
                 <button onClick={()=>{ps('click');setHistory([]);}} className="text-[10px] text-red-300 font-bold">전체삭제</button>
             </div>
             <div className="flex flex-wrap gap-1.5">{history.map((h,i)=><div key={i} className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FFFDF0] rounded-lg border border-[#FECA57]/30 text-xs font-bold text-gray-600"><span className="text-[#FECA57] font-black">{i+1}.</span> {h.text} <span className="text-[9px] text-gray-400">({h.time})</span></div>)}</div>
+        </div>}
+    </div>);
+}
+
+
+/* ══════════════════════════════════════════
+   ▼ 로또번호 추첨기 (발표자 뽑기)
+   ══════════════════════════════════════════ */
+const LOTTO_BALL_COLORS=['#FF6B6B','#FF9F43','#FECA57','#2ED573','#48DBFB','#54A0FF','#5F27CD','#FF6348','#F368E0','#01A3A4'];
+
+function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
+    const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
+    const [pickCount,setPickCount]=useState(1);
+    const [isRolling,setIsRolling]=useState(false);
+    const [results,setResults]=useState([]);
+    const [rollingNums,setRollingNums]=useState([]);
+    const [revealedCount,setRevealedCount]=useState(0);
+    const [history,setHistory]=useState([]);
+    const [isNoRepeat,setIsNoRepeat]=useState(false);
+    const [usedNums,setUsedNums]=useState([]);
+    const rollTimersRef=useRef([]);
+    const audioCtxRef=useRef(null);
+
+    const getAudioCtx=()=>{
+        if(!audioCtxRef.current)audioCtxRef.current=new(window.AudioContext||window.webkitAudioContext)();
+        if(audioCtxRef.current.state==='suspended')audioCtxRef.current.resume();
+        return audioCtxRef.current;
+    };
+
+    const playBallDrop=useCallback((idx)=>{
+        if(!isSoundOn)return;
+        const ctx=getAudioCtx();const t=ctx.currentTime;
+        // 점점 올라가는 음계
+        const baseFreq=[261.63,329.63,392.00,523.25,659.25,783.99,1046.50];
+        const freq=baseFreq[idx%baseFreq.length];
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='sine';
+        o.frequency.setValueAtTime(freq,t);
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(.12,t+.03);
+        g.gain.exponentialRampToValueAtTime(.001,t+.4);
+        o.start(t);o.stop(t+.4);
+        // 짧은 퍼커션
+        const o2=ctx.createOscillator(),g2=ctx.createGain();
+        o2.connect(g2);g2.connect(ctx.destination);
+        o2.type='triangle';
+        o2.frequency.setValueAtTime(freq*2,t);
+        g2.gain.setValueAtTime(.06,t);
+        g2.gain.exponentialRampToValueAtTime(.001,t+.08);
+        o2.start(t);o2.stop(t+.1);
+    },[isSoundOn]);
+
+    const playFinalFanfare=useCallback(()=>{
+        if(!isSoundOn)return;
+        const ctx=getAudioCtx();const t=ctx.currentTime;
+        [523.25,659.25,783.99,1046.5,1318.5,1567.98].forEach((f,i)=>{
+            const o=ctx.createOscillator(),g=ctx.createGain();
+            o.connect(g);g.connect(ctx.destination);
+            o.type=i<3?'sine':'triangle';
+            o.frequency.setValueAtTime(f,t+i*.08);
+            g.gain.setValueAtTime(0,t+i*.08);
+            g.gain.linearRampToValueAtTime(.1,t+i*.08+.03);
+            g.gain.exponentialRampToValueAtTime(.001,t+i*.08+.5);
+            o.start(t+i*.08);o.stop(t+i*.08+.5);
+        });
+    },[isSoundOn]);
+
+    const getBallColor=(num)=>{
+        if(num<=10)return LOTTO_BALL_COLORS[0];
+        if(num<=20)return LOTTO_BALL_COLORS[1];
+        if(num<=30)return LOTTO_BALL_COLORS[2];
+        if(num<=40)return LOTTO_BALL_COLORS[3];
+        if(num<=50)return LOTTO_BALL_COLORS[4];
+        if(num<=60)return LOTTO_BALL_COLORS[5];
+        if(num<=70)return LOTTO_BALL_COLORS[6];
+        if(num<=80)return LOTTO_BALL_COLORS[7];
+        if(num<=90)return LOTTO_BALL_COLORS[8];
+        return LOTTO_BALL_COLORS[9];
+    };
+
+    const startDraw=()=>{
+        let pool=isNoRepeat?activeStudents.filter(s=>!usedNums.includes(s)):activeStudents;
+        if(pool.length===0){
+            ps('click');
+            return;
+        }
+        const count=Math.min(pickCount,pool.length);
+        ps('click');
+        setIsRolling(true);
+        setResults([]);
+        setRevealedCount(0);
+
+        // 당첨 번호 미리 결정
+        const shuffled=[...pool].sort(()=>Math.random()-.5);
+        const winners=shuffled.slice(0,count);
+
+        // 각 슬롯에 롤링 숫자 표시
+        const initRolling=Array(count).fill(0);
+        setRollingNums(initRolling);
+
+        // 각 공을 순차적으로 확정 (1초 간격)
+        const revealBall=(idx)=>{
+            // 롤링 애니메이션 (100ms마다 숫자 변경)
+            let rollCount=0;
+            const maxRolls=12+idx*3;
+            const rollInterval=setInterval(()=>{
+                setRollingNums(prev=>{
+                    const next=[...prev];
+                    next[idx]=activeStudents[Math.floor(Math.random()*activeStudents.length)];
+                    return next;
+                });
+                rollCount++;
+                if(rollCount>=maxRolls){
+                    clearInterval(rollInterval);
+                    // 확정
+                    setRollingNums(prev=>{
+                        const next=[...prev];
+                        next[idx]=winners[idx];
+                        return next;
+                    });
+                    setResults(prev=>[...prev,winners[idx]]);
+                    setRevealedCount(prev=>prev+1);
+                    playBallDrop(idx);
+
+                    if(idx===count-1){
+                        // 마지막 공
+                        setTimeout(()=>{
+                            setIsRolling(false);
+                            if(isNoRepeat)setUsedNums(prev=>[...prev,...winners]);
+                            setHistory(prev=>[{
+                                nums:winners,
+                                time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+                            },...prev].slice(0,20));
+                            playFinalFanfare();
+                            confetti({particleCount:200,spread:90,origin:{y:.45},colors:['#FF6B6B','#FECA57','#48DBFB','#2ED573','#FF9FF3','#54A0FF'],disableForReducedMotion:true});
+                        },300);
+                    }
+                }
+            },80);
+            rollTimersRef.current.push(rollInterval);
+        };
+
+        // 순차적으로 공 뽑기 시작
+        for(let i=0;i<count;i++){
+            const timer=setTimeout(()=>revealBall(i),i*1200+500);
+            rollTimersRef.current.push(timer);
+        }
+    };
+
+    useEffect(()=>{return()=>{rollTimersRef.current.forEach(t=>{clearTimeout(t);clearInterval(t);});};},[]);
+
+    const availableCount=isNoRepeat?activeStudents.filter(s=>!usedNums.includes(s)).length:activeStudents.length;
+
+    return(<div className="w-full max-w-2xl mx-auto space-y-3">
+        {/* 추첨기 머신 */}
+        <div className="lotto-machine">
+            <div className="text-center mb-4">
+                <h2 className="text-xl sm:text-2xl font-black text-white flex items-center justify-center gap-2">
+                    <span className="text-2xl">🎱</span> 로또 추첨기
+                </h2>
+                <p className="text-[11px] text-gray-400 font-bold mt-1">행운의 발표자를 뽑아보세요!</p>
+            </div>
+
+            {/* 결과 디스플레이 */}
+            <div className="lotto-glass mb-4">
+                <div className="flex items-center justify-center gap-3 sm:gap-4 min-h-[80px] flex-wrap py-2">
+                    {Array.from({length:Math.min(pickCount,availableCount)}).map((_,i)=>{
+                        const revealed=i<results.length;
+                        const rolling=isRolling&&i>=results.length&&i<=results.length;
+                        const num=revealed?results[i]:(rolling?rollingNums[i]:null);
+                        if(revealed){
+                            return <div key={i} className="lotto-ball lotto-pop" style={{backgroundColor:getBallColor(num)}}>
+                                <span style={{textShadow:'0 1px 3px rgba(0,0,0,.3)'}}>{num}</span>
+                            </div>;
+                        }
+                        if(rolling&&num){
+                            return <div key={i} className="lotto-ball lotto-rolling" style={{backgroundColor:'#666'}}>
+                                <span style={{textShadow:'0 1px 3px rgba(0,0,0,.3)'}}>{num}</span>
+                            </div>;
+                        }
+                        return <div key={i} className="lotto-slot">
+                            <span className="text-gray-400 font-bold text-lg">?</span>
+                        </div>;
+                    })}
+                </div>
+            </div>
+
+            {/* 컨트롤 */}
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-center gap-3">
+                    <span className="text-sm font-bold text-gray-400">뽑기 수</span>
+                    <div className="flex items-center bg-white/10 rounded-xl px-1.5 py-1 gap-1 border border-white/10">
+                        <button onClick={()=>{ps('click');setPickCount(Math.max(1,pickCount-1));}} className="w-9 h-9 rounded-lg bg-white/10 text-white touch-target flex items-center justify-center hover:bg-white/20 transition-all"><Icon name="minus" size={16}/></button>
+                        <span className="text-xl font-black text-white min-w-[2.5rem] text-center">{pickCount}</span>
+                        <button onClick={()=>{ps('click');setPickCount(Math.min(Math.min(10,availableCount),pickCount+1));}} className="w-9 h-9 rounded-lg bg-white/10 text-white touch-target flex items-center justify-center hover:bg-white/20 transition-all"><Icon name="plus" size={16}/></button>
+                    </div>
+                    <span className="text-[10px] text-gray-500 font-bold">명</span>
+                </div>
+
+                <div className="flex items-center justify-center gap-2">
+                    <button onClick={()=>{ps('click');setIsNoRepeat(!isNoRepeat);}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all ${isNoRepeat?'bg-yellow-500/20 border-yellow-500/40 text-yellow-300':'bg-white/5 border-white/10 text-gray-500'}`}>
+                        중복방지 {isNoRepeat?'ON':'OFF'}
+                    </button>
+                    {isNoRepeat&&usedNums.length>0&&<button onClick={()=>{ps('click');setUsedNums([]);}} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-gray-500">
+                        초기화 ({usedNums.length}명)
+                    </button>}
+                    <span className="text-[10px] text-gray-500 font-bold">남은 인원: {availableCount}명</span>
+                </div>
+
+                <button onClick={startDraw} disabled={isRolling||availableCount===0} className="w-full py-4 bg-gradient-to-r from-[#FF6B6B] via-[#FECA57] to-[#48DBFB] text-white rounded-2xl text-lg font-black shadow-lg shadow-[#FF6B6B]/20 active:scale-[.97] flex items-center justify-center gap-2 touch-target transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                    {isRolling?<><Icon name="loader-2" size={20} className="animate-spin"/> 추첨 중...</>:availableCount===0?'모두 추첨 완료!':<><span className="text-xl">🎱</span> 추첨 시작!</>}
+                </button>
+            </div>
+        </div>
+
+        {/* 추첨 기록 */}
+        {history.length>0&&<div className="bg-white/80 rounded-xl p-3 soft-shadow border border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-gray-400">추첨 기록 ({history.length})</span>
+                <button onClick={()=>{ps('click');setHistory([]);}} className="text-[10px] text-red-300 font-bold">전체삭제</button>
+            </div>
+            <div className="space-y-1.5">{history.map((h,i)=><div key={i} className="flex items-center gap-2 px-2.5 py-2 bg-[#F9F9F9] rounded-lg border border-gray-100">
+                <span className="text-[10px] font-black text-gray-400 shrink-0">#{i+1}</span>
+                <div className="flex gap-1.5 flex-wrap flex-1">{h.nums.map((n,j)=><span key={j} className="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-xs font-black" style={{backgroundColor:getBallColor(n),boxShadow:'inset 0 -2px 4px rgba(0,0,0,.15)'}}>{n}</span>)}</div>
+                <span className="text-[9px] text-gray-400 shrink-0">{h.time}</span>
+            </div>)}</div>
         </div>}
     </div>);
 }
@@ -682,12 +923,13 @@ function App(){
             <div className="flex items-center gap-1 cursor-pointer shrink-0" onClick={goHome}><div className="bg-[#B5EAD7] p-1.5 sm:p-2 rounded-xl text-white shadow-sm"><Icon name="flask-conical" size={16}/></div><span className="hidden sm:block text-sm font-black text-gray-500">{students.length}명{excludedNums.length>0&&<span className="text-[10px] text-gray-400 font-bold ml-0.5">(-{excludedNums.length})</span>}</span></div>
             <div className="flex gap-px sm:gap-0.5 overflow-x-auto no-scrollbar flex-1 py-1 px-0.5 bg-white/50 rounded-2xl border border-white/60">
                 <NavBtn active={mode==='pick'} icon="trophy" label="발표" onClick={()=>setMode('pick')}/>
+                <NavBtn active={mode==='lotto'} icon="dices" label="로또" onClick={()=>setMode('lotto')}/>
+                <NavBtn active={mode==='wheel'} icon="circle-dot" label="돌림판" onClick={()=>setMode('wheel')}/>
                 <NavBtn active={mode==='team'} icon="users" label="모둠" onClick={()=>setMode('team')}/>
                 <NavBtn active={mode==='seat'} icon="armchair" label="좌석" onClick={()=>setMode('seat')}/>
-                <NavBtn active={mode==='wheel'} icon="circle-dot" label="돌림판" onClick={()=>setMode('wheel')}/>
                 <NavBtn active={mode==='timer'} icon="timer" label="타이머" onClick={()=>setMode('timer')}/>
-                <NavBtn active={mode==='youtube'} icon="youtube" label="영상" onClick={()=>setMode('youtube')}/>
                 <NavBtn active={mode==='calendar'} icon="calendar" label="달력" onClick={()=>setMode('calendar')}/>
+                <NavBtn active={mode==='youtube'} icon="youtube" label="영상" onClick={()=>setMode('youtube')}/>
                 <NavBtn active={mode==='record'} icon="mic" label="녹음" onClick={()=>setMode('record')}/>
                 <NavBtn active={mode==='qr'} icon="qr-code" label="QR" onClick={()=>setMode('qr')}/>
                 <NavBtn active={mode==='memo'} icon="sticky-note" label="메모" onClick={()=>setMode('memo')}/>
@@ -707,6 +949,15 @@ function App(){
                 <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFB7B2" playSound={playSound}/></div>
                 <div className="bg-white rounded-2xl p-3 sm:p-5 soft-shadow border border-[#F0EBE3] relative overflow-hidden"><div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5 sm:gap-2 relative z-10">{students.map(num=>{const isExcluded=excludedNums.includes(num),isWin=pickWinner===num,isHL=currentPick===num,isDone=pickHistory.includes(num);return<div key={num} className={`student-cell ${isExcluded?'excluded-cell':isWin?'winner winner-pulse':isHL?'highlight-anim':isDone?'done':''}`}>{isExcluded?<span className="text-gray-300 text-[11px]">✕</span>:num}{!isExcluded&&isDone&&<div className="absolute inset-0 flex items-center justify-center opacity-25 bg-gray-100/40"><Icon name="check" size={14}/></div>}</div>;})}</div></div>
                 <div className="mt-5 text-center"><button onClick={()=>{if(isPicking)return;let pool=isNoRepeat?activeStudents.filter(s=>!pickHistory.includes(s)):activeStudents;if(!pool.length)return showAlert(activeStudents.length===0?"참여할 학생이 없습니다.":"모든 학생이 발표했습니다!\n기록을 초기화해주세요.");playSound('click');setIsPicking(true);setPickWinner(null);let cnt=0;const mx=20+Math.floor(Math.random()*10);let d=50;const loop=()=>{setCurrentPick(activeStudents[Math.floor(Math.random()*activeStudents.length)]);playSound('tick');cnt++;if(cnt>mx){const w=pool[Math.floor(Math.random()*pool.length)];setCurrentPick(w);setPickWinner(w);if(isNoRepeat)setPickHistory(prev=>[...prev,w]);playSound('win');fireConfetti();setIsPicking(false);}else{d*=1.1;setTimeout(loop,d);}};loop();}} disabled={isPicking} className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-full text-lg sm:text-xl font-black shadow-lg shadow-[#FFB7B2]/25 active:scale-95 flex items-center justify-center gap-2 mx-auto touch-target transition-all">{isPicking?<Icon name="loader-2" size={18} className="animate-spin"/>:<Icon name="sparkles" size={18}/>}{isPicking?'두구두구...':'발표자 뽑기'}</button></div>
+            </div>}
+
+            {/* ★ 로또 추첨기 */}
+            {mode==='lotto'&&<div className="card-enter w-full">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1">
+                    <div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">로또 추첨기</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">로또처럼 발표자를 뽑아보세요!</p></div>
+                </div>
+                <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FF6B6B" playSound={playSound}/></div>
+                <LottoPicker students={students} excludedNums={excludedNums} playSound={playSound} isSoundOn={isSoundOn}/>
             </div>}
 
             {/* 2 모둠 */}
@@ -758,7 +1009,7 @@ function App(){
             {/* 8 QR */}
             {mode==='qr'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[#B5EAD7] w-full max-w-lg text-center"><h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2"><Icon name="scan-line" size={18}/> QR코드</h2><div className="flex gap-2 mb-4"><input type="url" value={qrInput} onChange={e=>setQrInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&qrInput&&setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`)} className="flex-1 p-2.5 bg-[#F0FDF4] rounded-xl border-2 border-transparent focus:border-[#B5EAD7] outline-none font-bold text-sm" placeholder="URL 입력"/><button onClick={()=>{if(qrInput){playSound('click');setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`);}}} className="px-4 bg-[#B5EAD7] text-white rounded-xl font-black shadow-md touch-target">생성</button></div>{qrUrl?<div className="inline-block p-3 bg-white rounded-2xl shadow-md border border-gray-100 cursor-pointer" onClick={()=>setFullScreenContent({type:'qr',data:qrUrl})}><img src={qrUrl} alt="QR" className="w-40 h-40 sm:w-52 sm:h-52 mix-blend-multiply"/><p className="text-gray-400 text-[10px] font-bold mt-2">터치하여 확대</p></div>:<div className="w-40 h-40 sm:w-52 sm:h-52 mx-auto bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-gray-300 border-2 border-dashed border-gray-200"><Icon name="link" size={28} className="opacity-40 mb-1"/><span className="font-bold text-xs">주소를 입력하세요</span></div>}</div></div>}
 
-            {/* 9 메모 (Enhanced) */}
+            {/* 9 메모 */}
             {mode==='memo'&&<div className="card-enter w-full max-w-3xl mx-auto">
                 <div className="bg-white rounded-2xl p-3 sm:p-4 soft-shadow border border-gray-100 mb-3 space-y-2.5">
                     <div className="flex gap-2">
@@ -766,14 +1017,12 @@ function App(){
                         <button onClick={addMemo} className="px-3 bg-[#C7CEEA] text-white rounded-xl font-black shadow-md touch-target"><Icon name="plus" size={18}/></button>
                         {memos.length>0&&<button onClick={()=>{playSound('click');setMemos([]);}} className="px-3 bg-red-100 text-red-400 rounded-xl font-bold touch-target"><Icon name="trash-2" size={16}/></button>}
                     </div>
-                    {/* Color picker */}
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] text-gray-400 font-bold shrink-0">배경색</span>
                         <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-1">
                             {MEMO_COLORS.map(c=><div key={c} onClick={()=>{playSound('click');setMemoColor(c);}} className={`color-dot ${memoColor===c?'active':''}`} style={{backgroundColor:c}}/>)}
                         </div>
                     </div>
-                    {/* Font size control */}
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] text-gray-400 font-bold shrink-0">글자 크기</span>
                         <div className="flex items-center gap-1.5 bg-[#F7F7F7] rounded-lg px-1.5 py-0.5 border border-gray-100">
