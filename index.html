@@ -569,7 +569,7 @@ function SpinWheel({playSound:ps,isSoundOn}){
 /* ══════════════════════════════════════════
    ▼ 로또번호 추첨기 (발표자 뽑기)
    ══════════════════════════════════════════ */
-const LOTTO_BALL_COLORS=['#FF6B6B','#FF9F43','#FECA57','#2ED573','#48DBFB','#54A0FF','#5F27CD','#FF6348','#F368E0','#01A3A4'];
+const LOTTO_BALL_COLORS=['#E74C3C','#E67E22','#27AE60','#2980B9','#8E44AD','#D35400','#16A085','#2C3E50','#C0392B','#7D3C98'];
 
 function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
@@ -630,16 +630,16 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     },[isSoundOn]);
 
     const getBallColor=(num)=>{
-        if(num<=10)return LOTTO_BALL_COLORS[0];
-        if(num<=20)return LOTTO_BALL_COLORS[1];
-        if(num<=30)return LOTTO_BALL_COLORS[2];
-        if(num<=40)return LOTTO_BALL_COLORS[3];
-        if(num<=50)return LOTTO_BALL_COLORS[4];
-        if(num<=60)return LOTTO_BALL_COLORS[5];
-        if(num<=70)return LOTTO_BALL_COLORS[6];
-        if(num<=80)return LOTTO_BALL_COLORS[7];
-        if(num<=90)return LOTTO_BALL_COLORS[8];
-        return LOTTO_BALL_COLORS[9];
+        if(num<=10)return '#FBC400';  // 노란색 (1~10)
+        if(num<=20)return '#69C8F2';  // 파란색 (11~20)
+        if(num<=30)return '#FF7272';  // 빨간색 (21~30)
+        if(num<=40)return '#555555';  // 회색 (31~40)
+        if(num<=50)return '#B0D840';  // 초록색 (41~50)
+        if(num<=60)return '#A855F7';  // 보라색 (51~60)
+        if(num<=70)return '#F97316';  // 주황색 (61~70)
+        if(num<=80)return '#14B8A6';  // 청록색 (71~80)
+        if(num<=90)return '#EC4899';  // 분홍색 (81~90)
+        return '#6366F1';             // 남색 (91~100)
     };
 
     const startDraw=()=>{
