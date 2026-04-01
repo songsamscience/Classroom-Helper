@@ -557,7 +557,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
     </div>);
 }
 
-
 const LOTTO_BALL_COLORS=['#E74C3C','#E67E22','#27AE60','#2980B9','#8E44AD','#D35400','#16A085','#2C3E50','#C0392B','#7D3C98'];
 
 function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
@@ -945,7 +944,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
         </>}
     </div>);
 }
-}
 
 
 /* ══════════════════════════════════════════
@@ -995,7 +993,7 @@ function App(){
     const [fullScreenContent,setFullScreenContent]=useState(null);const [fsFontSize,setFsFontSize]=useState(60);
 
     /* ★ 좌석 배치 관련 상태 */
-    const [seatRowMode,setSeatRowMode]=useState('auto');      // 'auto' | 'custom'
+    const [seatRowMode,setSeatRowMode]=useState('auto');       // 'auto' | 'custom'
     const [seatColumns,setSeatColumns]=useState(5);            // 열 수 (기본 5)
     const [seatRows,setSeatRows]=useState(6);                  // 행 수
     const [seatGrid,setSeatGrid]=useState([]);                 // 2D boolean 배열 [row][col] true=좌석ON
@@ -1043,7 +1041,7 @@ function App(){
     const createSeats=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");playSound('click');setIsPicking(true);setSeats([]);setTimeout(()=>{let pool=buildPool(data);if(seatType==='pair'&&(seatPairSettings.mustPair.length>0||seatPairSettings.mustNotPair.length>0))pool=applyPC(pool,seatPairSettings);setSeats(pool);setIsPicking(false);playSound('win');},350);};
     const applyPC=(pool,settings)=>{const{mustPair,mustNotPair}=settings;const s=v=>String(v);for(let a=0;a<200;a++){let arr=[...pool].sort(()=>Math.random()-.5);for(const p of mustPair){const iA=arr.findIndex(x=>s(x)===s(p[0])),iB=arr.findIndex(x=>s(x)===s(p[1]));if(iA===-1||iB===-1)continue;const big=Math.max(iA,iB),sm=Math.min(iA,iB);const pB=arr.splice(big,1)[0],pS=arr.splice(sm,1)[0];arr.splice(0,0,pS,pB);}let ok=true;for(const p of mustPair){let f=false;for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){f=true;break;}if(!f){ok=false;break;}}if(!ok)continue;for(const p of mustNotPair){for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){ok=false;break;}if(!ok)break;}if(ok)return arr;}return[...pool].sort(()=>Math.random()-.5);};
 
-    const addPairSetting=()=>{const a=pairInputA.trim(),b=pairInputB.trim();if(!a||!b)return showAlert("두 학생 모두 입력해주세요.");if(a===b)return showAlert("같은 학생을 입력할 수 없습니다.");const key=pairSettingTab==='must'?'mustPair':'mustNotPair';if(seatPairSettings[key].some(p=>(String(p[0])===a&&String(p[1])===b)||(String(p[0])===b&&String(p[1])===a)))return showAlert("이미 등록된 조합입니다.");setSeatPairSettings(prev=>({...prev,[key]:[...prev[key],[a,b]]}));setPairInputA('');setPairInputB('');playSound('click');};
+    const addPairSetting=()=>{const a=pairInputA.trim(),b=pairInputB.trim();if(!a||b)return showAlert("두 학생 모두 입력해주세요.");if(a===b)return showAlert("같은 학생을 입력할 수 없습니다.");const key=pairSettingTab==='must'?'mustPair':'mustNotPair';if(seatPairSettings[key].some(p=>(String(p[0])===a&&String(p[1])===b)||(String(p[0])===b&&String(p[1])===a)))return showAlert("이미 등록된 조합입니다.");setSeatPairSettings(prev=>({...prev,[key]:[...prev[key],[a,b]]}));setPairInputA('');setPairInputB('');playSound('click');};
     const removePairSetting=(key,idx)=>{playSound('click');setSeatPairSettings(prev=>({...prev,[key]:prev[key].filter((_,i)=>i!==idx)}));};
 
     const performSwap=(src,tgt)=>{if(src.type==='team'){const t=[...teams.map(x=>[...x])];const tmp=t[src.index][src.subIndex];t[src.index][src.subIndex]=t[tgt.index][tgt.subIndex];t[tgt.index][tgt.subIndex]=tmp;setTeams(t);}else{const s=[...seats];[s[src.index],s[tgt.index]]=[s[tgt.index],s[src.index]];setSeats(s);}};
