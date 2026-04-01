@@ -73,7 +73,6 @@
         @keyframes barBounce{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
         audio{max-width:100%;border-radius:8px;}
         audio::-webkit-media-controls-panel{background:#f9f9f9;}
-        /* 돌림판 styles */
         .wheel-container{position:relative;display:inline-flex;align-items:center;justify-content:center;}
         .wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:20;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));}
         .wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:15;width:44px;height:44px;border-radius:50%;background:white;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;}
@@ -83,7 +82,6 @@
         .color-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0;}
         .color-dot:hover{transform:scale(1.15);}
         .color-dot.active{border-color:#4A4A4A;transform:scale(1.15);box-shadow:0 2px 8px rgba(0,0,0,.15);}
-        /* 로또 styles */
         .lotto-ball{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff;box-shadow:inset 0 -4px 8px rgba(0,0,0,.15),0 4px 12px rgba(0,0,0,.12);position:relative;overflow:hidden;}
         @media(min-width:640px){.lotto-ball{width:64px;height:64px;font-size:24px;}}
         .lotto-ball::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:60%;height:30%;background:rgba(255,255,255,.35);border-radius:50%;filter:blur(2px);}
@@ -98,6 +96,15 @@
         .lotto-glass{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;backdrop-filter:blur(10px);}
         .lotto-bounce{animation:lottoBounce .4s ease-out;}
         @keyframes lottoBounce{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
+        /* 줄별 좌석 배치 */
+        .seat-row{display:flex;justify-content:center;gap:6px;}
+        @media(min-width:640px){.seat-row{gap:10px;}}
+        .seat-row .seat-cell{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;border:2px solid #EDE6DA;background:#fff;color:#5D5D5D;transition:all .12s;cursor:pointer;position:relative;overflow:hidden;font-size:13px;flex-shrink:0;}
+        @media(min-width:640px){.seat-row .seat-cell{width:56px;height:56px;border-radius:12px;font-size:15px;}}
+        .seat-row .seat-cell.empty-seat{visibility:hidden;}
+        .row-config-chip{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:28px;padding:0 8px;border-radius:8px;font-size:12px;font-weight:900;border:2px solid #EDE6DA;background:#fff;color:#5D5D5D;cursor:pointer;transition:all .15s;user-select:none;}
+        .row-config-chip:hover{border-color:#FFD3B6;}
+        .row-config-chip.active{border-color:#FFD3B6;background:#FFF8F0;color:#D68C60;}
     </style>
 </head>
 <body>
@@ -330,9 +337,6 @@ function YouTubePlayer({playSound:ps}){
     </div>);
 }
 
-/* ══════════════════════════════════════════
-   ▼ 돌림판 (Spinning Wheel) - BUG FIXED
-   ══════════════════════════════════════════ */
 const WHEEL_COLORS=['#FF6B6B','#FECA57','#48DBFB','#FF9FF3','#54A0FF','#5F27CD','#01A3A4','#F368E0','#FF6348','#2ED573','#FFA502','#3742FA','#EE5A24','#7BED9F','#E056CF','#6C5CE7'];
 
 function SpinWheel({playSound:ps,isSoundOn}){
@@ -397,7 +401,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
         setRotation(0);
     };
 
-    // Draw wheel on canvas
     useEffect(()=>{
         const canvas=canvasRef.current;
         if(!canvas||items.length<2)return;
@@ -450,9 +453,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
         ctx.stroke();
     },[items]);
 
-    /* ★ BUG FIX: 최종 회전각도에서 당첨자를 역산하는 방식으로 변경
-       기존 버그: startRotation(누적 회전)을 고려하지 않아 시각적 결과와 당첨자가 불일치
-       수정: 최종 절대 회전각도에서 포인터 위치의 세그먼트를 계산하여 당첨자 결정 */
     const spinWheel=()=>{
         if(isSpinning||items.length<2)return;
         ps('click');
@@ -462,7 +462,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
         const n=items.length;
         const arc=360/n;
         const extraSpins=5+Math.floor(Math.random()*5);
-        // 랜덤 각도로 회전 (특정 인덱스를 미리 선택하지 않음)
         const randomAngle=Math.random()*360;
         const totalRotation=extraSpins*360+randomAngle;
         const startRotation=rotation;
@@ -491,14 +490,7 @@ function SpinWheel({playSound:ps,isSoundOn}){
                 setRotation(endRotation);
                 setIsSpinning(false);
 
-                /* ★ 핵심 수정: 최종 회전각도에서 포인터 아래의 세그먼트 인덱스를 계산
-                   - 포인터는 상단(12시)에 고정
-                   - 휠이 시계방향으로 endRotation도 만큼 회전한 상태
-                   - 원래 세그먼트 i는 i*arc ~ (i+1)*arc (상단=0도 기준, 시계방향)
-                   - 회전 후 상단에 위치하는 원래 각도 = (360 - endRotation%360) % 360
-                */
                 const finalAngle=((endRotation%360)+360)%360;
-                // 휠이 finalAngle만큼 시계방향 회전 → 포인터 아래의 원래 각도
                 const pointerOrigAngle=((360-finalAngle)%360+360)%360;
                 const winnerIdx=Math.floor(pointerOrigAngle/arc)%n;
                 const winner=items[winnerIdx];
@@ -566,9 +558,6 @@ function SpinWheel({playSound:ps,isSoundOn}){
 }
 
 
-/* ══════════════════════════════════════════
-   ▼ 로또번호 추첨기 (발표자 뽑기)
-   ══════════════════════════════════════════ */
 const LOTTO_BALL_COLORS=['#E74C3C','#E67E22','#27AE60','#2980B9','#8E44AD','#D35400','#16A085','#2C3E50','#C0392B','#7D3C98'];
 
 function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
@@ -593,7 +582,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     const playBallDrop=useCallback((idx)=>{
         if(!isSoundOn)return;
         const ctx=getAudioCtx();const t=ctx.currentTime;
-        // 점점 올라가는 음계
         const baseFreq=[261.63,329.63,392.00,523.25,659.25,783.99,1046.50];
         const freq=baseFreq[idx%baseFreq.length];
         const o=ctx.createOscillator(),g=ctx.createGain();
@@ -604,7 +592,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
         g.gain.linearRampToValueAtTime(.12,t+.03);
         g.gain.exponentialRampToValueAtTime(.001,t+.4);
         o.start(t);o.stop(t+.4);
-        // 짧은 퍼커션
         const o2=ctx.createOscillator(),g2=ctx.createGain();
         o2.connect(g2);g2.connect(ctx.destination);
         o2.type='triangle';
@@ -630,16 +617,16 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     },[isSoundOn]);
 
     const getBallColor=(num)=>{
-        if(num<=10)return '#FBC400';  // 노란색 (1~10)
-        if(num<=20)return '#69C8F2';  // 파란색 (11~20)
-        if(num<=30)return '#FF7272';  // 빨간색 (21~30)
-        if(num<=40)return '#555555';  // 회색 (31~40)
-        if(num<=50)return '#B0D840';  // 초록색 (41~50)
-        if(num<=60)return '#A855F7';  // 보라색 (51~60)
-        if(num<=70)return '#F97316';  // 주황색 (61~70)
-        if(num<=80)return '#14B8A6';  // 청록색 (71~80)
-        if(num<=90)return '#EC4899';  // 분홍색 (81~90)
-        return '#6366F1';             // 남색 (91~100)
+        if(num<=10)return '#FBC400';
+        if(num<=20)return '#69C8F2';
+        if(num<=30)return '#FF7272';
+        if(num<=40)return '#555555';
+        if(num<=50)return '#B0D840';
+        if(num<=60)return '#A855F7';
+        if(num<=70)return '#F97316';
+        if(num<=80)return '#14B8A6';
+        if(num<=90)return '#EC4899';
+        return '#6366F1';
     };
 
     const startDraw=()=>{
@@ -654,17 +641,13 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
         setResults([]);
         setRevealedCount(0);
 
-        // 당첨 번호 미리 결정
         const shuffled=[...pool].sort(()=>Math.random()-.5);
         const winners=shuffled.slice(0,count);
 
-        // 각 슬롯에 롤링 숫자 표시
         const initRolling=Array(count).fill(0);
         setRollingNums(initRolling);
 
-        // 각 공을 순차적으로 확정 (1초 간격)
         const revealBall=(idx)=>{
-            // 롤링 애니메이션 (100ms마다 숫자 변경)
             let rollCount=0;
             const maxRolls=12+idx*3;
             const rollInterval=setInterval(()=>{
@@ -676,7 +659,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
                 rollCount++;
                 if(rollCount>=maxRolls){
                     clearInterval(rollInterval);
-                    // 확정
                     setRollingNums(prev=>{
                         const next=[...prev];
                         next[idx]=winners[idx];
@@ -687,7 +669,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
                     playBallDrop(idx);
 
                     if(idx===count-1){
-                        // 마지막 공
                         setTimeout(()=>{
                             setIsRolling(false);
                             if(isNoRepeat)setUsedNums(prev=>[...prev,...winners]);
@@ -704,7 +685,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
             rollTimersRef.current.push(rollInterval);
         };
 
-        // 순차적으로 공 뽑기 시작
         for(let i=0;i<count;i++){
             const timer=setTimeout(()=>revealBall(i),i*1200+500);
             rollTimersRef.current.push(timer);
@@ -716,7 +696,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     const availableCount=isNoRepeat?activeStudents.filter(s=>!usedNums.includes(s)).length:activeStudents.length;
 
     return(<div className="w-full max-w-2xl mx-auto space-y-3">
-        {/* 추첨기 머신 */}
         <div className="lotto-machine">
             <div className="text-center mb-4">
                 <h2 className="text-xl sm:text-2xl font-black text-white flex items-center justify-center gap-2">
@@ -725,7 +704,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
                 <p className="text-[11px] text-gray-400 font-bold mt-1">행운의 발표자를 뽑아보세요!</p>
             </div>
 
-            {/* 결과 디스플레이 */}
             <div className="lotto-glass mb-4">
                 <div className="flex items-center justify-center gap-3 sm:gap-4 min-h-[80px] flex-wrap py-2">
                     {Array.from({length:Math.min(pickCount,availableCount)}).map((_,i)=>{
@@ -749,7 +727,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
                 </div>
             </div>
 
-            {/* 컨트롤 */}
             <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-center gap-3">
                     <span className="text-sm font-bold text-gray-400">뽑기 수</span>
@@ -777,7 +754,6 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
             </div>
         </div>
 
-        {/* 추첨 기록 */}
         {history.length>0&&<div className="bg-white/80 rounded-xl p-3 soft-shadow border border-gray-100">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-gray-400">추첨 기록 ({history.length})</span>
@@ -790,6 +766,185 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
             </div>)}</div>
         </div>}
     </div>);
+}
+
+
+/* ══════════════════════════════════════════
+   ▼  줄별 좌석 배치 설정 컴포넌트
+   ══════════════════════════════════════════ */
+function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,setSeatRowMode,seatColumns,setSeatColumns,seatGridTotal,totalStudents,playSound}){
+
+    /* 전체 ON 그리드 생성 */
+    const makeFullGrid=(r,c)=>Array.from({length:r},()=>Array(c).fill(true));
+
+    /* 학생 수에 맞춰 앞줄부터 채우는 그리드 */
+    const makeFitGrid=(r,c,total)=>{
+        const grid=Array.from({length:r},()=>Array(c).fill(false));
+        let remain=total;
+        for(let ri=0;ri<r&&remain>0;ri++){
+            for(let ci=0;ci<c&&remain>0;ci++){
+                grid[ri][ci]=true;
+                remain--;
+            }
+        }
+        return grid;
+    };
+
+    const switchToCustom=()=>{
+        playSound('click');
+        setSeatRowMode('custom');
+        if(seatGrid.length===0){
+            const r=Math.ceil(totalStudents/seatColumns);
+            setSeatRows(r);
+            setSeatGrid(makeFitGrid(r,seatColumns,totalStudents));
+        }
+    };
+
+    /* 행/열 수 변경 */
+    const changeRows=(delta)=>{
+        playSound('click');
+        const next=Math.max(1,Math.min(15,seatRows+delta));
+        setSeatRows(next);
+        setSeatGrid(prev=>{
+            const grid=[...prev.map(r=>[...r])];
+            while(grid.length<next)grid.push(Array(seatColumns).fill(true));
+            return grid.slice(0,next);
+        });
+    };
+    const changeCols=(delta)=>{
+        playSound('click');
+        const next=Math.max(2,Math.min(10,seatColumns+delta));
+        setSeatColumns(next);
+        setSeatGrid(prev=>prev.map(row=>{
+            const r=[...row];
+            while(r.length<next)r.push(true);
+            return r.slice(0,next);
+        }));
+    };
+
+    /* 개별 셀 토글 */
+    const toggleCell=(ri,ci)=>{
+        playSound('click');
+        setSeatGrid(prev=>{
+            const grid=prev.map(r=>[...r]);
+            grid[ri][ci]=!grid[ri][ci];
+            return grid;
+        });
+    };
+
+    /* 행 전체 토글 */
+    const toggleRow=(ri)=>{
+        playSound('click');
+        setSeatGrid(prev=>{
+            const grid=prev.map(r=>[...r]);
+            const allOn=grid[ri].every(Boolean);
+            grid[ri]=grid[ri].map(()=>!allOn);
+            return grid;
+        });
+    };
+
+    /* 열 전체 토글 */
+    const toggleCol=(ci)=>{
+        playSound('click');
+        setSeatGrid(prev=>{
+            const grid=prev.map(r=>[...r]);
+            const allOn=grid.every(r=>r[ci]);
+            grid.forEach(r=>{r[ci]=!allOn;});
+            return grid;
+        });
+    };
+
+    /* 프리셋 */
+    const presetAll=()=>{playSound('click');setSeatGrid(makeFullGrid(seatRows,seatColumns));};
+    const presetFit=()=>{playSound('click');setSeatGrid(makeFitGrid(seatRows,seatColumns,totalStudents));};
+    const presetClear=()=>{playSound('click');setSeatGrid(Array.from({length:seatRows},()=>Array(seatColumns).fill(false)));};
+
+    return(<div className="bg-white/80 backdrop-blur rounded-xl p-2.5 border border-gray-100 soft-shadow space-y-2">
+        <div className="flex items-center gap-2">
+            <div className="shrink-0 p-1.5 rounded-lg bg-[#FFD3B6]/20"><Icon name="layout-grid" size={15}/></div>
+            <div className="flex bg-[#FFF8F0] p-0.5 rounded-lg flex-1 border border-gray-100">
+                <button onClick={()=>{playSound('click');setSeatRowMode('auto');}} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${seatRowMode==='auto'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>자동 배치</button>
+                <button onClick={switchToCustom} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${seatRowMode==='custom'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>자리 배치</button>
+            </div>
+        </div>
+
+        {/* 열/행 수 설정 */}
+        <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-gray-400 font-bold shrink-0">열</span>
+                <div className="flex items-center bg-[#FFF8F0] rounded-lg border border-gray-100 px-1 gap-0.5">
+                    <button onClick={()=>changeCols(-1)} className="w-7 h-7 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="minus" size={12}/></button>
+                    <span className="text-sm font-black text-[#D68C60] min-w-[1.5rem] text-center">{seatColumns}</span>
+                    <button onClick={()=>changeCols(1)} className="w-7 h-7 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="plus" size={12}/></button>
+                </div>
+            </div>
+            {seatRowMode==='custom'&&<div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-gray-400 font-bold shrink-0">행</span>
+                <div className="flex items-center bg-[#FFF8F0] rounded-lg border border-gray-100 px-1 gap-0.5">
+                    <button onClick={()=>changeRows(-1)} className="w-7 h-7 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="minus" size={12}/></button>
+                    <span className="text-sm font-black text-[#D68C60] min-w-[1.5rem] text-center">{seatRows}</span>
+                    <button onClick={()=>changeRows(1)} className="w-7 h-7 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="plus" size={12}/></button>
+                </div>
+            </div>}
+            <span className="text-[10px] text-gray-400 font-bold ml-auto">학생 {totalStudents}명</span>
+        </div>
+
+        {seatRowMode==='custom'&&seatGrid.length>0&&<>
+            {/* 프리셋 */}
+            <div className="flex flex-wrap gap-1.5">
+                <button onClick={presetFit} className="px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-white border-gray-200 text-gray-400 hover:border-[#FFD3B6] active:scale-95 transition-all">학생 수 맞춤</button>
+                <button onClick={presetAll} className="px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-white border-gray-200 text-gray-400 hover:border-[#FFD3B6] active:scale-95 transition-all">전체 ON</button>
+                <button onClick={presetClear} className="px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-white border-gray-200 text-gray-400 hover:border-[#FFD3B6] active:scale-95 transition-all">전체 OFF</button>
+            </div>
+
+            {/* 좌석 배치도 그리드 */}
+            <div className="bg-[#FFF8F0] rounded-xl p-2.5 border border-[#FFD3B6]/30">
+                <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[9px] text-gray-400 font-bold">칠판 ↓ (앞줄) · 터치하여 좌석 ON/OFF</span>
+                    <span className={`text-[10px] font-bold ${seatGridTotal===totalStudents?'text-green-500':'text-orange-400'}`}>
+                        {seatGridTotal}석 {seatGridTotal!==totalStudents&&`/ ${totalStudents}명`}
+                    </span>
+                </div>
+
+                {/* 열 번호 + 열 전체 토글 */}
+                <div className="flex gap-[3px] mb-[3px] ml-7">
+                    {Array.from({length:seatColumns}).map((_,ci)=>(
+                        <div key={ci} onClick={()=>toggleCol(ci)}
+                            className="flex-1 h-4 flex items-center justify-center cursor-pointer rounded-[2px] hover:bg-[#FFD3B6]/20 transition-all"
+                            style={{maxWidth:'36px'}}>
+                            <span className="text-[8px] text-gray-400 font-bold">{ci+1}</span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 행별 좌석 */}
+                {seatGrid.map((row,ri)=>(
+                    <div key={ri} className="flex items-center gap-[3px] mb-[3px]">
+                        <span onClick={()=>toggleRow(ri)}
+                            className="text-[9px] text-gray-400 font-bold w-6 text-right shrink-0 cursor-pointer hover:text-[#D68C60] transition-colors select-none">{ri+1}</span>
+                        {row.map((on,ci)=>(
+                            <div key={ci} onClick={()=>toggleCell(ri,ci)}
+                                className={`h-7 sm:h-8 flex-1 rounded-[4px] cursor-pointer transition-all active:scale-90 flex items-center justify-center select-none ${on?'bg-[#FFD3B6] shadow-sm hover:bg-[#FFc5a0]':'bg-gray-100 hover:bg-gray-200 border border-dashed border-gray-300/60'}`}
+                                style={{maxWidth:'36px'}}>
+                                {on?<span className="text-white text-[9px] font-black">●</span>:<span className="text-gray-300 text-[8px]">·</span>}
+                            </div>
+                        ))}
+                    </div>
+                ))}
+                <div className="text-center pt-0.5"><span className="text-[9px] text-gray-400 font-bold">↑ (뒷줄)</span></div>
+            </div>
+
+            {seatGridTotal!==totalStudents&&<div className="bg-[#FFF8E1] rounded-lg p-2 border border-[#FFE082] flex items-start gap-1.5">
+                <Icon name="info" size={13} className="text-[#FFA000] shrink-0 mt-0.5"/>
+                <p className="text-[10px] text-gray-500 font-bold leading-relaxed">
+                    {seatGridTotal>totalStudents
+                        ?`좌석(${seatGridTotal})이 학생 수(${totalStudents})보다 많습니다. 남는 자리는 빈칸이 됩니다.`
+                        :`좌석(${seatGridTotal})이 학생 수(${totalStudents})보다 적습니다. ${totalStudents-seatGridTotal}명이 배치되지 않습니다.`}
+                </p>
+            </div>}
+        </>}
+    </div>);
+}
 }
 
 
@@ -839,12 +994,21 @@ function App(){
     const [uploadedImg,setUploadedImg]=useState(null);
     const [fullScreenContent,setFullScreenContent]=useState(null);const [fsFontSize,setFsFontSize]=useState(60);
 
+    /* ★ 좌석 배치 관련 상태 */
+    const [seatRowMode,setSeatRowMode]=useState('auto');      // 'auto' | 'custom'
+    const [seatColumns,setSeatColumns]=useState(5);            // 열 수 (기본 5)
+    const [seatRows,setSeatRows]=useState(6);                  // 행 수
+    const [seatGrid,setSeatGrid]=useState([]);                 // 2D boolean 배열 [row][col] true=좌석ON
+
     const audioCtx=useRef(null);const timerRef=useRef(null);const captureRef=useRef(null);const fileInputRef=useRef(null);
 
     const MEMO_COLORS=['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF','#FFDAC1','#C7CEEA','#B5EAD7','#FFB7B2','#FFFFCC','#F0F0F0','#D4F0FF'];
 
     const excludedNums=useMemo(()=>excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length),[excludedInput,students.length]);
     const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
+
+    /* ★ 커스텀 배치: seatGrid에서 ON인 좌석 수 계산 */
+    const seatGridTotal=useMemo(()=>seatGrid.reduce((sum,row)=>sum+row.filter(Boolean).length,0),[seatGrid]);
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
     const playSound=type=>{
@@ -917,6 +1081,56 @@ function App(){
         </div>
     );
 
+    /* ═══ 좌석 렌더링 헬퍼: 커스텀 그리드 배치 (혼자) ═══ */
+    const renderSingleSeatsCustomGrid=()=>{
+        if(seatGrid.length===0)return renderSingleSeatsAuto();
+        const cols=seatColumns;
+        let seatIdx=0;
+
+        return(<div className="flex flex-col gap-1.5 sm:gap-2.5">
+            {seatGrid.map((row,rowIdx)=>{
+                const cells=[];
+                for(let ci=0;ci<cols;ci++){
+                    const isOn=row[ci];
+                    if(isOn){
+                        if(seatIdx<seats.length){
+                            const idx=seatIdx;
+                            const isSel=selectedItem?.type==='seat'&&selectedItem?.index===idx;
+                            cells.push(
+                                <div key={`S${rowIdx}-${ci}`} onClick={()=>handleItemTap('seat',idx)}
+                                    className={`py-2.5 flex items-center justify-center bg-white border-2 rounded-lg text-xs sm:text-sm font-black text-gray-600 cursor-pointer touch-target ${isSel?'selected-item':'border-gray-100 active:bg-[#FFF8F0]'}`}>
+                                    {seats[idx]}
+                                </div>
+                            );
+                            seatIdx++;
+                        }else{
+                            cells.push(
+                                <div key={`E${rowIdx}-${ci}`} className="py-2.5 flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg text-xs text-gray-300"/>
+                            );
+                        }
+                    }else{
+                        // OFF 좌석 - 빈 공간
+                        cells.push(<div key={`X${rowIdx}-${ci}`}/>);
+                    }
+                }
+                return <div key={rowIdx} className="grid gap-1.5 sm:gap-2.5" style={{gridTemplateColumns:`repeat(${cols}, minmax(0, 1fr))`}}>{cells}</div>;
+            })}
+        </div>);
+    };
+
+    /* ═══ 좌석 렌더링 헬퍼: 자동 배치 (혼자) ═══ */
+    const renderSingleSeatsAuto=()=>{
+        return(<div className="grid gap-1.5 sm:gap-2.5" style={{gridTemplateColumns:`repeat(${seatColumns}, minmax(0, 1fr))`}}>
+            {seats.map((s,i)=>{
+                const isSel=selectedItem?.type==='seat'&&selectedItem?.index===i;
+                return <div key={i} onClick={()=>handleItemTap('seat',i)}
+                    className={`py-2.5 flex items-center justify-center bg-white border-2 rounded-lg text-xs sm:text-sm font-black text-gray-600 cursor-pointer touch-target ${isSel?'selected-item':'border-gray-100 active:bg-[#FFF8F0]'}`}>
+                    {s}
+                </div>;
+            })}
+        </div>);
+    };
+
     /* ═══ 메인화면 ═══ */
     return(<div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden">
         <nav className="sticky top-0 z-40 glass-panel px-1.5 sm:px-4 py-2"><div className="max-w-7xl mx-auto flex items-center gap-1 sm:gap-2">
@@ -972,7 +1186,7 @@ function App(){
                 {teams.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createTeams} className="text-[#C7CEEA] bg-white border border-[#C7CEEA] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#C7CEEA] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div><div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#C7CEEA] shadow-lg"><div className={`grid gap-2 sm:gap-3 ${teamColumns===2?'grid-cols-2':'grid-cols-2 sm:grid-cols-3'}`}>{teams.map((team,tIdx)=><div key={tIdx} className="bg-[#F7F9FC] rounded-xl p-2.5 border border-[#E2E8F0]"><div className="flex items-center gap-1.5 mb-2"><div className="bg-[#C7CEEA] text-white w-6 h-6 flex items-center justify-center rounded-lg font-black text-xs">{tIdx+1}</div><span className="text-[10px] font-bold text-gray-400">{team.length}명</span></div><div className="flex flex-col gap-1">{team.map((s,sIdx)=>{const isSel=selectedItem?.type==='team'&&selectedItem?.index===tIdx&&selectedItem?.subIndex===sIdx;return<div key={sIdx} onClick={()=>handleItemTap('team',tIdx,sIdx)} className={`bg-white border-2 rounded-lg font-bold text-gray-600 cursor-pointer select-none center-content py-1.5 px-2 text-sm touch-target transition-all ${isSel?'selected-item':'border-transparent active:border-[#C7CEEA]'}`}>{s}</div>;})}</div></div>)}</div></div></div>}
             </div>}
 
-            {/* 3 좌석 */}
+            {/* 3 좌석 ★ 줄별 배치 기능 추가 */}
             {mode==='seat'&&<div className="card-enter space-y-3 w-full">
                 <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
                     <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#FFD3B6] border-[#FFD3B6] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
@@ -984,8 +1198,43 @@ function App(){
                         {seatType==='pair'&&<button onClick={()=>{playSound('click');setShowPairSettings(true);}} className="relative py-2 px-3 bg-white border-2 border-dashed border-[#FFD3B6] text-[#D68C60] rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="settings-2" size={14}/> 조건{(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<span className="absolute -top-1.5 -right-1.5 bg-[#FFB7B2] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">{seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length}</span>}</button>}
                         <button onClick={createSeats} className="ml-auto py-2.5 px-4 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm"><Icon name="layout-grid" size={16}/> 생성</button>
                     </div>
+
+                    {/* ★ 줄별 배치 설정 (혼자 모드일 때만 표시) */}
+                    {seatType==='single'&&<SeatRowConfig
+                        seatGrid={seatGrid}
+                        setSeatGrid={setSeatGrid}
+                        seatRows={seatRows}
+                        setSeatRows={setSeatRows}
+                        seatRowMode={seatRowMode}
+                        setSeatRowMode={setSeatRowMode}
+                        seatColumns={seatColumns}
+                        setSeatColumns={setSeatColumns}
+                        seatGridTotal={seatGridTotal}
+                        totalStudents={activeStudents.length}
+                        playSound={playSound}
+                    />}
                 </div>
-                {seats.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div><div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg"><div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div><div className={`grid gap-1.5 sm:gap-2.5 ${seatType==='single'?'grid-cols-4 sm:grid-cols-5':'grid-cols-2 sm:grid-cols-3'}`}>{seatType==='single'?seats.map((s,i)=>{const isSel=selectedItem?.type==='seat'&&selectedItem?.index===i;return<div key={i} onClick={()=>handleItemTap('seat',i)} className={`py-2.5 flex items-center justify-center bg-white border-2 rounded-lg text-xs sm:text-sm font-black text-gray-600 cursor-pointer touch-target ${isSel?'selected-item':'border-gray-100 active:bg-[#FFF8F0]'}`}>{s}</div>;}):Array.from({length:Math.ceil(seats.length/2)}).map((_,g)=>{const i1=g*2,i2=g*2+1,s1=selectedItem?.type==='seat'&&selectedItem?.index===i1,s2=selectedItem?.type==='seat'&&selectedItem?.index===i2;return<div key={g} className="flex bg-[#FFF8F0] border-2 border-[#FFD3B6] rounded-lg overflow-hidden h-11 sm:h-12"><div onClick={()=>handleItemTap('seat',i1)} className={`flex-1 flex items-center justify-center border-r border-[#FFD3B6]/30 cursor-pointer touch-target ${s1?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i1]}</span></div><div onClick={()=>handleItemTap('seat',i2)} className={`flex-1 flex items-center justify-center cursor-pointer touch-target ${s2?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i2]||''}</span></div></div>;})}</div></div></div>}
+                {seats.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div>
+                    <div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg">
+                        <div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div>
+
+                        {/* ★ 좌석 렌더링: 혼자 모드에서 줄별 배치 vs 자동 배치 */}
+                        {seatType==='single'?(
+                            seatRowMode==='custom'&&seatGrid.length>0?renderSingleSeatsCustomGrid():renderSingleSeatsAuto()
+                        ):(
+                            /* 짝꿍 모드 (기존 그대로) */
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2.5">
+                                {Array.from({length:Math.ceil(seats.length/2)}).map((_,g)=>{
+                                    const i1=g*2,i2=g*2+1,s1=selectedItem?.type==='seat'&&selectedItem?.index===i1,s2=selectedItem?.type==='seat'&&selectedItem?.index===i2;
+                                    return<div key={g} className="flex bg-[#FFF8F0] border-2 border-[#FFD3B6] rounded-lg overflow-hidden h-11 sm:h-12">
+                                        <div onClick={()=>handleItemTap('seat',i1)} className={`flex-1 flex items-center justify-center border-r border-[#FFD3B6]/30 cursor-pointer touch-target ${s1?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i1]}</span></div>
+                                        <div onClick={()=>handleItemTap('seat',i2)} className={`flex-1 flex items-center justify-center cursor-pointer touch-target ${s2?'selected-item':''}`}><span className="font-black text-gray-600 text-xs sm:text-sm">{seats[i2]||''}</span></div>
+                                    </div>;
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>}
             </div>}
 
             {/* ★ 돌림판 */}
