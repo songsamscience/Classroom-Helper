@@ -5,14 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>송쌤과학 교실 도우미</title>
+    <!-- React & Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.447.0/dist/umd/lucide.min.js"></script>
+    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- HTML2Canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&family=Gamja+Flower&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
         body{font-family:'Jua',sans-serif;background:#F8F6F1;background-image:radial-gradient(circle at 20% 80%,rgba(181,234,215,.15) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,183,178,.12) 0%,transparent 50%),radial-gradient(#E8DDD0 .8px,transparent .8px);background-size:100% 100%,100% 100%,20px 20px;color:#4A4A4A;touch-action:manipulation;overflow-x:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none;margin:0;padding:0;}
@@ -112,7 +119,21 @@
 <script type="text/babel">
 const {useState,useEffect,useRef,useMemo,useCallback}=React;
 
-const Icon=({name,size=24,className=""})=>{const ref=useRef(null);useEffect(()=>{if(window.lucide&&ref.current){ref.current.innerHTML='';const i=document.createElement('i');i.setAttribute('data-lucide',name);i.setAttribute('class',className);ref.current.appendChild(i);window.lucide.createIcons({root:ref.current,nameAttr:'data-lucide',attrs:{width:size,height:size}});}},[name,size,className]);return <span ref={ref} className="inline-flex items-center justify-center"/>;};
+// 아이콘 렌더링 픽스: className을 span에 직접 적용하여 Flexbox 레이아웃이 아이콘에 정상 동작하도록 수정
+const Icon=({name,size=24,className=""})=>{
+    const ref=useRef(null);
+    useEffect(()=>{
+        if(window.lucide&&ref.current){
+            ref.current.innerHTML='';
+            const i=document.createElement('i');
+            i.setAttribute('data-lucide',name);
+            ref.current.appendChild(i);
+            window.lucide.createIcons({root:ref.current,nameAttr:'data-lucide',attrs:{width:size,height:size}});
+        }
+    },[name,size]);
+    return <span ref={ref} className={`inline-flex items-center justify-center ${className}`}/>;
+};
+
 const Copyright=({fixed})=>(<footer className={`w-full text-center py-4 text-[10px] text-gray-400 font-bold tracking-widest uppercase ${fixed?'fixed bottom-0 left-0 bg-white/50 backdrop-blur-sm safe-b':'mt-6'}`}>ⓒ 송쌤과학 Class Helper</footer>);
 
 function SystemModal({modal,closeModal}){
@@ -147,6 +168,104 @@ function CalendarWidget(){
     const isToday=d=>d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
     const days=[];for(let i=0;i<firstDay;i++)days.push(null);for(let d=1;d<=daysInMonth;d++)days.push(d);
     return(<div className="bg-white rounded-2xl p-4 sm:p-5 soft-shadow border border-gray-100 max-w-sm mx-auto w-full"><div className="flex items-center justify-between mb-4"><button onClick={prev} className="p-2 rounded-lg hover:bg-gray-100 touch-target"><Icon name="chevron-left" size={18}/></button><div className="text-center cursor-pointer" onClick={goToday}><span className="text-lg sm:text-xl font-black text-[#4A4A4A]">{year}년 {month+1}월</span></div><button onClick={next} className="p-2 rounded-lg hover:bg-gray-100 touch-target"><Icon name="chevron-right" size={18}/></button></div><div className="grid grid-cols-7 gap-1 mb-2">{['일','월','화','수','목','금','토'].map((d,i)=><div key={d} className={`text-center text-[11px] font-bold py-1 ${i===0?'text-red-400':i===6?'text-blue-400':'text-gray-400'}`}>{d}</div>)}</div><div className="grid grid-cols-7 gap-1">{days.map((d,i)=>d?<div key={i} className={`cal-day ${isToday(d)?'cal-today':i%7===0?'cal-sun':i%7===6?'cal-sat':'text-gray-600'} ${!isToday(d)?'hover:bg-gray-100':''}`}>{d}</div>:<div key={i}/>)}</div><div className="mt-3 text-center"><button onClick={goToday} className="text-[10px] font-bold text-[#FFB7B2] hover:underline">오늘로 이동</button></div></div>);
+}
+
+function DDayWidget({dDays, setDDays, playSound, showAlert}) {
+    const [title, setTitle] = useState('');
+    const [date, setDate] = useState('');
+
+    const calculateDDay = (targetDateStr) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(targetDateStr);
+        target.setHours(0, 0, 0, 0);
+        
+        const diffTime = target.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'D-Day';
+        if (diffDays > 0) return `D-${diffDays}`;
+        return `D+${Math.abs(diffDays)}`;
+    };
+
+    const handleAdd = () => {
+        if (!title.trim() || !date) {
+            showAlert('제목과 날짜를 모두 입력해주세요.');
+            return;
+        }
+        playSound('click');
+        setDDays(prev => [...prev, { id: Date.now(), title: title.trim(), targetDate: date }].sort((a, b) => new Date(a.targetDate) - new Date(b.targetDate)));
+        setTitle('');
+        setDate('');
+    };
+
+    const handleDelete = (id) => {
+        playSound('click');
+        setDDays(prev => prev.filter(d => d.id !== id));
+    };
+
+    return (
+        <div className="bg-white rounded-2xl p-4 sm:p-5 soft-shadow border border-gray-100 max-w-sm mx-auto w-full">
+            <h3 className="text-base sm:text-lg font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2">
+                <Icon name="calendar-heart" size={18} className="text-[#FFB7B2]"/> D-Day 계산기
+            </h3>
+            
+            <div className="space-y-2 mb-4">
+                <input 
+                    type="text" 
+                    value={title} 
+                    onChange={e => setTitle(e.target.value)} 
+                    className="w-full p-2 bg-[#F9F7F4] rounded-xl border-2 border-transparent outline-none focus:border-[#FFB7B2] text-sm font-bold" 
+                    placeholder="D-Day 제목 (예: 소풍, 중간고사)"
+                />
+                <div className="flex gap-2">
+                    <input 
+                        type="date" 
+                        value={date} 
+                        onChange={e => setDate(e.target.value)} 
+                        className="flex-1 p-2 bg-[#F9F7F4] rounded-xl border-2 border-transparent outline-none focus:border-[#FFB7B2] text-sm font-bold text-gray-600"
+                    />
+                    <button 
+                        onClick={handleAdd} 
+                        className="px-4 py-2 bg-[#FFB7B2] text-white rounded-xl font-black text-sm touch-target active:scale-95 transition-all whitespace-nowrap"
+                    >
+                        추가
+                    </button>
+                </div>
+            </div>
+
+            {dDays.length > 0 ? (
+                <div className="space-y-2 max-h-[220px] overflow-y-auto no-scrollbar">
+                    {dDays.map(d => {
+                        const dDayStr = calculateDDay(d.targetDate);
+                        const isPast = dDayStr.startsWith('D+');
+                        const isToday = dDayStr === 'D-Day';
+                        
+                        return (
+                            <div key={d.id} className="flex items-center justify-between p-2.5 bg-[#FFFDF0] rounded-xl border border-[#FFE082]/30">
+                                <div className="min-w-0 flex-1 pr-2">
+                                    <p className="text-xs text-gray-600 font-black truncate mb-0.5">{d.title}</p>
+                                    <p className="text-[10px] text-gray-400 font-bold">{d.targetDate}</p>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <span className={`text-base font-black ${isToday ? 'text-red-500 animate-pulse' : isPast ? 'text-gray-400' : 'text-[#FF6B6B]'}`}>
+                                        {dDayStr}
+                                    </span>
+                                    <button onClick={() => handleDelete(d.id)} className="p-1 text-red-200 hover:text-red-400 touch-target transition-colors">
+                                        <Icon name="x" size={14}/>
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                <div className="text-center py-5 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
+                    <p className="text-[11px] text-gray-400 font-bold">등록된 D-Day가 없습니다.<br/>중요한 일정을 등록해보세요!</p>
+                </div>
+            )}
+        </div>
+    );
 }
 
 function RecorderWidget({playSound:ps}){
@@ -767,16 +886,8 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     </div>);
 }
 
-
-/* ══════════════════════════════════════════
-   ▼  줄별 좌석 배치 설정 컴포넌트
-   ══════════════════════════════════════════ */
 function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,setSeatRowMode,seatColumns,setSeatColumns,seatGridTotal,totalStudents,playSound}){
-
-    /* 전체 ON 그리드 생성 */
     const makeFullGrid=(r,c)=>Array.from({length:r},()=>Array(c).fill(true));
-
-    /* 학생 수에 맞춰 앞줄부터 채우는 그리드 */
     const makeFitGrid=(r,c,total)=>{
         const grid=Array.from({length:r},()=>Array(c).fill(false));
         let remain=total;
@@ -799,7 +910,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
         }
     };
 
-    /* 행/열 수 변경 */
     const changeRows=(delta)=>{
         playSound('click');
         const next=Math.max(1,Math.min(15,seatRows+delta));
@@ -821,7 +931,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
         }));
     };
 
-    /* 개별 셀 토글 */
     const toggleCell=(ri,ci)=>{
         playSound('click');
         setSeatGrid(prev=>{
@@ -830,8 +939,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
             return grid;
         });
     };
-
-    /* 행 전체 토글 */
     const toggleRow=(ri)=>{
         playSound('click');
         setSeatGrid(prev=>{
@@ -841,8 +948,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
             return grid;
         });
     };
-
-    /* 열 전체 토글 */
     const toggleCol=(ci)=>{
         playSound('click');
         setSeatGrid(prev=>{
@@ -853,7 +958,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
         });
     };
 
-    /* 프리셋 */
     const presetAll=()=>{playSound('click');setSeatGrid(makeFullGrid(seatRows,seatColumns));};
     const presetFit=()=>{playSound('click');setSeatGrid(makeFitGrid(seatRows,seatColumns,totalStudents));};
     const presetClear=()=>{playSound('click');setSeatGrid(Array.from({length:seatRows},()=>Array(seatColumns).fill(false)));};
@@ -867,7 +971,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
             </div>
         </div>
 
-        {/* 열/행 수 설정 */}
         <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5">
                 <span className="text-[10px] text-gray-400 font-bold shrink-0">열</span>
@@ -889,14 +992,12 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
         </div>
 
         {seatRowMode==='custom'&&seatGrid.length>0&&<>
-            {/* 프리셋 */}
             <div className="flex flex-wrap gap-1.5">
                 <button onClick={presetFit} className="px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-white border-gray-200 text-gray-400 hover:border-[#FFD3B6] active:scale-95 transition-all">학생 수 맞춤</button>
                 <button onClick={presetAll} className="px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-white border-gray-200 text-gray-400 hover:border-[#FFD3B6] active:scale-95 transition-all">전체 ON</button>
                 <button onClick={presetClear} className="px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-white border-gray-200 text-gray-400 hover:border-[#FFD3B6] active:scale-95 transition-all">전체 OFF</button>
             </div>
 
-            {/* 좌석 배치도 그리드 */}
             <div className="bg-[#FFF8F0] rounded-xl p-2.5 border border-[#FFD3B6]/30">
                 <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[9px] text-gray-400 font-bold">칠판 ↓ (앞줄) · 터치하여 좌석 ON/OFF</span>
@@ -905,7 +1006,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
                     </span>
                 </div>
 
-                {/* 열 번호 + 열 전체 토글 */}
                 <div className="flex gap-[3px] mb-[3px] ml-7">
                     {Array.from({length:seatColumns}).map((_,ci)=>(
                         <div key={ci} onClick={()=>toggleCol(ci)}
@@ -916,7 +1016,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
                     ))}
                 </div>
 
-                {/* 행별 좌석 */}
                 {seatGrid.map((row,ri)=>(
                     <div key={ri} className="flex items-center gap-[3px] mb-[3px]">
                         <span onClick={()=>toggleRow(ri)}
@@ -945,10 +1044,6 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
     </div>);
 }
 
-
-/* ══════════════════════════════════════════
-   ▼ 메인 앱
-   ══════════════════════════════════════════ */
 function App(){
     const [step,setStep]=useState('input');
     const [studentCount,setStudentCount]=useState('');
@@ -992,11 +1087,11 @@ function App(){
     const [uploadedImg,setUploadedImg]=useState(null);
     const [fullScreenContent,setFullScreenContent]=useState(null);const [fsFontSize,setFsFontSize]=useState(60);
 
-    /* ★ 좌석 배치 관련 상태 */
-    const [seatRowMode,setSeatRowMode]=useState('auto');       // 'auto' | 'custom'
-    const [seatColumns,setSeatColumns]=useState(5);            // 열 수 (기본 5)
-    const [seatRows,setSeatRows]=useState(6);                  // 행 수
-    const [seatGrid,setSeatGrid]=useState([]);                 // 2D boolean 배열 [row][col] true=좌석ON
+    const [seatRowMode,setSeatRowMode]=useState('auto');
+    const [seatColumns,setSeatColumns]=useState(5);
+    const [seatRows,setSeatRows]=useState(6);
+    const [seatGrid,setSeatGrid]=useState([]);
+    const [dDays, setDDays] = useState([]); 
 
     const audioCtx=useRef(null);const timerRef=useRef(null);const captureRef=useRef(null);const fileInputRef=useRef(null);
 
@@ -1004,8 +1099,6 @@ function App(){
 
     const excludedNums=useMemo(()=>excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length),[excludedInput,students.length]);
     const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
-
-    /* ★ 커스텀 배치: seatGrid에서 ON인 좌석 수 계산 */
     const seatGridTotal=useMemo(()=>seatGrid.reduce((sum,row)=>sum+row.filter(Boolean).length,0),[seatGrid]);
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
@@ -1024,7 +1117,7 @@ function App(){
     const handleCapture=async()=>{if(!captureRef.current)return;playSound('click');try{await document.fonts.ready;const canvas=await html2canvas(captureRef.current,{scale:2,backgroundColor:'#FDFBF7',useCORS:true,logging:false,allowTaint:true,onclone:doc=>{doc.querySelectorAll('.center-content').forEach(el=>{el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.style.paddingBottom='12px';el.style.lineHeight='1';el.style.height='100%';});}});const link=document.createElement('a');link.download=`송쌤과학_${mode}_${Date.now()}.png`;link.href=canvas.toDataURL();link.click();showAlert("이미지가 저장되었습니다 📸");}catch(e){console.error(e);showAlert("저장 실패. 다시 시도해주세요.");}};
 
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
-    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});});};
+    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setDDays([]);});};
 
     const adjustTime=sec=>{playSound('click');const v=Math.max(0,Math.min(5999,timeLeft+sec));setTimeLeft(v);if(!isTimerRunning)setInitialTime(v);};
     const onMinFocus=()=>{setEditingMin(true);setMinEdit(String(Math.floor(timeLeft/60)));};
@@ -1057,7 +1150,6 @@ function App(){
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
     const NavBtn=({active,icon,label,onClick})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
 
-    /* ═══ 입력화면 ═══ */
     if(step==='input') return(
         <div className="intro-bg p-4">
             <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
@@ -1079,7 +1171,6 @@ function App(){
         </div>
     );
 
-    /* ═══ 좌석 렌더링 헬퍼: 커스텀 그리드 배치 (혼자) ═══ */
     const renderSingleSeatsCustomGrid=()=>{
         if(seatGrid.length===0)return renderSingleSeatsAuto();
         const cols=seatColumns;
@@ -1107,7 +1198,6 @@ function App(){
                             );
                         }
                     }else{
-                        // OFF 좌석 - 빈 공간
                         cells.push(<div key={`X${rowIdx}-${ci}`}/>);
                     }
                 }
@@ -1116,7 +1206,6 @@ function App(){
         </div>);
     };
 
-    /* ═══ 좌석 렌더링 헬퍼: 자동 배치 (혼자) ═══ */
     const renderSingleSeatsAuto=()=>{
         return(<div className="grid gap-1.5 sm:gap-2.5" style={{gridTemplateColumns:`repeat(${seatColumns}, minmax(0, 1fr))`}}>
             {seats.map((s,i)=>{
@@ -1129,7 +1218,6 @@ function App(){
         </div>);
     };
 
-    /* ═══ 메인화면 ═══ */
     return(<div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden">
         <nav className="sticky top-0 z-40 glass-panel px-1.5 sm:px-4 py-2"><div className="max-w-7xl mx-auto flex items-center gap-1 sm:gap-2">
             <div className="flex items-center gap-1 cursor-pointer shrink-0" onClick={goHome}><div className="bg-[#B5EAD7] p-1.5 sm:p-2 rounded-xl text-white shadow-sm"><Icon name="flask-conical" size={16}/></div><span className="hidden sm:block text-sm font-black text-gray-500">{students.length}명{excludedNums.length>0&&<span className="text-[10px] text-gray-400 font-bold ml-0.5">(-{excludedNums.length})</span>}</span></div>
@@ -1155,7 +1243,6 @@ function App(){
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
 
-            {/* 1 발표자 */}
             {mode==='pick'&&<div className="card-enter w-full">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1"><div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">발표자 뽑기</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">오늘의 행운의 주인공은?</p></div><div className="flex gap-1.5"><button onClick={()=>setIsNoRepeat(!isNoRepeat)} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-[10px] sm:text-sm font-bold border-2 touch-target transition-all ${isNoRepeat?'bg-[#FFB7B2] border-[#FFB7B2] text-white':'bg-white border-gray-200 text-gray-400'}`}>중복방지 {isNoRepeat?'ON':'OFF'}</button><button onClick={()=>setPickHistory([])} className="flex-1 sm:flex-none px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[10px] sm:text-sm font-bold touch-target">초기화 ({pickHistory.length})</button></div></div>
                 <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFB7B2" playSound={playSound}/></div>
@@ -1163,7 +1250,6 @@ function App(){
                 <div className="mt-5 text-center"><button onClick={()=>{if(isPicking)return;let pool=isNoRepeat?activeStudents.filter(s=>!pickHistory.includes(s)):activeStudents;if(!pool.length)return showAlert(activeStudents.length===0?"참여할 학생이 없습니다.":"모든 학생이 발표했습니다!\n기록을 초기화해주세요.");playSound('click');setIsPicking(true);setPickWinner(null);let cnt=0;const mx=20+Math.floor(Math.random()*10);let d=50;const loop=()=>{setCurrentPick(activeStudents[Math.floor(Math.random()*activeStudents.length)]);playSound('tick');cnt++;if(cnt>mx){const w=pool[Math.floor(Math.random()*pool.length)];setCurrentPick(w);setPickWinner(w);if(isNoRepeat)setPickHistory(prev=>[...prev,w]);playSound('win');fireConfetti();setIsPicking(false);}else{d*=1.1;setTimeout(loop,d);}};loop();}} disabled={isPicking} className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-full text-lg sm:text-xl font-black shadow-lg shadow-[#FFB7B2]/25 active:scale-95 flex items-center justify-center gap-2 mx-auto touch-target transition-all">{isPicking?<Icon name="loader-2" size={18} className="animate-spin"/>:<Icon name="sparkles" size={18}/>}{isPicking?'두구두구...':'발표자 뽑기'}</button></div>
             </div>}
 
-            {/* ★ 로또 추첨기 */}
             {mode==='lotto'&&<div className="card-enter w-full">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1">
                     <div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">로또 추첨기</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">로또처럼 발표자를 뽑아보세요!</p></div>
@@ -1172,7 +1258,6 @@ function App(){
                 <LottoPicker students={students} excludedNums={excludedNums} playSound={playSound} isSoundOn={isSoundOn}/>
             </div>}
 
-            {/* 2 모둠 */}
             {mode==='team'&&<div className="card-enter space-y-3 w-full">
                 <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
                     <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#C7CEEA] border-[#C7CEEA] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
@@ -1184,7 +1269,6 @@ function App(){
                 {teams.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createTeams} className="text-[#C7CEEA] bg-white border border-[#C7CEEA] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#C7CEEA] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div><div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#C7CEEA] shadow-lg"><div className={`grid gap-2 sm:gap-3 ${teamColumns===2?'grid-cols-2':'grid-cols-2 sm:grid-cols-3'}`}>{teams.map((team,tIdx)=><div key={tIdx} className="bg-[#F7F9FC] rounded-xl p-2.5 border border-[#E2E8F0]"><div className="flex items-center gap-1.5 mb-2"><div className="bg-[#C7CEEA] text-white w-6 h-6 flex items-center justify-center rounded-lg font-black text-xs">{tIdx+1}</div><span className="text-[10px] font-bold text-gray-400">{team.length}명</span></div><div className="flex flex-col gap-1">{team.map((s,sIdx)=>{const isSel=selectedItem?.type==='team'&&selectedItem?.index===tIdx&&selectedItem?.subIndex===sIdx;return<div key={sIdx} onClick={()=>handleItemTap('team',tIdx,sIdx)} className={`bg-white border-2 rounded-lg font-bold text-gray-600 cursor-pointer select-none center-content py-1.5 px-2 text-sm touch-target transition-all ${isSel?'selected-item':'border-transparent active:border-[#C7CEEA]'}`}>{s}</div>;})}</div></div>)}</div></div></div>}
             </div>}
 
-            {/* 3 좌석 ★ 줄별 배치 기능 추가 */}
             {mode==='seat'&&<div className="card-enter space-y-3 w-full">
                 <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
                     <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#FFD3B6] border-[#FFD3B6] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
@@ -1197,7 +1281,6 @@ function App(){
                         <button onClick={createSeats} className="ml-auto py-2.5 px-4 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm"><Icon name="layout-grid" size={16}/> 생성</button>
                     </div>
 
-                    {/* ★ 줄별 배치 설정 (혼자 모드일 때만 표시) */}
                     {seatType==='single'&&<SeatRowConfig
                         seatGrid={seatGrid}
                         setSeatGrid={setSeatGrid}
@@ -1216,11 +1299,9 @@ function App(){
                     <div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg">
                         <div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div>
 
-                        {/* ★ 좌석 렌더링: 혼자 모드에서 줄별 배치 vs 자동 배치 */}
                         {seatType==='single'?(
                             seatRowMode==='custom'&&seatGrid.length>0?renderSingleSeatsCustomGrid():renderSingleSeatsAuto()
                         ):(
-                            /* 짝꿍 모드 (기존 그대로) */
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2.5">
                                 {Array.from({length:Math.ceil(seats.length/2)}).map((_,g)=>{
                                     const i1=g*2,i2=g*2+1,s1=selectedItem?.type==='seat'&&selectedItem?.index===i1,s2=selectedItem?.type==='seat'&&selectedItem?.index===i2;
@@ -1235,10 +1316,8 @@ function App(){
                 </div>}
             </div>}
 
-            {/* ★ 돌림판 */}
             {mode==='wheel'&&<div className="card-enter w-full"><SpinWheel playSound={playSound} isSoundOn={isSoundOn}/></div>}
 
-            {/* 4 타이머 */}
             {mode==='timer'&&<div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
                 {showClockInTimer&&<div className="mb-5 bg-white rounded-2xl p-5 sm:p-6 soft-shadow border-2 border-[#C7CEEA] w-full max-w-sm text-center card-enter"><LiveClock size="md"/></div>}
                 <div className="relative mb-5 sm:mb-8 w-52 h-52 sm:w-72 sm:h-72"><svg viewBox="0 0 300 300" className="w-full h-full -rotate-90 drop-shadow-lg"><circle cx="150" cy="150" r="120" stroke="#F0F0F0" strokeWidth="14" fill="none"/><circle cx="150" cy="150" r="120" stroke="#FFDAC1" strokeWidth="14" fill="none" strokeDasharray={2*Math.PI*120} strokeDashoffset={(2*Math.PI*120)-(timeLeft/(initialTime||1))*(2*Math.PI*120)} strokeLinecap="round" className="timer-circle"/></svg><div className="absolute inset-0 flex flex-col items-center justify-center">{isTimerRunning?<span className="text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter">{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span>:<div className="flex items-center"><input type="number" inputMode="numeric" className="t-input text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter w-[2.2ch] sm:w-[2.5ch]" value={editingMin?minEdit:Math.floor(timeLeft/60).toString().padStart(2,'0')} onFocus={onMinFocus} onBlur={onMinBlur} onChange={e=>setMinEdit(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/><span className="text-4xl sm:text-7xl font-black text-[#4A4A4A] tracking-tighter select-none">:</span><input type="number" inputMode="numeric" className="t-input text-4xl sm:text-7xl font-black text-[#4A4A4A] tabular-nums tracking-tighter w-[2.2ch] sm:w-[2.5ch]" value={editingSec?secEdit:(timeLeft%60).toString().padStart(2,'0')} onFocus={onSecFocus} onBlur={onSecBlur} onChange={e=>setSecEdit(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/></div>}<span className="text-[10px] sm:text-xs text-gray-400 font-bold mt-1.5">{isTimerRunning?<><span className="animate-pulse text-[#FF9E99]">● </span>진행 중</>:'터치하여 시간 입력'}</span></div></div>
@@ -1247,16 +1326,18 @@ function App(){
                 <div className="flex gap-2.5 w-full max-w-xs"><button onClick={()=>{playSound('click');if(!isTimerRunning){setTimerEverStarted(true);if(timeLeft>0)setInitialTime(timeLeft);}setIsTimerRunning(!isTimerRunning);}} className={`flex-1 py-3.5 rounded-2xl text-lg font-black text-white shadow-lg active:scale-95 flex items-center justify-center gap-2 touch-target ${isTimerRunning?'bg-[#FF9E99]':'bg-[#B5EAD7]'}`}><Icon name={isTimerRunning?"pause":"play"} size={20}/>{isTimerRunning?'일시정지':'시작'}</button><button onClick={()=>{playSound('click');setIsTimerRunning(false);setTimeLeft(initialTime);}} className="py-3.5 px-5 rounded-2xl bg-gray-200 text-gray-500 font-bold active:scale-95 touch-target flex items-center justify-center"><Icon name="rotate-ccw" size={20}/></button><button onClick={()=>{playSound('click');setShowClockInTimer(!showClockInTimer);}} className={`py-3.5 px-5 rounded-2xl font-bold active:scale-95 touch-target flex items-center justify-center ${showClockInTimer?'bg-[#C7CEEA] text-white shadow-lg':'bg-gray-200 text-gray-500'}`}><Icon name="clock" size={20}/></button></div>
             </div>}
 
-            {/* 5 유튜브 */}
             {mode==='youtube'&&<div className="card-enter w-full"><YouTubePlayer playSound={playSound}/></div>}
-            {/* 6 달력 */}
-            {mode==='calendar'&&<div className="card-enter w-full space-y-4"><div className="bg-white rounded-2xl p-5 sm:p-7 soft-shadow border border-gray-100 text-center"><LiveClock size="lg"/></div><CalendarWidget/></div>}
-            {/* 7 녹음 */}
+            
+            {/* ★ 달력 및 D-Day 계산기 */}
+            {mode==='calendar'&&<div className="card-enter w-full space-y-4">
+                <div className="bg-white rounded-2xl p-5 sm:p-7 soft-shadow border border-gray-100 text-center"><LiveClock size="lg"/></div>
+                <CalendarWidget/>
+                <DDayWidget dDays={dDays} setDDays={setDDays} playSound={playSound} showAlert={showAlert} />
+            </div>}
+
             {mode==='record'&&<div className="card-enter w-full"><RecorderWidget playSound={playSound}/></div>}
-            {/* 8 QR */}
             {mode==='qr'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border-2 border-[#B5EAD7] w-full max-w-lg text-center"><h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-3 flex items-center justify-center gap-2"><Icon name="scan-line" size={18}/> QR코드</h2><div className="flex gap-2 mb-4"><input type="url" value={qrInput} onChange={e=>setQrInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&qrInput&&setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`)} className="flex-1 p-2.5 bg-[#F0FDF4] rounded-xl border-2 border-transparent focus:border-[#B5EAD7] outline-none font-bold text-sm" placeholder="URL 입력"/><button onClick={()=>{if(qrInput){playSound('click');setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(qrInput)}`);}}} className="px-4 bg-[#B5EAD7] text-white rounded-xl font-black shadow-md touch-target">생성</button></div>{qrUrl?<div className="inline-block p-3 bg-white rounded-2xl shadow-md border border-gray-100 cursor-pointer" onClick={()=>setFullScreenContent({type:'qr',data:qrUrl})}><img src={qrUrl} alt="QR" className="w-40 h-40 sm:w-52 sm:h-52 mix-blend-multiply"/><p className="text-gray-400 text-[10px] font-bold mt-2">터치하여 확대</p></div>:<div className="w-40 h-40 sm:w-52 sm:h-52 mx-auto bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-gray-300 border-2 border-dashed border-gray-200"><Icon name="link" size={28} className="opacity-40 mb-1"/><span className="font-bold text-xs">주소를 입력하세요</span></div>}</div></div>}
 
-            {/* 9 메모 */}
             {mode==='memo'&&<div className="card-enter w-full max-w-3xl mx-auto">
                 <div className="bg-white rounded-2xl p-3 sm:p-4 soft-shadow border border-gray-100 mb-3 space-y-2.5">
                     <div className="flex gap-2">
@@ -1285,12 +1366,10 @@ function App(){
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">{memos.map(m=><div key={m.id} onClick={()=>{setFullScreenContent({type:'text',data:m.text,color:m.color,fontSize:m.fontSize});setFsFontSize(window.innerWidth<500?40:70);}} className="relative p-3 sm:p-4 rounded-xl min-h-[80px] sm:min-h-[130px] flex items-center justify-center text-center cursor-pointer shadow-sm hover:shadow-md transition-shadow" style={{backgroundColor:m.color}}><p className="font-black text-gray-700 whitespace-pre-wrap line-clamp-4" style={{fontFamily:'Gamja Flower',fontSize:`${m.fontSize||14}px`}}>{m.text}</p><button onClick={e=>{e.stopPropagation();playSound('click');setMemos(memos.filter(x=>x.id!==m.id));}} className="absolute top-1.5 right-1.5 p-1 bg-white/50 rounded-full text-red-400"><Icon name="trash-2" size={11}/></button></div>)}{!memos.length&&<div className="col-span-full py-10 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-2xl bg-white/50"><Icon name="sticky-note" size={28} className="mx-auto opacity-30 mb-1"/><p className="text-xs">메모를 추가해보세요!</p></div>}</div>
             </div>}
 
-            {/* 10 사진 */}
             {mode==='img'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-3 sm:p-5 rounded-2xl shadow-lg border-2 border-[#FFC3A0] w-full max-w-3xl min-h-[220px] sm:min-h-[400px] flex items-center justify-center relative">{uploadedImg?<div className="relative w-full flex items-center justify-center"><img src={uploadedImg} className="max-w-full max-h-[50vh] rounded-xl shadow-sm cursor-pointer" onClick={()=>setFullScreenContent({type:'img',data:uploadedImg})}/><button onClick={()=>{setUploadedImg(null);fileInputRef.current.value='';}} className="absolute top-2 right-2 p-2 bg-white text-[#FFC3A0] rounded-full shadow-md touch-target"><Icon name="x" size={18}/></button></div>:<div onClick={()=>fileInputRef.current.click()} className="flex flex-col items-center justify-center gap-3 cursor-pointer p-8 sm:p-14 hover:bg-[#FFF5EB] rounded-2xl w-full h-full border-2 border-dashed border-[#FFC3A0]/30"><div className="p-5 bg-[#FFEDD5] rounded-full text-[#FFC3A0]"><Icon name="image-plus" size={32}/></div><p className="text-base font-bold text-[#FFC3A0]">터치하여 사진 업로드</p></div>}<input type="file" ref={fileInputRef} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=res=>{setUploadedImg(res.target.result);playSound('win');};r.readAsDataURL(f);}}} accept="image/*" className="hidden"/></div></div>}
             <Copyright/>
         </main>
 
-        {/* 짝꿍 모달 */}
         {showPairSettings&&<div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={()=>setShowPairSettings(false)}><div className="modal-up bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl border-t-4 sm:border-4 border-[#FFD3B6] max-h-[80vh] flex flex-col safe-b" onClick={e=>e.stopPropagation()}>
             <div className="flex items-center justify-between p-3.5 border-b border-gray-100 shrink-0"><div className="flex items-center gap-2"><div className="bg-[#FFD3B6] p-1.5 rounded-lg text-white"><Icon name="settings-2" size={16}/></div><div><h3 className="text-sm font-black text-[#4A4A4A]">짝꿍 조건 설정</h3><p className="text-[9px] text-gray-400 font-bold">비밀 설정</p></div></div><button onClick={()=>setShowPairSettings(false)} className="p-2 text-gray-400 rounded-lg touch-target"><Icon name="x" size={18}/></button></div>
             <div className="flex mx-3.5 mt-2.5 bg-[#FFF8F0] p-0.5 rounded-lg shrink-0"><button onClick={()=>setPairSettingTab('must')} className={`flex-1 py-2 rounded-md text-xs font-bold flex items-center justify-center gap-1 ${pairSettingTab==='must'?'bg-white shadow-sm text-[#4CAF50]':'text-gray-400'}`}><Icon name="heart" size={12}/> 같이 앉기 {seatPairSettings.mustPair.length>0&&<span className="bg-[#4CAF50] text-white text-[9px] px-1 rounded-full">{seatPairSettings.mustPair.length}</span>}</button><button onClick={()=>setPairSettingTab('mustNot')} className={`flex-1 py-2 rounded-md text-xs font-bold flex items-center justify-center gap-1 ${pairSettingTab==='mustNot'?'bg-white shadow-sm text-[#FF6B6B]':'text-gray-400'}`}><Icon name="shield-alert" size={12}/> 떨어뜨리기 {seatPairSettings.mustNotPair.length>0&&<span className="bg-[#FF6B6B] text-white text-[9px] px-1 rounded-full">{seatPairSettings.mustNotPair.length}</span>}</button></div>
