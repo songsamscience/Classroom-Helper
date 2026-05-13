@@ -127,10 +127,16 @@
         .team-seat:active{transform:scale(.95);}
         .team-seat:not(.selected-item):hover{border-color:#C7CEEA;}
 
-        /* ★ 타이머 표시 박스 (원형 안에 가변폭 숫자) */
-        .timer-display{display:inline-flex;align-items:center;justify-content:center;max-width:88%;}
-        .timer-num{font-weight:900;color:#4A4A4A;font-variant-numeric:tabular-nums;letter-spacing:-2px;line-height:1;}
-        .timer-colon{font-weight:900;color:#4A4A4A;line-height:1;padding:0 2px;}
+        /* ★ 타이머 표시 박스 (사각형 - 큰 숫자도 안정적으로 표시) */
+        .timer-display{display:inline-flex;align-items:center;justify-content:center;max-width:100%;flex-wrap:nowrap;}
+        .timer-num{font-weight:900;color:#4A4A4A;font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1;}
+        .timer-colon{font-weight:900;color:#4A4A4A;line-height:1;padding:0 4px;}
+        .timer-box-wrap{width:100%;max-width:520px;display:flex;justify-content:center;}
+        .timer-box{width:100%;background:linear-gradient(180deg,#FFFFFF 0%,#FAF6F1 100%);border:3px solid #FFDAC1;border-radius:24px;box-shadow:0 8px 24px rgba(255,183,178,.18),inset 0 1px 0 rgba(255,255,255,.9);overflow:hidden;position:relative;}
+        .timer-progress-track{width:100%;height:8px;background:#F4F0EA;position:relative;overflow:hidden;}
+        .timer-progress-fill{height:100%;background:linear-gradient(90deg,#FFB7B2 0%,#FFDAC1 100%);transition:width .9s linear;border-radius:0 4px 4px 0;}
+        .timer-box-content{padding:32px 20px 26px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px;}
+        @media(min-width:640px){.timer-box-content{padding:48px 28px 36px;min-height:230px;}}
     </style>
 </head>
 <body>
@@ -1138,13 +1144,50 @@ function App(){
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
     const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setDDays([]);});};
 
-    const adjustTime=sec=>{playSound('click');const v=Math.max(0,Math.min(35999,timeLeft+sec));setTimeLeft(v);if(!isTimerRunning)setInitialTime(v);};
+    const adjustTime=sec=>{playSound('click');const v=Math.max(0,Math.min(599999,timeLeft+sec));setTimeLeft(v);if(!isTimerRunning)setInitialTime(v);};
     const onMinFocus=()=>{setEditingMin(true);setMinEdit(String(Math.floor(timeLeft/60)));};
-    const onMinBlur=()=>{setEditingMin(false);const m=Math.max(0,Math.min(599,parseInt(minEdit)||0)),s=timeLeft%60,v=m*60+s;setTimeLeft(v);setInitialTime(v);};
+    const onMinBlur=()=>{setEditingMin(false);const m=Math.max(0,Math.min(9999,parseInt(minEdit)||0)),s=timeLeft%60,v=m*60+s;setTimeLeft(v);setInitialTime(v);};
     const onSecFocus=()=>{setEditingSec(true);setSecEdit(String(timeLeft%60));};
     const onSecBlur=()=>{setEditingSec(false);const m=Math.floor(timeLeft/60),s=Math.max(0,Math.min(59,parseInt(secEdit)||0)),v=m*60+s;setTimeLeft(v);setInitialTime(v);};
 
-    useEffect(()=>{if(isTimerRunning&&timeLeft>0){timerRef.current=setInterval(()=>{setTimeLeft(p=>{if(p<=1){clearInterval(timerRef.current);setIsTimerRunning(false);playSound('alarm');fireConfetti();return 0;}return p-1;});},1000);}else clearInterval(timerRef.current);return()=>clearInterval(timerRef.current);},[isTimerRunning]);
+    // ★ 타이머 - timestamp 기반으로 동작하여 백그라운드 탭에서도 정확하게 시간 측정
+    const timerStartRef=useRef(null);
+    const timerStartLeftRef=useRef(0);
+    const tickTimer=()=>{
+        if(timerStartRef.current===null)return;
+        const elapsed=Math.floor((Date.now()-timerStartRef.current)/1000);
+        const newLeft=Math.max(0,timerStartLeftRef.current-elapsed);
+        setTimeLeft(newLeft);
+        if(newLeft<=0){
+            clearInterval(timerRef.current);
+            timerRef.current=null;
+            timerStartRef.current=null;
+            setIsTimerRunning(false);
+            playSound('alarm');
+            fireConfetti();
+        }
+    };
+    useEffect(()=>{
+        if(isTimerRunning&&timeLeft>0){
+            timerStartRef.current=Date.now();
+            timerStartLeftRef.current=timeLeft;
+            clearInterval(timerRef.current);
+            timerRef.current=setInterval(tickTimer,250); // 0.25초마다 갱신, 정확도 향상
+        }else{
+            clearInterval(timerRef.current);
+            timerRef.current=null;
+            timerStartRef.current=null;
+        }
+        return()=>clearInterval(timerRef.current);
+    },[isTimerRunning]);
+    // ★ 페이지가 다시 활성화될 때 즉시 시간을 재계산 (백그라운드 탭에서 throttle 보정)
+    useEffect(()=>{
+        const onVis=()=>{if(!document.hidden&&isTimerRunning&&timerStartRef.current!==null)tickTimer();};
+        const onFocus=()=>{if(isTimerRunning&&timerStartRef.current!==null)tickTimer();};
+        document.addEventListener('visibilitychange',onVis);
+        window.addEventListener('focus',onFocus);
+        return()=>{document.removeEventListener('visibilitychange',onVis);window.removeEventListener('focus',onFocus);};
+    },[isTimerRunning]);
 
     const parseData=()=>{if(placementType==='number')return activeStudents;if(placementType==='name'){const l=inputNames.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return l.length?l:null;}if(placementType==='gender'){const m=maleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s),f=femaleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return m.length+f.length?{m,f}:null;}return[];};
     const buildPool=data=>{let pool=[];if(placementType==='gender'){let{m,f}=data;m=[...m].sort(()=>Math.random()-.5);f=[...f].sort(()=>Math.random()-.5);if(genderOption==='mixed'){const mx=Math.max(m.length,f.length);for(let i=0;i<mx;i++){if(i<m.length)pool.push(m[i]);if(i<f.length)pool.push(f[i]);}}else pool=[...m,...f];}else pool=[...data].sort(()=>Math.random()-.5);return pool;};
@@ -1169,16 +1212,18 @@ function App(){
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
     const NavBtn=({active,icon,label,onClick})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
 
-    // ★ 타이머 글자 크기 자동 계산 - 자릿수에 따라 동적 조정
+    // ★ 타이머 글자 크기 자동 계산 - 사각형 박스 기준
     const getTimerFontSize=()=>{
-        const totalChars=Math.floor(timeLeft/60).toString().length+3; // MM:SS 자릿수
+        const totalChars=Math.floor(timeLeft/60).toString().length+3; // MM:SS 자릿수 (최소 2자리 가정)
         const isMobile=typeof window!=='undefined'&&window.innerWidth<640;
         if(totalChars<=5){ // 99:59 이하
-            return isMobile?'2.5rem':'4.5rem';
-        }else if(totalChars===6){ // 999:59 (=999분)
-            return isMobile?'2rem':'3.5rem';
+            return isMobile?'3.5rem':'5.5rem';
+        }else if(totalChars===6){ // 999:59 이하
+            return isMobile?'2.8rem':'4.5rem';
+        }else if(totalChars===7){ // 9999:59 이하
+            return isMobile?'2.2rem':'3.5rem';
         }else{ // 그 이상
-            return isMobile?'1.6rem':'2.8rem';
+            return isMobile?'1.8rem':'2.8rem';
         }
     };
 
@@ -1251,21 +1296,19 @@ function App(){
     };
 
     // ★ 모둠 책상 렌더링 (4~6인용 책상처럼 가로로 마주보는 배치)
-    const renderTeamDesk=(team,tIdx)=>{
+    const renderTeamDesk=(team,tIdx,outerCols)=>{
         // 모둠 인원 수에 따라 마주보는 책상 형태로 좌석 배열 생성
-        // 6인 모둠: [3행 2열] 또는 [2행 3열]로 마주보게
-        // 4인 모둠: [2행 2열]로 마주보게
-        // 5인 모둠: [3행 2열] (마지막 자리 비움)
-        // 인원 수에 따른 책상 배치 결정
+        // ★ 외부 배치(outerCols)가 2열일 때는 책상 내부도 2열로 통일 (사용자 요청)
         const n=team.length;
-        let cols;
-        if(n<=2)cols=2;
-        else if(n<=4)cols=2;
-        else if(n<=6)cols=3;
-        else if(n<=8)cols=4;
-        else cols=3;
-        // 모바일에서는 너무 넓어지지 않도록 최대 3열로 제한
-        const actualCols=Math.min(cols,n>=5?3:2);
+        let actualCols;
+        if(outerCols===2){
+            // 외부 2열 → 책상 내부도 무조건 2열 (4인 책상 형태로 마주보기)
+            actualCols=2;
+        }else{
+            // 외부 3열 → 인원수에 따라 결정
+            if(n<=4)actualCols=2;
+            else actualCols=3;
+        }
 
         return(
             <div key={tIdx} className="team-desk">
@@ -1348,7 +1391,7 @@ function App(){
                     </div>
                     <div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#C7CEEA] shadow-lg">
                         <div className={`grid gap-3 sm:gap-4 ${teamColumns===2?'grid-cols-2':'grid-cols-2 sm:grid-cols-3'}`}>
-                            {teams.map((team,tIdx)=>renderTeamDesk(team,tIdx))}
+                            {teams.map((team,tIdx)=>renderTeamDesk(team,tIdx,teamColumns))}
                         </div>
                     </div>
                 </div>}
@@ -1406,52 +1449,51 @@ function App(){
             {mode==='timer'&&<div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
                 {showClockInTimer&&<div className="mb-5 bg-white rounded-2xl p-5 sm:p-6 soft-shadow border-2 border-[#C7CEEA] w-full max-w-sm text-center card-enter"><LiveClock size="md"/></div>}
 
-                {/* ★ 타이머 디스플레이 - 원형 크기 확대 + 동적 폰트 크기 */}
-                <div className="relative mb-5 sm:mb-8 w-64 h-64 sm:w-80 sm:h-80">
-                    <svg viewBox="0 0 300 300" className="w-full h-full -rotate-90 drop-shadow-lg">
-                        <circle cx="150" cy="150" r="125" stroke="#F0F0F0" strokeWidth="14" fill="none"/>
-                        <circle cx="150" cy="150" r="125" stroke="#FFDAC1" strokeWidth="14" fill="none"
-                            strokeDasharray={2*Math.PI*125}
-                            strokeDashoffset={(2*Math.PI*125)-(timeLeft/(initialTime||1))*(2*Math.PI*125)}
-                            strokeLinecap="round" className="timer-circle"/>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center px-3">
-                        {isTimerRunning?(
-                            <div className="timer-display">
-                                <span className="timer-num" style={{fontSize:getTimerFontSize()}}>
-                                    {Math.floor(timeLeft/60).toString().padStart(2,'0')}
-                                </span>
-                                <span className="timer-colon" style={{fontSize:getTimerFontSize()}}>:</span>
-                                <span className="timer-num" style={{fontSize:getTimerFontSize()}}>
-                                    {(timeLeft%60).toString().padStart(2,'0')}
-                                </span>
-                            </div>
-                        ):(
-                            <div className="timer-display">
-                                <input type="number" inputMode="numeric"
-                                    className="t-input timer-num"
-                                    style={{fontSize:getTimerFontSize(),width:`${Math.max(2,Math.floor(timeLeft/60).toString().length)+0.3}ch`}}
-                                    value={editingMin?minEdit:Math.floor(timeLeft/60).toString().padStart(2,'0')}
-                                    onFocus={onMinFocus} onBlur={onMinBlur}
-                                    onChange={e=>setMinEdit(e.target.value)}
-                                    onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/>
-                                <span className="timer-colon select-none" style={{fontSize:getTimerFontSize()}}>:</span>
-                                <input type="number" inputMode="numeric"
-                                    className="t-input timer-num"
-                                    style={{fontSize:getTimerFontSize(),width:'2.3ch'}}
-                                    value={editingSec?secEdit:(timeLeft%60).toString().padStart(2,'0')}
-                                    onFocus={onSecFocus} onBlur={onSecBlur}
-                                    onChange={e=>setSecEdit(e.target.value)}
-                                    onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/>
-                            </div>
-                        )}
-                        <span className="text-[10px] sm:text-xs text-gray-400 font-bold mt-2">
-                            {isTimerRunning?<><span className="animate-pulse text-[#FF9E99]">● </span>진행 중</>:'터치하여 시간 입력'}
-                        </span>
+                {/* ★ 타이머 디스플레이 - 사각형 박스 형태 (큰 숫자도 안정적으로 표시) */}
+                <div className="timer-box-wrap mb-5 sm:mb-8">
+                    <div className="timer-box">
+                        {/* 진행도 바 - 상단 */}
+                        <div className="timer-progress-track">
+                            <div className="timer-progress-fill" style={{width:`${(timeLeft/(initialTime||1))*100}%`}}/>
+                        </div>
+                        <div className="timer-box-content">
+                            {isTimerRunning?(
+                                <div className="timer-display">
+                                    <span className="timer-num" style={{fontSize:getTimerFontSize()}}>
+                                        {Math.floor(timeLeft/60).toString().padStart(2,'0')}
+                                    </span>
+                                    <span className="timer-colon" style={{fontSize:getTimerFontSize()}}>:</span>
+                                    <span className="timer-num" style={{fontSize:getTimerFontSize()}}>
+                                        {(timeLeft%60).toString().padStart(2,'0')}
+                                    </span>
+                                </div>
+                            ):(
+                                <div className="timer-display">
+                                    <input type="number" inputMode="numeric"
+                                        className="t-input timer-num"
+                                        style={{fontSize:getTimerFontSize(),width:`${Math.max(2,Math.floor(timeLeft/60).toString().length)+0.3}ch`}}
+                                        value={editingMin?minEdit:Math.floor(timeLeft/60).toString().padStart(2,'0')}
+                                        onFocus={onMinFocus} onBlur={onMinBlur}
+                                        onChange={e=>setMinEdit(e.target.value)}
+                                        onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/>
+                                    <span className="timer-colon select-none" style={{fontSize:getTimerFontSize()}}>:</span>
+                                    <input type="number" inputMode="numeric"
+                                        className="t-input timer-num"
+                                        style={{fontSize:getTimerFontSize(),width:'2.3ch'}}
+                                        value={editingSec?secEdit:(timeLeft%60).toString().padStart(2,'0')}
+                                        onFocus={onSecFocus} onBlur={onSecBlur}
+                                        onChange={e=>setSecEdit(e.target.value)}
+                                        onKeyDown={e=>{if(e.key==='Enter')e.target.blur();}}/>
+                                </div>
+                            )}
+                            <span className="text-[11px] sm:text-xs text-gray-400 font-bold mt-2">
+                                {isTimerRunning?<><span className="animate-pulse text-[#FF9E99]">● </span>진행 중</>:'터치하여 시간 입력'}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-1.5 mb-3 sm:mb-5">{[{l:'+10초',v:10},{l:'+1분',v:60},{l:'+5분',v:300},{l:'+10분',v:600}].map(b=><button key={b.l} onClick={()=>adjustTime(b.v)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-gray-500 shadow-sm border border-gray-100 active:scale-95 touch-target">{b.l}</button>)}<button onClick={()=>adjustTime(-10)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-red-400 shadow-sm border border-red-50 active:scale-95 touch-target">-10초</button></div>
+                <div className="flex flex-wrap justify-center gap-1.5 mb-3 sm:mb-5">{[{l:'+10초',v:10},{l:'+1분',v:60},{l:'+5분',v:300},{l:'+10분',v:600},{l:'+30분',v:1800},{l:'+60분',v:3600}].map(b=><button key={b.l} onClick={()=>adjustTime(b.v)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-gray-500 shadow-sm border border-gray-100 active:scale-95 touch-target">{b.l}</button>)}<button onClick={()=>adjustTime(-10)} className="px-3.5 py-2 bg-white rounded-lg font-bold text-xs text-red-400 shadow-sm border border-red-50 active:scale-95 touch-target">-10초</button></div>
                 <div className="flex flex-wrap justify-center gap-1.5 mb-5 sm:mb-7">{[{l:'1분',s:60},{l:'3분',s:180},{l:'5분',s:300},{l:'10분',s:600},{l:'20분',s:1200}].map(p=><button key={p.l} onClick={()=>{playSound('click');setTimeLeft(p.s);setInitialTime(p.s);setIsTimerRunning(false);}} className={`px-3.5 py-2 rounded-lg text-xs font-bold border-2 active:scale-95 touch-target ${timeLeft===p.s&&!isTimerRunning?'bg-[#FFDAC1] border-[#FFDAC1] text-white':'bg-white border-gray-100 text-gray-400'}`}>{p.l}</button>)}</div>
                 <div className="flex gap-2.5 w-full max-w-xs"><button onClick={()=>{playSound('click');if(!isTimerRunning){setTimerEverStarted(true);if(timeLeft>0)setInitialTime(timeLeft);}setIsTimerRunning(!isTimerRunning);}} className={`flex-1 py-3.5 rounded-2xl text-lg font-black text-white shadow-lg active:scale-95 flex items-center justify-center gap-2 touch-target ${isTimerRunning?'bg-[#FF9E99]':'bg-[#B5EAD7]'}`}><Icon name={isTimerRunning?"pause":"play"} size={20}/>{isTimerRunning?'일시정지':'시작'}</button><button onClick={()=>{playSound('click');setIsTimerRunning(false);setTimeLeft(initialTime);}} className="py-3.5 px-5 rounded-2xl bg-gray-200 text-gray-500 font-bold active:scale-95 touch-target flex items-center justify-center"><Icon name="rotate-ccw" size={20}/></button><button onClick={()=>{playSound('click');setShowClockInTimer(!showClockInTimer);}} className={`py-3.5 px-5 rounded-2xl font-bold active:scale-95 touch-target flex items-center justify-center ${showClockInTimer?'bg-[#C7CEEA] text-white shadow-lg':'bg-gray-200 text-gray-500'}`}><Icon name="clock" size={20}/></button></div>
             </div>}
