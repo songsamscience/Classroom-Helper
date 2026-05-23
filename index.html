@@ -490,10 +490,19 @@ function SpinWheel({playSound:ps,isSoundOn}){
     const [rotation,setRotation]=useState(0);
     const [result,setResult]=useState(null);
     const [history,setHistory]=useState([]);
+    // ★ 중복방지 기능 - ON일 때 이미 뽑힌 항목은 휠에서 제거
+    const [isNoRepeat,setIsNoRepeat]=useState(false);
+    const [usedItems,setUsedItems]=useState([]);
     const canvasRef=useRef(null);
     const audioCtxRef=useRef(null);
     const spinTimerRef=useRef(null);
     const tickCountRef=useRef(0);
+
+    // ★ 실제 휠에 표시할 항목 (중복방지 ON이면 사용된 항목 제외)
+    const displayItems=useMemo(()=>{
+        if(!isNoRepeat)return items;
+        return items.filter(it=>!usedItems.includes(it));
+    },[items,isNoRepeat,usedItems]);
 
     const getAudioCtx=()=>{
         if(!audioCtxRef.current)audioCtxRef.current=new(window.AudioContext||window.webkitAudioContext)();
@@ -543,15 +552,17 @@ function SpinWheel({playSound:ps,isSoundOn}){
         setItems(list);
         setResult(null);
         setRotation(0);
+        setUsedItems([]); // ★ 새 항목 적용 시 사용 기록 초기화
     };
 
+    // ★ 캔버스 그리기 - displayItems 기준
     useEffect(()=>{
         const canvas=canvasRef.current;
-        if(!canvas||items.length<2)return;
+        if(!canvas||displayItems.length<1)return;
         const ctx=canvas.getContext('2d');
         const size=canvas.width;
         const cx=size/2,cy=size/2,r=size/2-4;
-        const n=items.length;
+        const n=displayItems.length;
         const arc=2*Math.PI/n;
 
         ctx.clearRect(0,0,size,size);
@@ -571,7 +582,9 @@ function SpinWheel({playSound:ps,isSoundOn}){
             ctx.moveTo(cx,cy);
             ctx.arc(cx,cy,r,startAngle,endAngle);
             ctx.closePath();
-            ctx.fillStyle=WHEEL_COLORS[i%WHEEL_COLORS.length];
+            // ★ 원래 items 인덱스 기준으로 색상 유지
+            const originalIdx=items.indexOf(displayItems[i]);
+            ctx.fillStyle=WHEEL_COLORS[(originalIdx>=0?originalIdx:i)%WHEEL_COLORS.length];
             ctx.fill();
             ctx.strokeStyle='rgba(255,255,255,.5)';
             ctx.lineWidth=1.5;
@@ -585,7 +598,7 @@ function SpinWheel({playSound:ps,isSoundOn}){
             ctx.textAlign='center';
             ctx.textBaseline='middle';
             const textR=r*(n>20?.62:.58);
-            const label=items[i].length>(n>20?5:8)?items[i].slice(0,(n>20?4:7))+'…':items[i];
+            const label=displayItems[i].length>(n>20?5:8)?displayItems[i].slice(0,(n>20?4:7))+'…':displayItems[i];
             ctx.fillText(label,textR,0);
             ctx.restore();
         }
@@ -595,15 +608,19 @@ function SpinWheel({playSound:ps,isSoundOn}){
         ctx.strokeStyle='rgba(255,255,255,.8)';
         ctx.lineWidth=3;
         ctx.stroke();
-    },[items]);
+    },[displayItems,items]);
 
     const spinWheel=()=>{
-        if(isSpinning||items.length<2)return;
+        if(isSpinning||displayItems.length<1)return;
+        // ★ 항목이 1개면 회전 의미 없음(전부 사용됨 상태) 또는 최소 2개 권장
+        if(displayItems.length<2&&isNoRepeat){
+            // 단일 남은 경우 바로 결정
+        }
         ps('click');
         setIsSpinning(true);
         setResult(null);
 
-        const n=items.length;
+        const n=displayItems.length;
         const arc=360/n;
         const extraSpins=5+Math.floor(Math.random()*5);
         const randomAngle=Math.random()*360;
@@ -637,10 +654,12 @@ function SpinWheel({playSound:ps,isSoundOn}){
                 const finalAngle=((endRotation%360)+360)%360;
                 const pointerOrigAngle=((360-finalAngle)%360+360)%360;
                 const winnerIdx=Math.floor(pointerOrigAngle/arc)%n;
-                const winner=items[winnerIdx];
+                const winner=displayItems[winnerIdx];
 
                 setResult(winner);
                 setHistory(prev=>[{text:winner,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},...prev].slice(0,20));
+                // ★ 중복방지 ON일 때 사용된 항목 기록
+                if(isNoRepeat)setUsedItems(prev=>[...prev,winner]);
                 playFanfare();
                 confetti({particleCount:150,spread:80,origin:{y:.5},colors:['#FFB7B2','#B5EAD7','#C7CEEA','#FECA57','#FF6B6B'],disableForReducedMotion:true});
             }
@@ -662,6 +681,17 @@ function SpinWheel({playSound:ps,isSoundOn}){
                     <button onClick={applyItems} disabled={!parseItems()} className="px-4 py-1.5 bg-[#FECA57] text-white rounded-lg font-black text-xs shadow-md active:scale-95 touch-target disabled:opacity-40 disabled:cursor-not-allowed transition-all">적용</button>
                 </div>
             </div>
+
+            {/* ★ 중복방지 컨트롤 영역 */}
+            {items.length>=2&&<div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
+                <button onClick={()=>{ps('click');setIsNoRepeat(!isNoRepeat);}} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border-2 transition-all ${isNoRepeat?'bg-[#FECA57] border-[#FECA57] text-white shadow-sm':'bg-white border-gray-200 text-gray-400'}`}>
+                    중복방지 {isNoRepeat?'ON':'OFF'}
+                </button>
+                {isNoRepeat&&usedItems.length>0&&<button onClick={()=>{ps('click');setUsedItems([]);}} className="px-3 py-1.5 bg-white border-2 border-gray-200 rounded-lg text-[11px] font-bold text-gray-500 active:scale-95">
+                    초기화 ({usedItems.length}개 사용됨)
+                </button>}
+                {isNoRepeat&&<span className="text-[10px] text-gray-400 font-bold ml-auto">남은 항목: {displayItems.length}/{items.length}</span>}
+            </div>}
         </div>
 
         {items.length>=2&&<div className="bg-white rounded-2xl p-4 sm:p-6 soft-shadow border border-gray-100 flex flex-col items-center">
@@ -670,7 +700,13 @@ function SpinWheel({playSound:ps,isSoundOn}){
                 <p className="text-white text-xl sm:text-2xl font-black">{result}</p>
             </div>}
 
-            <div className="wheel-container mb-4">
+            {/* ★ 모든 항목이 다 뽑혔을 때 안내 */}
+            {isNoRepeat&&displayItems.length===0&&<div className="mb-4 px-6 py-3 rounded-2xl text-center bg-gray-100 border border-gray-200">
+                <p className="text-gray-500 text-sm font-black">모든 항목을 뽑았습니다!</p>
+                <p className="text-gray-400 text-[11px] font-bold mt-1">초기화 버튼을 눌러 다시 시작하세요</p>
+            </div>}
+
+            {displayItems.length>0&&<div className="wheel-container mb-4">
                 <svg className="wheel-pointer" width="30" height="30" viewBox="0 0 30 30">
                     <polygon points="15,28 5,4 25,4" fill="#FF6348" stroke="white" strokeWidth="2"/>
                 </svg>
@@ -680,14 +716,17 @@ function SpinWheel({playSound:ps,isSoundOn}){
                 <div className="wheel-center">
                     <Icon name="circle-dot" size={20} className="text-gray-300"/>
                 </div>
-            </div>
+            </div>}
 
-            <button onClick={spinWheel} disabled={isSpinning} className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#FECA57] to-[#FF6348] hover:from-[#FFD700] hover:to-[#FF4500] text-white rounded-full text-lg font-black shadow-lg active:scale-95 flex items-center justify-center gap-2 touch-target transition-all disabled:opacity-60">
-                {isSpinning?<><Icon name="loader-2" size={18} className="animate-spin"/>돌리는 중...</>:<><Icon name="zap" size={18}/>돌리기!</>}
+            <button onClick={spinWheel} disabled={isSpinning||displayItems.length<1} className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#FECA57] to-[#FF6348] hover:from-[#FFD700] hover:to-[#FF4500] text-white rounded-full text-lg font-black shadow-lg active:scale-95 flex items-center justify-center gap-2 touch-target transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                {isSpinning?<><Icon name="loader-2" size={18} className="animate-spin"/>돌리는 중...</>:displayItems.length===0?'모두 추첨 완료!':<><Icon name="zap" size={18}/>돌리기!</>}
             </button>
 
             <div className="mt-4 w-full">
-                <div className="flex flex-wrap gap-1.5 justify-center">{items.map((item,i)=><span key={i} className="px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style={{backgroundColor:WHEEL_COLORS[i%WHEEL_COLORS.length]}}>{item}</span>)}</div>
+                <div className="flex flex-wrap gap-1.5 justify-center">{items.map((item,i)=>{
+                    const isUsed=isNoRepeat&&usedItems.includes(item);
+                    return <span key={i} className="px-2.5 py-1 rounded-full text-[10px] font-bold text-white relative" style={{backgroundColor:WHEEL_COLORS[i%WHEEL_COLORS.length],opacity:isUsed?0.35:1,textDecoration:isUsed?'line-through':'none'}}>{item}</span>;
+                })}</div>
             </div>
         </div>}
 
@@ -1144,15 +1183,32 @@ function App(){
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
     const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setDDays([]);});};
 
-    const adjustTime=sec=>{playSound('click');const v=Math.max(0,Math.min(599999,timeLeft+sec));setTimeLeft(v);if(!isTimerRunning)setInitialTime(v);};
+    // ★ 타이머 ref - 모든 타이머 동작은 이 ref들 기반
+    const timerStartRef=useRef(null);
+    const timerStartLeftRef=useRef(0);
+
+    // ★ 시간 조정 함수 - 작동 중에도 즉시 반영되도록 ref 갱신
+    const adjustTime=sec=>{
+        playSound('click');
+        const v=Math.max(0,Math.min(599999,timeLeft+sec));
+        setTimeLeft(v);
+        if(isTimerRunning){
+            // 작동 중이면 ref를 새로 세팅하여 다음 tick부터 새 값에서 카운트
+            timerStartRef.current=Date.now();
+            timerStartLeftRef.current=v;
+            // 새 timeLeft가 기존 initialTime보다 크면 진행도 바가 100% 초과되지 않게 보정
+            if(v>initialTime)setInitialTime(v);
+        }else{
+            setInitialTime(v);
+        }
+    };
+
     const onMinFocus=()=>{setEditingMin(true);setMinEdit(String(Math.floor(timeLeft/60)));};
     const onMinBlur=()=>{setEditingMin(false);const m=Math.max(0,Math.min(9999,parseInt(minEdit)||0)),s=timeLeft%60,v=m*60+s;setTimeLeft(v);setInitialTime(v);};
     const onSecFocus=()=>{setEditingSec(true);setSecEdit(String(timeLeft%60));};
     const onSecBlur=()=>{setEditingSec(false);const m=Math.floor(timeLeft/60),s=Math.max(0,Math.min(59,parseInt(secEdit)||0)),v=m*60+s;setTimeLeft(v);setInitialTime(v);};
 
-    // ★ 타이머 - timestamp 기반으로 동작하여 백그라운드 탭에서도 정확하게 시간 측정
-    const timerStartRef=useRef(null);
-    const timerStartLeftRef=useRef(0);
+    // ★ 타이머 tick - timestamp 기반
     const tickTimer=()=>{
         if(timerStartRef.current===null)return;
         const elapsed=Math.floor((Date.now()-timerStartRef.current)/1000);
@@ -1172,7 +1228,7 @@ function App(){
             timerStartRef.current=Date.now();
             timerStartLeftRef.current=timeLeft;
             clearInterval(timerRef.current);
-            timerRef.current=setInterval(tickTimer,250); // 0.25초마다 갱신, 정확도 향상
+            timerRef.current=setInterval(tickTimer,250);
         }else{
             clearInterval(timerRef.current);
             timerRef.current=null;
@@ -1180,7 +1236,6 @@ function App(){
         }
         return()=>clearInterval(timerRef.current);
     },[isTimerRunning]);
-    // ★ 페이지가 다시 활성화될 때 즉시 시간을 재계산 (백그라운드 탭에서 throttle 보정)
     useEffect(()=>{
         const onVis=()=>{if(!document.hidden&&isTimerRunning&&timerStartRef.current!==null)tickTimer();};
         const onFocus=()=>{if(isTimerRunning&&timerStartRef.current!==null)tickTimer();};
@@ -1212,17 +1267,16 @@ function App(){
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
     const NavBtn=({active,icon,label,onClick})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
 
-    // ★ 타이머 글자 크기 자동 계산 - 사각형 박스 기준
     const getTimerFontSize=()=>{
-        const totalChars=Math.floor(timeLeft/60).toString().length+3; // MM:SS 자릿수 (최소 2자리 가정)
+        const totalChars=Math.floor(timeLeft/60).toString().length+3;
         const isMobile=typeof window!=='undefined'&&window.innerWidth<640;
-        if(totalChars<=5){ // 99:59 이하
+        if(totalChars<=5){
             return isMobile?'3.5rem':'5.5rem';
-        }else if(totalChars===6){ // 999:59 이하
+        }else if(totalChars===6){
             return isMobile?'2.8rem':'4.5rem';
-        }else if(totalChars===7){ // 9999:59 이하
+        }else if(totalChars===7){
             return isMobile?'2.2rem':'3.5rem';
-        }else{ // 그 이상
+        }else{
             return isMobile?'1.8rem':'2.8rem';
         }
     };
@@ -1295,17 +1349,12 @@ function App(){
         </div>);
     };
 
-    // ★ 모둠 책상 렌더링 (4~6인용 책상처럼 가로로 마주보는 배치)
     const renderTeamDesk=(team,tIdx,outerCols)=>{
-        // 모둠 인원 수에 따라 마주보는 책상 형태로 좌석 배열 생성
-        // ★ 외부 배치(outerCols)가 2열일 때는 책상 내부도 2열로 통일 (사용자 요청)
         const n=team.length;
         let actualCols;
         if(outerCols===2){
-            // 외부 2열 → 책상 내부도 무조건 2열 (4인 책상 형태로 마주보기)
             actualCols=2;
         }else{
-            // 외부 3열 → 인원수에 따라 결정
             if(n<=4)actualCols=2;
             else actualCols=3;
         }
@@ -1449,10 +1498,8 @@ function App(){
             {mode==='timer'&&<div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
                 {showClockInTimer&&<div className="mb-5 bg-white rounded-2xl p-5 sm:p-6 soft-shadow border-2 border-[#C7CEEA] w-full max-w-sm text-center card-enter"><LiveClock size="md"/></div>}
 
-                {/* ★ 타이머 디스플레이 - 사각형 박스 형태 (큰 숫자도 안정적으로 표시) */}
                 <div className="timer-box-wrap mb-5 sm:mb-8">
                     <div className="timer-box">
-                        {/* 진행도 바 - 상단 */}
                         <div className="timer-progress-track">
                             <div className="timer-progress-fill" style={{width:`${(timeLeft/(initialTime||1))*100}%`}}/>
                         </div>
@@ -1500,7 +1547,6 @@ function App(){
 
             {mode==='youtube'&&<div className="card-enter w-full"><YouTubePlayer playSound={playSound}/></div>}
             
-            {/* ★ 달력 및 D-Day 계산기 */}
             {mode==='calendar'&&<div className="card-enter w-full space-y-4">
                 <div className="bg-white rounded-2xl p-5 sm:p-7 soft-shadow border border-gray-100 text-center"><LiveClock size="lg"/></div>
                 <CalendarWidget/>
