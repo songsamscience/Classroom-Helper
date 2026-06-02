@@ -1140,7 +1140,7 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     </div>);
 }
 
-function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,setSeatRowMode,seatColumns,setSeatColumns,seatGridTotal,totalStudents,playSound}){
+function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,setSeatRowMode,seatColumns,setSeatColumns,seatGridTotal,totalStudents,savedSeatLayout,seatLayoutDirty,onSaveLayout,onClearLayout,playSound}){
     const makeFullGrid=(r,c)=>Array.from({length:r},()=>Array(c).fill(true));
     const makeFitGrid=(r,c,total)=>{
         const grid=Array.from({length:r},()=>Array(c).fill(false));
@@ -1245,6 +1245,16 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
             <span className="text-[10px] text-gray-400 font-bold ml-auto">학생 {totalStudents}명</span>
         </div>
 
+        {seatRowMode==='auto'&&savedSeatLayout&&<div className="bg-[#E8F5E9] rounded-lg p-2 border border-[#C8E6C9] flex items-center gap-2">
+            <Icon name="check" size={14} className="text-[#43A047] shrink-0"/>
+            <p className="text-[10px] text-[#388E3C] font-bold leading-snug flex-1">저장된 자리 배치({savedSeatLayout.grid.reduce((s,r)=>s+r.filter(Boolean).length,0)}석)대로 배치됩니다. '생성'을 누르면 그 배치에 학생이 채워집니다.</p>
+            <button onClick={onClearLayout} className="shrink-0 px-2 py-1 rounded-md bg-white border border-[#C8E6C9] text-[#388E3C] text-[10px] font-black active:scale-95 transition-all">해제</button>
+        </div>}
+        {seatRowMode==='auto'&&!savedSeatLayout&&<div className="bg-[#FFF8F0] rounded-lg p-2 border border-gray-100 flex items-start gap-1.5">
+            <Icon name="info" size={12} className="text-gray-300 shrink-0 mt-0.5"/>
+            <p className="text-[10px] text-gray-400 font-bold leading-snug">저장된 배치가 없어 {seatColumns}열 직사각형으로 자동 배치됩니다. '자리 배치'에서 모양을 만들어 저장하면 자동 배치에도 적용됩니다.</p>
+        </div>}
+
         {seatRowMode==='custom'&&seatGrid.length>0&&<>
             <div className="flex flex-wrap gap-1.5">
                 <button onClick={presetFit} className="px-2.5 py-1 rounded-lg text-[10px] font-bold border bg-white border-gray-200 text-gray-400 hover:border-[#FFD3B6] active:scale-95 transition-all">학생 수 맞춤</button>
@@ -1294,6 +1304,19 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
                         :`좌석(${seatGridTotal})이 학생 수(${totalStudents})보다 적습니다. ${totalStudents-seatGridTotal}명이 배치되지 않습니다.`}
                 </p>
             </div>}
+
+            <div className="pt-0.5">
+                <button onClick={onSaveLayout}
+                    className={`w-full py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-md active:scale-[.97] transition-all ${(savedSeatLayout&&!seatLayoutDirty)?'bg-[#B5EAD7] text-white':'bg-[#FFD3B6] text-white'}`}>
+                    <Icon name={(savedSeatLayout&&!seatLayoutDirty)?'check':'save'} size={15}/>
+                    {(savedSeatLayout&&!seatLayoutDirty)?'이 배치로 저장됨':'이 배치로 저장'}
+                </button>
+                {savedSeatLayout&&seatLayoutDirty
+                    ?<p className="text-[10px] text-orange-400 font-bold text-center mt-1.5">⚠ 배치가 바뀌었어요. 다시 저장한 뒤 생성하세요.</p>
+                    :savedSeatLayout
+                        ?<p className="text-[10px] text-[#6BBF9A] font-bold text-center mt-1.5">저장된 배치대로 자리가 채워집니다. ('생성' 누르기)</p>
+                        :<p className="text-[10px] text-gray-400 font-bold text-center mt-1.5">자리를 정한 뒤 저장하면 그대로 배치됩니다.</p>}
+            </div>
         </>}
     </div>);
 }
@@ -2169,6 +2192,8 @@ function App(){
     const [seatColumns,setSeatColumns]=useState(5);
     const [seatRows,setSeatRows]=useState(6);
     const [seatGrid,setSeatGrid]=useState([]);
+    const [savedSeatLayout,setSavedSeatLayout]=useState(null); // 저장(잠금)된 자리 배치 스냅샷 {grid, cols}
+    const [seatLayoutDirty,setSeatLayoutDirty]=useState(false); // 저장 이후 격자가 변경되었는지
     const [dDays, setDDays] = useState([]); 
 
     const audioCtx=useRef(null);const timerRef=useRef(null);const captureRef=useRef(null);const fileInputRef=useRef(null);
@@ -2178,6 +2203,29 @@ function App(){
     const excludedNums=useMemo(()=>excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length),[excludedInput,students.length]);
     const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
     const seatGridTotal=useMemo(()=>seatGrid.reduce((sum,row)=>sum+row.filter(Boolean).length,0),[seatGrid]);
+
+    // 저장된 배치와 현재 격자가 달라지면 '변경됨' 표시
+    useEffect(()=>{
+        if(!savedSeatLayout){setSeatLayoutDirty(false);return;}
+        const same=savedSeatLayout.cols===seatColumns&&JSON.stringify(savedSeatLayout.grid)===JSON.stringify(seatGrid);
+        setSeatLayoutDirty(!same);
+    },[seatGrid,seatColumns,savedSeatLayout]);
+
+    // 현재 자리 배치를 저장(잠금)
+    const saveSeatLayout=()=>{
+        const total=seatGrid.reduce((s,r)=>s+r.filter(Boolean).length,0);
+        if(total<1)return showAlert("켜진 좌석이 없습니다.\n좌석을 1개 이상 켜주세요.");
+        playSound('win');
+        setSavedSeatLayout({grid:seatGrid.map(r=>[...r]),cols:seatColumns});
+        setSeatLayoutDirty(false);
+    };
+
+    // 저장된 자리 배치 해제 → 자동 배치(직사각형 채우기)로 복귀
+    const clearSeatLayout=()=>{
+        playSound('click');
+        setSavedSeatLayout(null);
+        setSeatLayoutDirty(false);
+    };
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
     const playSound=type=>{
@@ -2195,7 +2243,7 @@ function App(){
     const handleCapture=async()=>{if(!captureRef.current)return;playSound('click');try{await document.fonts.ready;const canvas=await html2canvas(captureRef.current,{scale:2,backgroundColor:'#FDFBF7',useCORS:true,logging:false,allowTaint:true,onclone:doc=>{doc.querySelectorAll('.center-content').forEach(el=>{el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.style.paddingBottom='12px';el.style.lineHeight='1';el.style.height='100%';});}});const link=document.createElement('a');link.download=`송쌤과학_${mode}_${Date.now()}.png`;link.href=canvas.toDataURL();link.click();showAlert("이미지가 저장되었습니다 📸");}catch(e){console.error(e);showAlert("저장 실패. 다시 시도해주세요.");}};
 
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
-    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setDDays([]);});};
+    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
 
     // ★ 타이머 ref - 모든 타이머 동작은 이 ref들 기반
     const timerStartRef=useRef(null);
@@ -2262,7 +2310,16 @@ function App(){
     const buildPool=data=>{let pool=[];if(placementType==='gender'){let{m,f}=data;m=[...m].sort(()=>Math.random()-.5);f=[...f].sort(()=>Math.random()-.5);if(genderOption==='mixed'){const mx=Math.max(m.length,f.length);for(let i=0;i<mx;i++){if(i<m.length)pool.push(m[i]);if(i<f.length)pool.push(f[i]);}}else pool=[...m,...f];}else pool=[...data].sort(()=>Math.random()-.5);return pool;};
 
     const createTeams=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");playSound('click');setIsPicking(true);setTeams([]);setTimeout(()=>{const pool=buildPool(data);const t=Array.from({length:teamCount},()=>[]);pool.forEach((s,i)=>t[i%teamCount].push(s));setTeams(t);setIsPicking(false);playSound('win');},350);};
-    const createSeats=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");playSound('click');setIsPicking(true);setSeats([]);setTimeout(()=>{let pool=buildPool(data);if(seatType==='pair'&&(seatPairSettings.mustPair.length>0||seatPairSettings.mustNotPair.length>0))pool=applyPC(pool,seatPairSettings);setSeats(pool);setIsPicking(false);playSound('win');},350);};
+    const createSeats=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");
+        // 혼자 + 자리 배치 모드: 저장된 배치가 없거나 변경되었으면 현재 격자를 자동 저장(잠금)
+        if(seatType==='single'&&seatRowMode==='custom'){
+            if(seatGridTotal<1)return showAlert("켜진 좌석이 없습니다.\n좌석을 1개 이상 켜주세요.");
+            if(!savedSeatLayout||seatLayoutDirty){
+                setSavedSeatLayout({grid:seatGrid.map(r=>[...r]),cols:seatColumns});
+                setSeatLayoutDirty(false);
+            }
+        }
+        playSound('click');setIsPicking(true);setSeats([]);setTimeout(()=>{let pool=buildPool(data);if(seatType==='pair'&&(seatPairSettings.mustPair.length>0||seatPairSettings.mustNotPair.length>0))pool=applyPC(pool,seatPairSettings);setSeats(pool);setIsPicking(false);playSound('win');},350);};
     const applyPC=(pool,settings)=>{const{mustPair,mustNotPair}=settings;const s=v=>String(v);for(let a=0;a<200;a++){let arr=[...pool].sort(()=>Math.random()-.5);for(const p of mustPair){const iA=arr.findIndex(x=>s(x)===s(p[0])),iB=arr.findIndex(x=>s(x)===s(p[1]));if(iA===-1||iB===-1)continue;const big=Math.max(iA,iB),sm=Math.min(iA,iB);const pB=arr.splice(big,1)[0],pS=arr.splice(sm,1)[0];arr.splice(0,0,pS,pB);}let ok=true;for(const p of mustPair){let f=false;for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){f=true;break;}if(!f){ok=false;break;}}if(!ok)continue;for(const p of mustNotPair){for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){ok=false;break;}if(!ok)break;}if(ok)return arr;}return[...pool].sort(()=>Math.random()-.5);};
 
     const addPairSetting=()=>{const a=pairInputA.trim(),b=pairInputB.trim();if(!a||b)return showAlert("두 학생 모두 입력해주세요.");if(a===b)return showAlert("같은 학생을 입력할 수 없습니다.");const key=pairSettingTab==='must'?'mustPair':'mustNotPair';if(seatPairSettings[key].some(p=>(String(p[0])===a&&String(p[1])===b)||(String(p[0])===b&&String(p[1])===a)))return showAlert("이미 등록된 조합입니다.");setSeatPairSettings(prev=>({...prev,[key]:[...prev[key],[a,b]]}));setPairInputA('');setPairInputB('');playSound('click');};
@@ -2323,12 +2380,14 @@ function App(){
     );
 
     const renderSingleSeatsCustomGrid=()=>{
-        if(seatGrid.length===0)return renderSingleSeatsAuto();
-        const cols=seatColumns;
+        const layout=savedSeatLayout;
+        if(!layout||!layout.grid||layout.grid.length===0)return renderSingleSeatsAuto();
+        const grid=layout.grid;
+        const cols=layout.cols;
         let seatIdx=0;
 
         return(<div className="flex flex-col gap-1.5 sm:gap-2.5">
-            {seatGrid.map((row,rowIdx)=>{
+            {grid.map((row,rowIdx)=>{
                 const cells=[];
                 for(let ci=0;ci<cols;ci++){
                     const isOn=row[ci];
@@ -2491,6 +2550,10 @@ function App(){
                         setSeatColumns={setSeatColumns}
                         seatGridTotal={seatGridTotal}
                         totalStudents={activeStudents.length}
+                        savedSeatLayout={savedSeatLayout}
+                        seatLayoutDirty={seatLayoutDirty}
+                        onSaveLayout={saveSeatLayout}
+                        onClearLayout={clearSeatLayout}
                         playSound={playSound}
                     />}
                 </div>
@@ -2499,7 +2562,7 @@ function App(){
                         <div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div>
 
                         {seatType==='single'?(
-                            seatRowMode==='custom'&&seatGrid.length>0?renderSingleSeatsCustomGrid():renderSingleSeatsAuto()
+                            savedSeatLayout?renderSingleSeatsCustomGrid():renderSingleSeatsAuto()
                         ):(
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2.5">
                                 {Array.from({length:Math.ceil(seats.length/2)}).map((_,g)=>{
