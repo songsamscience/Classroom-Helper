@@ -1422,7 +1422,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     const fileInputRef=useRef(null);
     const tabRootRef=useRef(null);
     const [canvasSize,setCanvasSize]=useState({w:800,h:600});
-    const drawingRef=useRef({active:false,currentStroke:null,currentShape:null,eraserRemovedIds:new Set(),rightClickEraser:false,lastPointer:null,smoothedWidth:0,activePointerId:null});
+    const drawingRef=useRef({active:false,currentStroke:null,currentShape:null,eraserRemovedIds:new Set(),rightClickEraser:false,lastPointer:null,smoothedWidth:0,activePointerId:null,rect:null,drawnCount:0,needsClear:false,liveInk:false,overlayHadContent:false});
     const cursorRef=useRef({x:0,y:0,inside:false});
     const imageCache=useRef(new Map());
 
@@ -1534,19 +1534,57 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         const c=overlayCanvasRef.current;if(!c)return;
         const dpr=window.devicePixelRatio||1;
         if(c.width!==canvasSize.w*dpr){c.width=canvasSize.w*dpr;c.height=canvasSize.h*dpr;c.style.width=canvasSize.w+'px';c.style.height=canvasSize.h+'px';}
-        const ctx=c.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);ctx.scale(dpr,dpr);
+        const ctx=c.getContext('2d');
         const dr=drawingRef.current;
+
+        // ── 빠른 잉크 경로: 펜/붓 필기 중에는 '새로 추가된 점'만 덧그려 지연(끊김)을 없앤다 ──
+        if(dr.active&&dr.currentStroke&&dr.liveInk){
+            ctx.setTransform(dpr,0,0,dpr,0,0);
+            if(dr.needsClear){ctx.clearRect(0,0,canvasSize.w,canvasSize.h);dr.needsClear=false;dr.drawnCount=0;}
+            const s=dr.currentStroke,pts=s.points;
+            if(pts.length>0){
+                ctx.save();ctx.strokeStyle=s.color;ctx.lineCap='round';ctx.lineJoin='round';ctx.globalAlpha=s.opacity??1;
+                if(pts.length===1){
+                    ctx.beginPath();ctx.fillStyle=s.color;ctx.arc(pts[0][0],pts[0][1],s.width/2,0,Math.PI*2);ctx.fill();dr.drawnCount=1;
+                }else{
+                    const start=Math.max(1,dr.drawnCount);
+                    if(s.tool===WB_TOOLS.BRUSH&&s.widths){
+                        for(let i=start;i<pts.length;i++){ctx.lineWidth=s.widths[i]||s.width;ctx.beginPath();ctx.moveTo(pts[i-1][0],pts[i-1][1]);ctx.lineTo(pts[i][0],pts[i][1]);ctx.stroke();}
+                    }else{
+                        ctx.lineWidth=s.width;ctx.beginPath();ctx.moveTo(pts[start-1][0],pts[start-1][1]);
+                        for(let i=start;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);
+                        ctx.stroke();
+                    }
+                    dr.drawnCount=pts.length;
+                }
+                ctx.restore();
+            }
+            dr.overlayHadContent=true;
+            return;
+        }
+
+        // ── 기본 경로: 형광펜 미리보기·도형 미리보기·지우개 커서·유휴 상태 ──
+        const needRing=cursorRef.current.inside&&(tool===WB_TOOLS.ERASER||dr.rightClickEraser);
+        const hasContent=(dr.active&&(dr.currentStroke||dr.currentShape))||needRing;
+        if(!hasContent){
+            // 그릴 게 없으면 한 번만 지우고 이후 프레임은 건너뛴다(불필요한 연산·발열 감소).
+            if(dr.overlayHadContent){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);dr.overlayHadContent=false;}
+            return;
+        }
+        ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);ctx.setTransform(dpr,0,0,dpr,0,0);
         if(dr.active&&dr.currentStroke)drawObject(ctx,dr.currentStroke);
         if(dr.active&&dr.currentShape)drawObject(ctx,dr.currentShape);
-        if(cursorRef.current.inside&&(tool===WB_TOOLS.ERASER||dr.rightClickEraser)){
+        if(needRing){
             ctx.save();ctx.beginPath();ctx.arc(cursorRef.current.x,cursorRef.current.y,eraserSize/2,0,Math.PI*2);
             ctx.strokeStyle=isDark?'#FFFFFF':'#333333';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
             ctx.fillStyle=isDark?'rgba(255,255,255,.08)':'rgba(0,0,0,.05)';ctx.fill();ctx.restore();
         }
+        dr.overlayHadContent=true;
     },[canvasSize,eraserSize,tool,isDark,drawObject]);
+    const clearOverlay=useCallback(()=>{const c=overlayCanvasRef.current;if(!c)return;const ctx=c.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);drawingRef.current.overlayHadContent=false;drawingRef.current.drawnCount=0;},[]);
     useEffect(()=>{let r;const loop=()=>{renderOverlay();r=requestAnimationFrame(loop);};r=requestAnimationFrame(loop);return()=>cancelAnimationFrame(r);},[renderOverlay]);
 
-    const getPos=(e)=>{const r=mainCanvasRef.current.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
+    const getPos=(e)=>{const dr=drawingRef.current;const r=(dr.active&&dr.rect)?dr.rect:mainCanvasRef.current.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
 
     const handleEraserAt=(x,y)=>{
         const dr=drawingRef.current;const er=eraserSize/2;
@@ -1581,6 +1619,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         const dr=drawingRef.current;
         if(dr.active&&dr.activePointerId!==null&&e.pointerId!==dr.activePointerId)return;
         e.preventDefault();
+        dr.rect=mainCanvasRef.current.getBoundingClientRect();
         const pos=getPos(e);cursorRef.current={x:pos.x,y:pos.y,inside:true};
         if(e.button===2&&e.pointerType==='mouse'){
             dr.rightClickEraser=true;dr.active=true;dr.activePointerId=e.pointerId;dr.eraserRemovedIds=new Set();
@@ -1610,6 +1649,9 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             const iw=tool===WB_TOOLS.BRUSH?bw*0.7:bw;
             dr.currentStroke={id:wbUid(),type:'stroke',tool,color:penColor,width:bw,opacity:tool===WB_TOOLS.HIGHLIGHTER?0.35:1,points:[[pos.x,pos.y]],widths:tool===WB_TOOLS.BRUSH?[iw]:undefined};
             dr.lastPointer={x:pos.x,y:pos.y,t:Date.now()};dr.smoothedWidth=iw;pushRecent(penColor);
+            // 불투명 펜(마커)·붓은 증분 렌더링(빠른 잉크) 사용. 형광펜은 반투명이라 기존 전체 렌더 유지.
+            dr.liveInk=(tool===WB_TOOLS.MARKER||tool===WB_TOOLS.BRUSH);
+            dr.needsClear=true;dr.drawnCount=0;
         }
     };
 
@@ -1652,7 +1694,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         }
         if(dr.currentStroke){
             const ce=e.nativeEvent.getCoalescedEvents?e.nativeEvent.getCoalescedEvents():[e.nativeEvent];
-            const r=mainCanvasRef.current.getBoundingClientRect();
+            const r=dr.rect||mainCanvasRef.current.getBoundingClientRect();
             for(const c of ce)processSample(c.clientX-r.left,c.clientY-r.top,c.pressure,c.timeStamp||Date.now());
         }
     };
@@ -1667,13 +1709,13 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         if(tool===WB_TOOLS.ERASER)return;
         if(tool===WB_TOOLS.LASER){setLaserActive(false);setLaserPos(null);return;}
         if(tool===WB_TOOLS.SHAPE&&dr.currentShape){const{x1,y1,x2,y2}=dr.currentShape;if(Math.hypot(x2-x1,y2-y1)>5)dispatch({type:'ADD_OBJECT',object:dr.currentShape});dr.currentShape=null;return;}
-        if(dr.currentStroke){if(dr.currentStroke.points.length>=1)dispatch({type:'ADD_OBJECT',object:dr.currentStroke});dr.currentStroke=null;}
+        if(dr.currentStroke){if(dr.currentStroke.points.length>=1)dispatch({type:'ADD_OBJECT',object:dr.currentStroke});dr.currentStroke=null;dr.liveInk=false;dr.drawnCount=0;clearOverlay();}
     };
 
     const onPointerCancel=(e)=>{
         const dr=drawingRef.current;
         if(dr.active&&dr.currentStroke&&dr.currentStroke.points.length>=2)dispatch({type:'ADD_OBJECT',object:dr.currentStroke});
-        dr.active=false;dr.activePointerId=null;dr.currentStroke=null;dr.currentShape=null;dr.rightClickEraser=false;
+        dr.active=false;dr.activePointerId=null;dr.currentStroke=null;dr.currentShape=null;dr.rightClickEraser=false;dr.liveInk=false;dr.drawnCount=0;clearOverlay();
         if(tool===WB_TOOLS.LASER){setLaserActive(false);setLaserPos(null);}
     };
     const onPointerLeave=()=>{cursorRef.current.inside=false;};
