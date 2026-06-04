@@ -1325,7 +1325,7 @@ function SeatRowConfig({seatGrid,setSeatGrid,seatRows,setSeatRows,seatRowMode,se
 }
 
 // ===== 판서(화이트보드) 컴포넌트 - 통합용 =====
-const WB_TOOLS={MARKER:'marker',HIGHLIGHTER:'highlighter',BRUSH:'brush',TEXT:'text',SHAPE:'shape',STICKY:'sticky',ERASER:'eraser',SELECT:'select',LASER:'laser'};
+const WB_TOOLS={MARKER:'marker',HIGHLIGHTER:'highlighter',BRUSH:'brush',TEXT:'text',SHAPE:'shape',STICKY:'sticky',ERASER:'eraser',SELECT:'select',LASER:'laser',PAN:'pan'};
 const WB_ERASER_MODES={PIXEL:'pixel',STROKE:'stroke',OBJECT:'object'};
 const WB_BG_MODES={LIGHT:'light',DARK:'dark',GRID:'grid',GRAPH:'graph',LINED:'lined'};
 const WB_BASE_COLORS=['#E53935','#FB8C00','#FDD835','#43A047','#1E88E5','#3949AB','#8E24AA','#000000','#FFFFFF'];
@@ -1397,6 +1397,10 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     const [eraserMode,setEraserMode]=useState(WB_ERASER_MODES.STROKE);
     const [eraserSize,setEraserSize]=useState(25);
     const [selectedImageId,setSelectedImageId]=useState(null);
+    const [selectedTextId,setSelectedTextId]=useState(null);
+    const [pan,setPan]=useState({x:0,y:0});
+    const panRef=useRef({x:0,y:0});
+    const setPanBoth=useCallback((p)=>{panRef.current=p;setPan(p);},[]);
     const [optPanelOpen,setOptPanelOpen]=useState(true);
     const [showQRModal,setShowQRModal]=useState(false);
     const [qrModalInput,setQRModalInput]=useState('');
@@ -1424,7 +1428,20 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     const [canvasSize,setCanvasSize]=useState({w:800,h:600});
     const drawingRef=useRef({active:false,currentStroke:null,currentShape:null,eraserRemovedIds:new Set(),rightClickEraser:false,lastPointer:null,smoothedWidth:0,activePointerId:null,rect:null,drawnCount:0,needsClear:false,liveInk:false,overlayHadContent:false});
     const cursorRef=useRef({x:0,y:0,inside:false});
+    const panDragRef=useRef(null);
+    const prevToolRef=useRef(null);
     const imageCache=useRef(new Map());
+    const measureCtx=useMemo(()=>{const c=document.createElement('canvas');return c.getContext('2d');},[]);
+    const textDragRef=useRef(null);
+    const [textBoxDraft,setTextBoxDraft]=useState(null);
+    // 텍스트 객체의 화면상 박스(줄바꿈/래핑 반영) 계산
+    const wbTextBox=useCallback((o)=>{
+        const ctx=measureCtx;ctx.font=`${o.italic?'italic ':''}${o.bold?'bold ':''}${o.fontSize}px ${o.fontFamily}`;
+        const lh=o.fontSize*1.2;const paras=(o.content||'').split('\n');let maxW=0,lines=0;
+        if(o.width){maxW=o.width;paras.forEach(para=>{if(para===''){lines++;return;}let line='';for(const ch of para){const test=line+ch;if(ctx.measureText(test).width>o.width&&line!==''){lines++;line=ch;}else line=test;}if(line!=='')lines++;});}
+        else{paras.forEach(l=>{maxW=Math.max(maxW,ctx.measureText(l||' ').width);lines++;});}
+        return {x:o.x,y:o.y,w:Math.max(20,maxW),h:Math.max(lh,lines*lh)};
+    },[measureCtx]);
 
     // 판서 내 배경 모드 변경 시 펜 색상 자동 적응 (검정 ↔ 흰색)
     useEffect(()=>{
@@ -1483,7 +1500,18 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             ctx.restore();
         }else if(obj.type==='text'){
             ctx.save();ctx.font=`${obj.italic?'italic ':''}${obj.bold?'bold ':''}${obj.fontSize}px ${obj.fontFamily}`;ctx.fillStyle=obj.color;ctx.textBaseline='top';
-            (obj.content||'').split('\n').forEach((l,i)=>ctx.fillText(l,obj.x,obj.y+i*obj.fontSize*1.2));
+            const lh=obj.fontSize*1.2;let ly=obj.y;
+            const paras=(obj.content||'').split('\n');
+            if(obj.width){
+                paras.forEach(para=>{
+                    if(para===''){ly+=lh;return;}
+                    let line='';
+                    for(const ch of para){const test=line+ch;if(ctx.measureText(test).width>obj.width&&line!==''){ctx.fillText(line,obj.x,ly);ly+=lh;line=ch;}else line=test;}
+                    if(line!==''){ctx.fillText(line,obj.x,ly);ly+=lh;}
+                });
+            }else{
+                paras.forEach(l=>{ctx.fillText(l,obj.x,ly);ly+=lh;});
+            }
             ctx.restore();
         }else if(obj.type==='shape'){
             ctx.save();ctx.strokeStyle=obj.strokeColor;ctx.lineWidth=obj.strokeWidth;ctx.lineCap='round';ctx.lineJoin='round';
@@ -1526,9 +1554,11 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             ctx.fillStyle='#FFFEF7';ctx.fillRect(0,0,canvasSize.w,canvasSize.h);ctx.strokeStyle='#D6E4FF';ctx.lineWidth=1;
             for(let y=40;y<=canvasSize.h;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvasSize.w,y);ctx.stroke();}
         }
+        ctx.save();ctx.translate(pan.x,pan.y);
         objects.filter(o=>o.type==='image').forEach(o=>drawObject(ctx,o));
         objects.filter(o=>o.type!=='sticky'&&o.type!=='image').forEach(o=>drawObject(ctx,o));
-    },[objects,background,canvasSize,drawObject]);
+        ctx.restore();
+    },[objects,background,canvasSize,drawObject,pan]);
 
     const renderOverlay=useCallback(()=>{
         const c=overlayCanvasRef.current;if(!c)return;
@@ -1539,8 +1569,9 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
 
         // ── 빠른 잉크 경로: 펜/붓 필기 중에는 '새로 추가된 점'만 덧그려 지연(끊김)을 없앤다 ──
         if(dr.active&&dr.currentStroke&&dr.liveInk){
-            ctx.setTransform(dpr,0,0,dpr,0,0);
-            if(dr.needsClear){ctx.clearRect(0,0,canvasSize.w,canvasSize.h);dr.needsClear=false;dr.drawnCount=0;}
+            const p=panRef.current;
+            if(dr.needsClear){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);dr.needsClear=false;dr.drawnCount=0;}
+            ctx.setTransform(dpr,0,0,dpr,p.x*dpr,p.y*dpr);
             const s=dr.currentStroke,pts=s.points;
             if(pts.length>0){
                 ctx.save();ctx.strokeStyle=s.color;ctx.lineCap='round';ctx.lineJoin='round';ctx.globalAlpha=s.opacity??1;
@@ -1571,7 +1602,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             if(dr.overlayHadContent){ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);dr.overlayHadContent=false;}
             return;
         }
-        ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);ctx.setTransform(dpr,0,0,dpr,0,0);
+        ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);{const p=panRef.current;ctx.setTransform(dpr,0,0,dpr,p.x*dpr,p.y*dpr);}
         if(dr.active&&dr.currentStroke)drawObject(ctx,dr.currentStroke);
         if(dr.active&&dr.currentShape)drawObject(ctx,dr.currentShape);
         if(needRing){
@@ -1584,7 +1615,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     const clearOverlay=useCallback(()=>{const c=overlayCanvasRef.current;if(!c)return;const ctx=c.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);drawingRef.current.overlayHadContent=false;drawingRef.current.drawnCount=0;},[]);
     useEffect(()=>{let r;const loop=()=>{renderOverlay();r=requestAnimationFrame(loop);};r=requestAnimationFrame(loop);return()=>cancelAnimationFrame(r);},[renderOverlay]);
 
-    const getPos=(e)=>{const dr=drawingRef.current;const r=(dr.active&&dr.rect)?dr.rect:mainCanvasRef.current.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
+    const getPos=(e)=>{const dr=drawingRef.current;const r=(dr.active&&dr.rect)?dr.rect:mainCanvasRef.current.getBoundingClientRect();const p=panRef.current;return {x:e.clientX-r.left-p.x,y:e.clientY-r.top-p.y};};
 
     const handleEraserAt=(x,y)=>{
         const dr=drawingRef.current;const er=eraserSize/2;
@@ -1630,8 +1661,9 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         if(e.pointerType==='mouse'&&e.button!==0)return;
         try{e.target.setPointerCapture(e.pointerId);}catch(_){}
         dr.activePointerId=e.pointerId;
+        if(tool===WB_TOOLS.PAN){dr.active=true;panDragRef.current={sx:e.clientX,sy:e.clientY,ox:panRef.current.x,oy:panRef.current.y};return;}
         if(tool===WB_TOOLS.LASER){dr.active=true;setLaserActive(true);setLaserPos({x:pos.x,y:pos.y});setLaserTrail([{x:pos.x,y:pos.y,t:Date.now()}]);return;}
-        if(tool===WB_TOOLS.TEXT){setTextEdit({x:pos.x,y:pos.y,content:'',...textOpts});return;}
+        if(tool===WB_TOOLS.TEXT){dr.active=true;dr.textStart={x:pos.x,y:pos.y};setTextBoxDraft(null);return;}
         if(tool===WB_TOOLS.STICKY){
             const s={id:wbUid(),type:'sticky',x:pos.x-100,y:pos.y-100,w:200,h:200,color:stickyColor,text:'',rotation:Math.random()*6-3};
             dispatch({type:'ADD_OBJECT',object:s});setTool(WB_TOOLS.SELECT);return;
@@ -1639,7 +1671,10 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         if(tool===WB_TOOLS.SELECT){
             const imgs=objects.filter(o=>o.type==='image');let hit=null;
             for(let i=imgs.length-1;i>=0;i--){const o=imgs[i];if(pos.x>=o.x&&pos.x<=o.x+o.w&&pos.y>=o.y&&pos.y<=o.y+o.h){hit=o;break;}}
-            setSelectedImageId(hit?hit.id:null);return;
+            if(hit){setSelectedImageId(hit.id);setSelectedTextId(null);return;}
+            const texts=objects.filter(o=>o.type==='text');let th=null;const pad=8;
+            for(let i=texts.length-1;i>=0;i--){const o=texts[i];const b=wbTextBox(o);if(pos.x>=b.x-pad&&pos.x<=b.x+b.w+pad&&pos.y>=b.y-pad&&pos.y<=b.y+b.h+pad){th=o;break;}}
+            setSelectedImageId(null);setSelectedTextId(th?th.id:null);return;
         }
         if(tool===WB_TOOLS.ERASER){dr.active=true;dr.eraserRemovedIds=new Set();handleEraserAt(pos.x,pos.y);return;}
         if(tool===WB_TOOLS.SHAPE){dr.active=true;dr.currentShape={id:wbUid(),type:'shape',shape:shapeOpts.shape,x1:pos.x,y1:pos.y,x2:pos.x,y2:pos.y,...shapeOpts};return;}
@@ -1675,6 +1710,8 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         if(dr.active&&e.pointerId!==dr.activePointerId)return;
         const pos=getPos(e);cursorRef.current={x:pos.x,y:pos.y,inside:true};
         if(!dr.active)return;
+        if(tool===WB_TOOLS.PAN&&panDragRef.current){const pd=panDragRef.current;setPanBoth({x:pd.ox+(e.clientX-pd.sx),y:pd.oy+(e.clientY-pd.sy)});return;}
+        if(tool===WB_TOOLS.TEXT&&dr.textStart){const s=dr.textStart;setTextBoxDraft({x:Math.min(pos.x,s.x),y:Math.min(pos.y,s.y),w:Math.abs(pos.x-s.x),h:Math.abs(pos.y-s.y)});return;}
         if(tool===WB_TOOLS.LASER){
             setLaserPos({x:pos.x,y:pos.y});
             const now=Date.now();
@@ -1705,6 +1742,14 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         if(dr.activePointerId!==null&&e.pointerId!==dr.activePointerId)return;
         try{e.target.releasePointerCapture(e.pointerId);}catch(_){}
         dr.active=false;dr.activePointerId=null;
+        if(tool===WB_TOOLS.PAN){panDragRef.current=null;return;}
+        if(tool===WB_TOOLS.TEXT&&dr.textStart){
+            const start=dr.textStart;dr.textStart=null;setTextBoxDraft(null);
+            const pos=getPos(e);const w=Math.abs(pos.x-start.x),h=Math.abs(pos.y-start.y);
+            if(w>24||h>24){const bx=Math.min(pos.x,start.x),by=Math.min(pos.y,start.y);setTextEdit({x:bx,y:by,content:'',...textOpts,width:Math.max(60,Math.round(w))});}
+            else{setTextEdit({x:start.x,y:start.y,content:'',...textOpts,width:Math.round(Math.min(Math.max(220,canvasSize.w*0.35),520))});}
+            return;
+        }
         if(dr.rightClickEraser){dr.rightClickEraser=false;return;}
         if(tool===WB_TOOLS.ERASER)return;
         if(tool===WB_TOOLS.LASER){setLaserActive(false);setLaserPos(null);return;}
@@ -1715,7 +1760,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     const onPointerCancel=(e)=>{
         const dr=drawingRef.current;
         if(dr.active&&dr.currentStroke&&dr.currentStroke.points.length>=2)dispatch({type:'ADD_OBJECT',object:dr.currentStroke});
-        dr.active=false;dr.activePointerId=null;dr.currentStroke=null;dr.currentShape=null;dr.rightClickEraser=false;dr.liveInk=false;dr.drawnCount=0;clearOverlay();
+        dr.active=false;dr.activePointerId=null;dr.currentStroke=null;dr.currentShape=null;dr.rightClickEraser=false;dr.liveInk=false;dr.drawnCount=0;panDragRef.current=null;clearOverlay();
         if(tool===WB_TOOLS.LASER){setLaserActive(false);setLaserPos(null);}
     };
     const onPointerLeave=()=>{cursorRef.current.inside=false;};
@@ -1728,9 +1773,20 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
 
     const commitText=(content)=>{
         if(!textEdit)return;
-        if(content.trim())dispatch({type:'ADD_OBJECT',object:{id:wbUid(),type:'text',x:textEdit.x,y:textEdit.y,content,fontSize:textEdit.fontSize,fontFamily:textEdit.fontFamily,bold:textEdit.bold,italic:textEdit.italic,color:textEdit.color}});
+        const w=textEdit.width||undefined;
+        if(textEdit.editId){
+            if(content.trim())dispatch({type:'UPDATE_OBJECT',id:textEdit.editId,patch:{content,fontSize:textEdit.fontSize,fontFamily:textEdit.fontFamily,bold:textEdit.bold,italic:textEdit.italic,color:textEdit.color,width:w}});
+            else dispatch({type:'REMOVE_OBJECTS',ids:[textEdit.editId]});
+        }else if(content.trim()){
+            dispatch({type:'ADD_OBJECT',object:{id:wbUid(),type:'text',x:textEdit.x,y:textEdit.y,content,fontSize:textEdit.fontSize,fontFamily:textEdit.fontFamily,bold:textEdit.bold,italic:textEdit.italic,color:textEdit.color,width:w}});
+        }
         setTextEdit(null);
     };
+    const startEditText=(o)=>{playSound&&playSound('click');setSelectedTextId(null);setSelectedImageId(null);setTextEdit({x:o.x,y:o.y,content:o.content,fontSize:o.fontSize,fontFamily:o.fontFamily,bold:o.bold,italic:o.italic,color:o.color,width:o.width||null,editId:o.id});};
+    const onTextPointerDown=(e,o,mode)=>{e.stopPropagation();try{e.target.setPointerCapture(e.pointerId);}catch(_){}textDragRef.current={id:o.id,mode,sx:e.clientX,sy:e.clientY,ox:o.x,oy:o.y,ow:o.width||wbTextBox(o).w};setSelectedTextId(o.id);setSelectedImageId(null);};
+    const onTextPointerMove=(e)=>{const sd=textDragRef.current;if(!sd)return;const dx=e.clientX-sd.sx,dy=e.clientY-sd.sy;if(sd.mode==='move')dispatch({type:'UPDATE_OBJECT',id:sd.id,patch:{x:sd.ox+dx,y:sd.oy+dy},skipHistory:true});else if(sd.mode==='width')dispatch({type:'UPDATE_OBJECT',id:sd.id,patch:{width:Math.max(50,Math.round(sd.ow+dx))},skipHistory:true});};
+    const onTextPointerUp=()=>{if(textDragRef.current){const o=objects.find(o=>o.id===textDragRef.current.id);if(o)dispatch({type:'UPDATE_OBJECT',id:o.id,patch:{x:o.x,y:o.y,width:o.width}});textDragRef.current=null;}};
+    const selectedText=selectedTextId?objects.find(o=>o.id===selectedTextId&&o.type==='text'):null;
 
     const addImage=(src,cx,cy)=>{
         const im=new Image();
@@ -1868,10 +1924,11 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     useEffect(()=>{
         const onKey=(e)=>{
             if(textEdit)return;const t=e.target;if(t.tagName==='TEXTAREA'||t.tagName==='INPUT')return;
+            if(e.key===' '||e.code==='Space'){if(tool!==WB_TOOLS.PAN){prevToolRef.current=tool;setTool(WB_TOOLS.PAN);}e.preventDefault();return;}
             if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey){e.preventDefault();dispatch({type:'UNDO'});}
             else if((e.ctrlKey||e.metaKey)&&(e.key.toLowerCase()==='y'||(e.shiftKey&&e.key.toLowerCase()==='z'))){e.preventDefault();dispatch({type:'REDO'});}
             else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();exportPNG();}
-            else if(e.key==='Delete'&&selectedImageId){dispatch({type:'REMOVE_OBJECTS',ids:[selectedImageId]});setSelectedImageId(null);}
+            else if((e.key==='Delete'||e.key==='Backspace')&&(selectedImageId||selectedTextId)){const id=selectedImageId||selectedTextId;dispatch({type:'REMOVE_OBJECTS',ids:[id]});setSelectedImageId(null);setSelectedTextId(null);}
             else if(e.key==='p'||e.key==='P')setTool(WB_TOOLS.MARKER);
             else if(e.key==='h'||e.key==='H')setTool(WB_TOOLS.HIGHLIGHTER);
             else if(e.key==='b'||e.key==='B')setTool(WB_TOOLS.BRUSH);
@@ -1883,8 +1940,9 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             else if(e.key==='l'||e.key==='L')setTool(WB_TOOLS.LASER);
             else if(e.key==='e'||e.key==='E'){if(tool===WB_TOOLS.ERASER)setEraserMode(m=>m===WB_ERASER_MODES.PIXEL?WB_ERASER_MODES.STROKE:m===WB_ERASER_MODES.STROKE?WB_ERASER_MODES.OBJECT:WB_ERASER_MODES.PIXEL);else setTool(WB_TOOLS.ERASER);}
         };
-        window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);
-    },[tool,textEdit,selectedImageId]);
+        const onKeyUp=(e)=>{if((e.key===' '||e.code==='Space')&&prevToolRef.current!=null){setTool(prevToolRef.current);prevToolRef.current=null;}};
+        window.addEventListener('keydown',onKey);window.addEventListener('keyup',onKeyUp);return()=>{window.removeEventListener('keydown',onKey);window.removeEventListener('keyup',onKeyUp);};
+    },[tool,textEdit,selectedImageId,selectedTextId]);
 
     useEffect(()=>{
         if(tool===WB_TOOLS.ERASER&&!eraserTipSeen){
@@ -1893,7 +1951,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             return()=>clearTimeout(t);
         }
     },[tool,eraserTipSeen]);
-    useEffect(()=>{if(tool!==WB_TOOLS.SELECT)setSelectedImageId(null);},[tool]);
+    useEffect(()=>{if(tool!==WB_TOOLS.SELECT){setSelectedImageId(null);setSelectedTextId(null);}},[tool]);
 
     const exportPNG=async()=>{
         await Promise.all(objects.filter(o=>o.type==='image').map(o=>new Promise(res=>{const im=imageCache.current.get(o.src);if(im&&im.complete)res();else if(im){im.onload=()=>res();im.onerror=()=>res();}else res();})));
@@ -1904,6 +1962,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
         if(background===WB_BG_MODES.GRID){ctx.strokeStyle='#E5E7EB';ctx.lineWidth=1;for(let x=0;x<=canvasSize.w;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvasSize.h);ctx.stroke();}for(let y=0;y<=canvasSize.h;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvasSize.w,y);ctx.stroke();}}
         else if(background===WB_BG_MODES.GRAPH){ctx.strokeStyle='#EEF2FF';ctx.lineWidth=1;for(let x=0;x<=canvasSize.w;x+=20){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvasSize.h);ctx.stroke();}for(let y=0;y<=canvasSize.h;y+=20){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvasSize.w,y);ctx.stroke();}ctx.strokeStyle='#C7D2FE';for(let x=0;x<=canvasSize.w;x+=100){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvasSize.h);ctx.stroke();}for(let y=0;y<=canvasSize.h;y+=100){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvasSize.w,y);ctx.stroke();}}
         else if(background===WB_BG_MODES.LINED){ctx.strokeStyle='#D6E4FF';ctx.lineWidth=1;for(let y=40;y<=canvasSize.h;y+=36){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvasSize.w,y);ctx.stroke();}}
+        ctx.save();ctx.translate(pan.x,pan.y);
         objects.filter(o=>o.type==='image').forEach(o=>drawObject(ctx,o));
         objects.filter(o=>o.type!=='image'&&o.type!=='sticky').forEach(o=>drawObject(ctx,o));
         objects.filter(o=>o.type==='sticky').forEach(o=>{
@@ -1914,6 +1973,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             (o.text||'').split('\n').forEach((l,i)=>ctx.fillText(l,-o.w/2+14,-o.h/2+14+i*22));
             ctx.restore();
         });
+        ctx.restore();
         ctx.fillStyle='rgba(0,0,0,.25)';ctx.font="bold 12px 'Jua',sans-serif";ctx.textBaseline='alphabetic';ctx.textAlign='right';
         ctx.fillText('© 송쌤과학',canvasSize.w-14,canvasSize.h-12);
         const link=document.createElement('a');link.download=`송쌤과학_판서_${Date.now()}.png`;link.href=tmp.toDataURL('image/png');link.click();
@@ -1934,7 +1994,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     };
     const onStickyPointerUp=()=>{if(stickyDragRef.current){const o=objects.find(o=>o.id===stickyDragRef.current.id);if(o)dispatch({type:'UPDATE_OBJECT',id:o.id,patch:{x:o.x,y:o.y,w:o.w,h:o.h}});stickyDragRef.current=null;}};
 
-    const getCursor=()=>{if(tool===WB_TOOLS.ERASER)return 'none';if(tool===WB_TOOLS.TEXT)return 'text';if(tool===WB_TOOLS.LASER)return 'crosshair';if(tool===WB_TOOLS.SELECT)return 'default';return 'crosshair';};
+    const getCursor=()=>{if(tool===WB_TOOLS.PAN)return panDragRef.current?'grabbing':'grab';if(tool===WB_TOOLS.ERASER)return 'none';if(tool===WB_TOOLS.TEXT)return 'text';if(tool===WB_TOOLS.LASER)return 'crosshair';if(tool===WB_TOOLS.SELECT)return 'default';return 'crosshair';};
     const selectedImage=selectedImageId?objects.find(o=>o.id===selectedImageId):null;
 
     return(<div ref={tabRootRef} className={`flex flex-col ${isDark?'wb-dark':''} ${isFullscreenMode?'wb-fs-mode':''}`} style={{height:isFullscreenMode?'100dvh':'calc(100dvh - 76px)',minHeight:'500px',width:'100%'}}>
@@ -1962,6 +2022,8 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             <button onClick={()=>{setYTModalInput('');setYTModalError('');setShowYTModal(true);}} className="wb-tool-btn" data-tip="YouTube 영상 삽입"><Icon name="youtube" size={15}/></button>
             <button onClick={()=>setTool(WB_TOOLS.ERASER)} className={`wb-tool-btn ${tool===WB_TOOLS.ERASER?'active':''}`} data-tip="지우개 (E)"><Icon name="eraser" size={15}/></button>
             <button onClick={()=>setTool(WB_TOOLS.SELECT)} className={`wb-tool-btn ${tool===WB_TOOLS.SELECT?'active':''}`} data-tip="선택/이동 (V)"><Icon name="mouse-pointer-2" size={15}/></button>
+            <button onClick={()=>setTool(WB_TOOLS.PAN)} className={`wb-tool-btn ${tool===WB_TOOLS.PAN?'active':''}`} data-tip="손바닥 끌기 (스페이스)"><Icon name="hand" size={15}/></button>
+            {(pan.x!==0||pan.y!==0)&&<button onClick={()=>setPanBoth({x:0,y:0})} className="wb-tool-btn action" data-tip="화면 위치 초기화"><Icon name="locate-fixed" size={15}/></button>}
             <button onClick={()=>setTool(WB_TOOLS.LASER)} className={`wb-tool-btn ${tool===WB_TOOLS.LASER?'active':''}`} data-tip="레이저 포인터 (L)"><Icon name="zap" size={15}/></button>
             <div className="wb-divider"/>
             <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
@@ -2038,7 +2100,9 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
                     <button onClick={()=>setEraserSize(60)} className={`wb-chip ${eraserSize===60?'active':''}`}>크게</button>
                 </>)}
                 {tool===WB_TOOLS.LASER&&(<span className="text-[10px] font-bold opacity-60">🔴 펜/마우스/손가락으로 <b>드래그</b>하면 빨간 점이 따라다닙니다</span>)}
-                {tool===WB_TOOLS.SELECT&&(<span className="text-[10px] font-bold opacity-60">{selectedImage?'드래그 이동 · 핸들로 크기 조정 · Delete로 삭제':'이미지/포스트잇 위에서 조작'}</span>)}
+                {tool===WB_TOOLS.SELECT&&(<span className="text-[10px] font-bold opacity-60">{selectedImage?'드래그 이동 · 핸들로 크기 조정 · Delete로 삭제':selectedText?'드래그 이동 · ✎로 수정 · 우측 핸들로 폭조절 · Delete 삭제':'이미지·글씨·포스트잇을 탭하면 선택됩니다 (이동·수정·삭제)'}</span>)}
+                {tool===WB_TOOLS.PAN&&(<span className="text-[10px] font-bold opacity-60">✋ 드래그해서 화면을 이동합니다 · 스페이스를 누르고 있어도 이동</span>)}
+                {tool===WB_TOOLS.TEXT&&(<span className="text-[10px] font-bold opacity-60">탭하면 글씨 입력 · <b>드래그</b>하면 입력 영역(폭)을 정할 수 있어요</span>)}
             </div>
         </div>}
 
@@ -2051,7 +2115,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             <canvas ref={overlayCanvasRef} style={{pointerEvents:'none'}}/>
 
             {tool===WB_TOOLS.SELECT&&selectedImage&&(
-                <div className="wb-img-wrap selected" style={{left:selectedImage.x,top:selectedImage.y,width:selectedImage.w,height:selectedImage.h,pointerEvents:'none'}}>
+                <div className="wb-img-wrap selected" style={{left:selectedImage.x+pan.x,top:selectedImage.y+pan.y,width:selectedImage.w,height:selectedImage.h,pointerEvents:'none'}}>
                     <div className="wb-img-handle tl" style={{pointerEvents:'auto'}} onPointerDown={e=>onImgPointerDown(e,selectedImage,'tl')} onPointerMove={onImgPointerMove} onPointerUp={onImgPointerUp}/>
                     <div className="wb-img-handle tr" style={{pointerEvents:'auto'}} onPointerDown={e=>onImgPointerDown(e,selectedImage,'tr')} onPointerMove={onImgPointerMove} onPointerUp={onImgPointerUp}/>
                     <div className="wb-img-handle bl" style={{pointerEvents:'auto'}} onPointerDown={e=>onImgPointerDown(e,selectedImage,'bl')} onPointerMove={onImgPointerMove} onPointerUp={onImgPointerUp}/>
@@ -2060,6 +2124,21 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
                     {selectedImage.videoId&&<div style={{position:'absolute',top:-14,left:'50%',transform:'translateX(-50%)',pointerEvents:'auto',background:'#CC0000',color:'#fff',padding:'4px 10px',borderRadius:6,fontSize:11,fontWeight:900,cursor:'pointer',boxShadow:'0 1px 4px rgba(0,0,0,0.25)',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}} onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();setWbVideoPlayer(selectedImage.videoId);}}><Icon name="play" size={11}/> 재생</div>}
                     <div style={{position:'absolute',inset:0,pointerEvents:'auto',cursor:'move'}} onPointerDown={e=>onImgPointerDown(e,selectedImage,'move')} onPointerMove={onImgPointerMove} onPointerUp={onImgPointerUp} onDoubleClick={e=>{if(selectedImage.videoId){e.stopPropagation();setWbVideoPlayer(selectedImage.videoId);}}}/>
                 </div>
+            )}
+
+            {/* 선택된 텍스트 객체 조작 오버레이 (이동·수정·삭제·폭조절) */}
+            {tool===WB_TOOLS.SELECT&&selectedText&&(()=>{const b=wbTextBox(selectedText);return(
+                <div className="wb-img-wrap selected" style={{left:b.x+pan.x,top:b.y+pan.y,width:b.w,height:b.h,pointerEvents:'none'}}>
+                    <div style={{position:'absolute',inset:0,pointerEvents:'auto',cursor:'move'}} onPointerDown={e=>onTextPointerDown(e,selectedText,'move')} onPointerMove={onTextPointerMove} onPointerUp={onTextPointerUp} onDoubleClick={e=>{e.stopPropagation();startEditText(selectedText);}}/>
+                    <div className="wb-img-handle del" style={{pointerEvents:'auto'}} onClick={e=>{e.stopPropagation();dispatch({type:'REMOVE_OBJECTS',ids:[selectedText.id]});setSelectedTextId(null);}}><Icon name="x" size={12}/></div>
+                    <div style={{position:'absolute',top:-32,left:-7,width:24,height:24,borderRadius:'50%',background:'#5C9DED',border:'2px solid #fff',boxShadow:'0 1px 3px rgba(0,0,0,.2)',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',cursor:'pointer',pointerEvents:'auto'}} onClick={e=>{e.stopPropagation();startEditText(selectedText);}}><Icon name="pencil" size={12}/></div>
+                    <div style={{position:'absolute',right:-7,top:'50%',transform:'translateY(-50%)',width:14,height:14,borderRadius:'50%',background:'#FFB7B2',border:'2px solid #fff',boxShadow:'0 1px 3px rgba(0,0,0,.2)',cursor:'ew-resize',pointerEvents:'auto',touchAction:'none'}} onPointerDown={e=>onTextPointerDown(e,selectedText,'width')} onPointerMove={onTextPointerMove} onPointerUp={onTextPointerUp}/>
+                </div>
+            );})()}
+
+            {/* 텍스트 영역 드래그 미리보기 */}
+            {tool===WB_TOOLS.TEXT&&textBoxDraft&&(textBoxDraft.w>10||textBoxDraft.h>10)&&(
+                <div style={{position:'absolute',left:textBoxDraft.x+pan.x,top:textBoxDraft.y+pan.y,width:textBoxDraft.w,height:textBoxDraft.h,border:'2px dashed #FFB7B2',background:'rgba(255,183,178,.1)',borderRadius:6,pointerEvents:'none',zIndex:9}}/>
             )}
 
             {/* QR 삽입 모달 */}
@@ -2110,7 +2189,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             )}
 
             {objects.filter(o=>o.type==='sticky').map(s=>(
-                <div key={s.id} className="wb-sticky" style={{left:s.x,top:s.y,width:s.w,height:s.h,backgroundColor:s.color,transform:`rotate(${s.rotation||0}deg)`,pointerEvents:tool===WB_TOOLS.ERASER?'none':'auto',zIndex:5}}
+                <div key={s.id} className="wb-sticky" style={{left:s.x+pan.x,top:s.y+pan.y,width:s.w,height:s.h,backgroundColor:s.color,transform:`rotate(${s.rotation||0}deg)`,pointerEvents:tool===WB_TOOLS.ERASER?'none':'auto',zIndex:5}}
                     onPointerDown={e=>onStickyPointerDown(e,s,'move')} onPointerMove={onStickyPointerMove} onPointerUp={onStickyPointerUp}>
                     <textarea value={s.text} onChange={e=>dispatch({type:'UPDATE_OBJECT',id:s.id,patch:{text:e.target.value},skipHistory:true})} onBlur={e=>dispatch({type:'UPDATE_OBJECT',id:s.id,patch:{text:e.target.value}})} placeholder="입력..."/>
                     <div className="wb-sticky-del" onClick={e=>{e.stopPropagation();dispatch({type:'REMOVE_OBJECTS',ids:[s.id]});}}><Icon name="x" size={14}/></div>
@@ -2120,18 +2199,20 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
 
             {textEdit&&(
                 <textarea autoFocus className="wb-text-edit"
-                    style={{left:textEdit.x,top:textEdit.y,fontSize:textEdit.fontSize+'px',fontFamily:textEdit.fontFamily,fontWeight:textEdit.bold?'bold':'normal',fontStyle:textEdit.italic?'italic':'normal',color:textEdit.color,minWidth:'150px',minHeight:textEdit.fontSize+10+'px',zIndex:10}}
+                    ref={el=>{if(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}}}
+                    style={{left:textEdit.x+pan.x,top:textEdit.y+pan.y,width:(textEdit.width||220)+'px',fontSize:textEdit.fontSize+'px',fontFamily:textEdit.fontFamily,fontWeight:textEdit.bold?'bold':'normal',fontStyle:textEdit.italic?'italic':'normal',color:textEdit.color,lineHeight:1.2,minHeight:textEdit.fontSize*1.2+8+'px',whiteSpace:'pre-wrap',wordBreak:'break-word',overflow:'hidden',zIndex:10}}
                     defaultValue={textEdit.content}
+                    onChange={e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}}
                     onBlur={e=>commitText(e.target.value)}
-                    onKeyDown={e=>{if(e.key==='Escape')setTextEdit(null);if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commitText(e.target.value);}}}/>
+                    onKeyDown={e=>{if(e.key==='Escape'){e.target.value=textEdit.editId?textEdit.content:'';setTextEdit(null);}if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commitText(e.target.value);}}}/>
             )}
 
             {laserTrail.map((p,i)=>{
                 const age=laserActive?(laserTrail.length-1-i)/Math.max(1,laserTrail.length-1):1-((Date.now()-p.t)/350);
                 const opacity=Math.max(0,1-age*0.9);const size=Math.max(8,18-age*10);
-                return <div key={`${p.t}-${i}`} className="wb-laser-trail" style={{left:p.x,top:p.y,width:size+'px',height:size+'px',opacity:opacity*0.55}}/>;
+                return <div key={`${p.t}-${i}`} className="wb-laser-trail" style={{left:p.x+pan.x,top:p.y+pan.y,width:size+'px',height:size+'px',opacity:opacity*0.55}}/>;
             })}
-            {laserActive&&laserPos&&<div className="wb-laser-dot" style={{left:laserPos.x,top:laserPos.y}}/>}
+            {laserActive&&laserPos&&<div className="wb-laser-dot" style={{left:laserPos.x+pan.x,top:laserPos.y+pan.y}}/>}
 
             {isDragOver&&(<div className="wb-drop-overlay"><div className="wb-drop-content"><Icon name="image-plus" size={32} className="text-[#FFB7B2] mx-auto mb-2"/><p className="font-black text-sm" style={{color:'#1F2937'}}>여기에 이미지 놓기</p><p className="text-[10px] font-bold mt-1" style={{color:'#4B5563'}}>또는 Ctrl+V로 붙여넣기</p></div></div>)}
 
@@ -2228,6 +2309,7 @@ function App(){
     const [showClockInTimer,setShowClockInTimer]=useState(false);
     const [qrInput,setQrInput]=useState('');const [qrUrl,setQrUrl]=useState(null);
     const [memos,setMemos]=useState([]);const [memoInput,setMemoInput]=useState('');
+    const [editingMemoId,setEditingMemoId]=useState(null);
     const [memoColor,setMemoColor]=useState('#FFE0E0');
     const [memoFontSize,setMemoFontSize]=useState(14);
     const [uploadedImg,setUploadedImg]=useState(null);
@@ -2376,9 +2458,16 @@ function App(){
     const addMemo=()=>{
         if(!memoInput.trim())return;
         playSound('click');
-        setMemos([{id:Date.now(),text:memoInput,color:memoColor,fontSize:memoFontSize},...memos]);
+        if(editingMemoId!=null){
+            setMemos(memos.map(m=>m.id===editingMemoId?{...m,text:memoInput,color:memoColor,fontSize:memoFontSize}:m));
+            setEditingMemoId(null);
+        }else{
+            setMemos([{id:Date.now(),text:memoInput,color:memoColor,fontSize:memoFontSize},...memos]);
+        }
         setMemoInput('');
     };
+    const startEditMemo=(m)=>{playSound('click');setEditingMemoId(m.id);setMemoInput(m.text);setMemoColor(m.color);setMemoFontSize(m.fontSize||14);};
+    const cancelEditMemo=()=>{setEditingMemoId(null);setMemoInput('');};
 
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
     const NavBtn=({active,icon,label,onClick})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
@@ -2689,9 +2778,11 @@ function App(){
             {mode==='memo'&&<div className="card-enter w-full max-w-3xl mx-auto">
                 <div className="bg-white rounded-2xl p-3 sm:p-4 soft-shadow border border-gray-100 mb-3 space-y-2.5">
                     <div className="flex gap-2">
-                        <div className="flex-1 relative"><input type="text" value={memoInput} onChange={e=>setMemoInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&memoInput.trim())addMemo();}} className="w-full p-2.5 pl-8 bg-[#F9F9F9] rounded-xl border-2 border-[#C7CEEA] font-bold text-sm focus:outline-none" placeholder="기억할 내용"/><span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#C7CEEA]"><Icon name="pencil" size={14}/></span></div>
-                        <button onClick={addMemo} className="px-3 bg-[#C7CEEA] text-white rounded-xl font-black shadow-md touch-target"><Icon name="plus" size={18}/></button>
-                        {memos.length>0&&<button onClick={()=>{playSound('click');setMemos([]);}} className="px-3 bg-red-100 text-red-400 rounded-xl font-bold touch-target"><Icon name="trash-2" size={16}/></button>}
+                        <div className="flex-1 relative"><input type="text" value={memoInput} onChange={e=>setMemoInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&memoInput.trim())addMemo();if(e.key==='Escape'&&editingMemoId!=null)cancelEditMemo();}} className={`w-full p-2.5 pl-8 bg-[#F9F9F9] rounded-xl border-2 font-bold text-sm focus:outline-none ${editingMemoId!=null?'border-[#FFB7B2]':'border-[#C7CEEA]'}`} placeholder={editingMemoId!=null?"메모 수정 중...":"기억할 내용"}/><span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#C7CEEA]"><Icon name={editingMemoId!=null?"pencil-line":"pencil"} size={14}/></span></div>
+                        <button onClick={addMemo} className={`px-3 text-white rounded-xl font-black shadow-md touch-target ${editingMemoId!=null?'bg-[#FFB7B2]':'bg-[#C7CEEA]'}`}><Icon name={editingMemoId!=null?"check":"plus"} size={18}/></button>
+                        {editingMemoId!=null
+                            ?<button onClick={cancelEditMemo} className="px-3 bg-gray-100 text-gray-400 rounded-xl font-bold touch-target"><Icon name="x" size={16}/></button>
+                            :memos.length>0&&<button onClick={()=>{playSound('click');showConfirm("메모를 모두 지울까요?",()=>setMemos([]));}} className="px-3 bg-red-100 text-red-400 rounded-xl font-bold touch-target"><Icon name="trash-2" size={16}/></button>}
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] text-gray-400 font-bold shrink-0">배경색</span>
@@ -2711,7 +2802,7 @@ function App(){
                         </div>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">{memos.map(m=><div key={m.id} onClick={()=>{setFullScreenContent({type:'text',data:m.text,color:m.color,fontSize:m.fontSize});setFsFontSize(window.innerWidth<500?40:70);}} className="relative p-3 sm:p-4 rounded-xl min-h-[80px] sm:min-h-[130px] flex items-center justify-center text-center cursor-pointer shadow-sm hover:shadow-md transition-shadow" style={{backgroundColor:m.color}}><p className="font-black text-gray-700 whitespace-pre-wrap line-clamp-4" style={{fontFamily:'Gamja Flower',fontSize:`${m.fontSize||14}px`}}>{m.text}</p><button onClick={e=>{e.stopPropagation();playSound('click');setMemos(memos.filter(x=>x.id!==m.id));}} className="absolute top-1.5 right-1.5 p-1 bg-white/50 rounded-full text-red-400"><Icon name="trash-2" size={11}/></button></div>)}{!memos.length&&<div className="col-span-full py-10 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-2xl bg-white/50"><Icon name="sticky-note" size={28} className="mx-auto opacity-30 mb-1"/><p className="text-xs">메모를 추가해보세요!</p></div>}</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">{memos.map(m=><div key={m.id} onClick={()=>{setFullScreenContent({type:'text',data:m.text,color:m.color,fontSize:m.fontSize});setFsFontSize(window.innerWidth<500?40:70);}} className={`relative p-3 sm:p-4 rounded-xl min-h-[80px] sm:min-h-[130px] flex items-center justify-center text-center cursor-pointer shadow-sm hover:shadow-md transition-shadow ${editingMemoId===m.id?'ring-2 ring-[#FFB7B2] ring-offset-1':''}`} style={{backgroundColor:m.color}}><p className="font-black text-gray-700 whitespace-pre-wrap line-clamp-4" style={{fontFamily:'Gamja Flower',fontSize:`${m.fontSize||14}px`}}>{m.text}</p><div className="absolute top-1.5 right-1.5 flex gap-1"><button onClick={e=>{e.stopPropagation();startEditMemo(m);}} className="p-1 bg-white/60 rounded-full text-gray-500 hover:text-[#C7CEEA]"><Icon name="pencil" size={11}/></button><button onClick={e=>{e.stopPropagation();playSound('click');setMemos(memos.filter(x=>x.id!==m.id));if(editingMemoId===m.id)cancelEditMemo();}} className="p-1 bg-white/60 rounded-full text-red-400"><Icon name="trash-2" size={11}/></button></div></div>)}{!memos.length&&<div className="col-span-full py-10 text-center text-gray-300 font-bold border-2 border-dashed border-gray-200 rounded-2xl bg-white/50"><Icon name="sticky-note" size={28} className="mx-auto opacity-30 mb-1"/><p className="text-xs">메모를 추가해보세요!</p></div>}</div>
             </div>}
 
             {mode==='img'&&<div className="card-enter flex flex-col items-center w-full"><div className="bg-white p-3 sm:p-5 rounded-2xl shadow-lg border-2 border-[#FFC3A0] w-full max-w-3xl min-h-[220px] sm:min-h-[400px] flex items-center justify-center relative">{uploadedImg?<div className="relative w-full flex items-center justify-center"><img src={uploadedImg} className="max-w-full max-h-[50vh] rounded-xl shadow-sm cursor-pointer" onClick={()=>setFullScreenContent({type:'img',data:uploadedImg})}/><button onClick={()=>{setUploadedImg(null);fileInputRef.current.value='';}} className="absolute top-2 right-2 p-2 bg-white text-[#FFC3A0] rounded-full shadow-md touch-target"><Icon name="x" size={18}/></button></div>:<div onClick={()=>fileInputRef.current.click()} className="flex flex-col items-center justify-center gap-3 cursor-pointer p-8 sm:p-14 hover:bg-[#FFF5EB] rounded-2xl w-full h-full border-2 border-dashed border-[#FFC3A0]/30"><div className="p-5 bg-[#FFEDD5] rounded-full text-[#FFC3A0]"><Icon name="image-plus" size={32}/></div><p className="text-base font-bold text-[#FFC3A0]">터치하여 사진 업로드</p></div>}<input type="file" ref={fileInputRef} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=res=>{setUploadedImg(res.target.result);playSound('win');};r.readAsDataURL(f);}}} accept="image/*" className="hidden"/></div></div>}
