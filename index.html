@@ -563,6 +563,8 @@ function RecorderWidget({playSound:ps}){
     const pauseRec=()=>{if(mediaRecRef.current?.state==='recording'){mediaRecRef.current.pause();setIsPaused(true);clearInterval(timerRef.current);ps('click');}};
     const resumeRec=()=>{if(mediaRecRef.current?.state==='paused'){mediaRecRef.current.resume();setIsPaused(false);timerRef.current=setInterval(()=>{elapsedRef.current++;setElapsed(e=>e+1);},1000);ps('click');}};
     const stopRec=()=>{if(mediaRecRef.current?.state!=='inactive'){mediaRecRef.current.stop();setIsRecording(false);setIsPaused(false);clearInterval(timerRef.current);ps('win');}};
+    const resetRec=()=>{setElapsed(0);elapsedRef.current=0;ps('click');};
+    const newRecording=()=>{setElapsed(0);elapsedRef.current=0;startRecording();};
     const dlRec=r=>{const a=document.createElement('a');a.href=r.url;a.download=r.name+'.'+r.ext;document.body.appendChild(a);a.click();document.body.removeChild(a);};
     const delRec=id=>{setRecordings(prev=>{const t=prev.find(r=>r.id===id);if(t?.url)URL.revokeObjectURL(t.url);return prev.filter(r=>r.id!==id);});ps('click');};
     const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
@@ -572,13 +574,17 @@ function RecorderWidget({playSound:ps}){
             <h2 className="text-lg sm:text-xl font-black text-[#4A4A4A] mb-1 flex items-center justify-center gap-2"><Icon name="mic" size={20}/> 음성 녹음</h2>
             <p className="text-[10px] text-gray-400 font-bold mb-5">녹음 완료 시 WAV 파일로 자동 다운로드</p>
             <div className={`text-4xl sm:text-6xl font-black clock-face mb-2 ${isRecording&&!isPaused?'text-red-500':'text-[#4A4A4A]'}`}>{fmt(elapsed)}</div>
-            {(isRecording||elapsed>0)&&<p className="text-[11px] font-bold text-gray-400 mb-4">예상 용량 <span className="text-gray-600">{((44100*2*elapsed)/1024/1024).toFixed(1)} MB</span></p>}
+            {isRecording&&<p className="text-[11px] font-bold text-gray-400 mb-4">예상 용량 <span className="text-gray-600">{((44100*2*elapsed)/1024/1024).toFixed(1)} MB</span></p>}
+            {!isRecording&&!isConverting&&elapsed>0&&<p className="text-[11px] font-bold text-gray-400 mb-4">직전 녹음 시간입니다. 새로 녹음하면 00:00부터 시작됩니다.</p>}
             {isRecording&&!isPaused&&<div className="flex items-center justify-center gap-[3px] mb-5 h-8">{Array.from({length:24}).map((_,i)=><div key={i} className="w-[3px] bg-red-400 rounded-full origin-bottom" style={{height:'24px',animation:`barBounce ${.4+Math.random()*.4}s ease-in-out infinite`,animationDelay:`${i*.04}s`}}/>)}</div>}
             {isRecording&&isPaused&&<div className="flex items-center justify-center gap-2 mb-5 h-8 text-gray-400 font-bold text-sm"><span className="animate-pulse">⏸</span> 일시정지</div>}
             {!isRecording&&!isConverting&&<div className="h-8 mb-5"/>}
             {isConverting&&<div className="flex items-center justify-center gap-2 mb-5 h-8 text-blue-500 font-bold text-sm"><Icon name="loader-2" size={16} className="animate-spin"/> WAV 변환 중...</div>}
             <div className="flex gap-3 justify-center flex-wrap">
-                {!isRecording?<button onClick={startRecording} disabled={isConverting} className="flex items-center gap-2 px-6 py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-base font-black shadow-lg shadow-red-500/25 active:scale-95 touch-target transition-all disabled:opacity-50"><Icon name="mic" size={20}/> 녹음 시작</button>:<>
+                {!isRecording?(elapsed>0?<>
+                    <button onClick={newRecording} disabled={isConverting} className="flex items-center gap-2 px-6 py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-base font-black shadow-lg shadow-red-500/25 active:scale-95 touch-target transition-all disabled:opacity-50"><Icon name="rotate-ccw" size={20}/> 새로 녹음하기</button>
+                    <button onClick={resetRec} disabled={isConverting} className="flex items-center gap-2 px-5 py-3.5 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded-full text-sm font-black shadow active:scale-95 touch-target transition-all disabled:opacity-50"><Icon name="timer-reset" size={18}/> 시간 초기화</button>
+                </>:<button onClick={startRecording} disabled={isConverting} className="flex items-center gap-2 px-6 py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-base font-black shadow-lg shadow-red-500/25 active:scale-95 touch-target transition-all disabled:opacity-50"><Icon name="mic" size={20}/> 녹음 시작</button>):<>
                     {!isPaused?<button onClick={pauseRec} className="px-5 py-3.5 bg-yellow-500 text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5"><Icon name="pause" size={18}/> 일시정지</button>:<button onClick={resumeRec} className="px-5 py-3.5 bg-green-500 text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5"><Icon name="play" size={18}/> 계속</button>}
                     <button onClick={stopRec} className={`px-5 py-3.5 bg-[#FFB7B2] text-white rounded-full font-black shadow-lg active:scale-95 touch-target transition-all flex items-center gap-1.5 ${isRecording&&!isPaused?'rec-pulse':''}`}><Icon name="square" size={18}/> 녹음 완료</button>
                 </>}
