@@ -2319,6 +2319,8 @@ function App(){
     const [showFixSettings,setShowFixSettings]=useState(false);
     const [fixStudent,setFixStudent]=useState('');
     const [fixPos,setFixPos]=useState(null);
+    // ★ 시연(발표) 모드 - 켜면 좌석 설정 패널을 숨겨 학생에게 정보가 드러나지 않게 함
+    const [seatPresentMode,setSeatPresentMode]=useState(boot.seatPresentMode||false);
     const [selectedItem,setSelectedItem]=useState(null);
     const [timeLeft,setTimeLeft]=useState(boot.initialTime??300);
     const [initialTime,setInitialTime]=useState(boot.initialTime??300);
@@ -2376,10 +2378,10 @@ function App(){
 
     // ★ 세션 자동 저장 (변경 시 400ms 디바운스로 localStorage에 저장)
     useEffect(()=>{
-        const data={step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays};
+        const data={step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays};
         const t=setTimeout(()=>{try{localStorage.setItem(SESSION_KEY,JSON.stringify(data));}catch(e){}},400);
         return()=>clearTimeout(t);
-    },[step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays]);
+    },[step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays]);
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
     const playSound=type=>{
@@ -2397,7 +2399,7 @@ function App(){
     const handleCapture=async()=>{if(!captureRef.current)return;playSound('click');try{await document.fonts.ready;const canvas=await html2canvas(captureRef.current,{scale:2,backgroundColor:'#FDFBF7',useCORS:true,logging:false,allowTaint:true,onclone:doc=>{doc.querySelectorAll('.center-content').forEach(el=>{el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.style.paddingBottom='12px';el.style.lineHeight='1';el.style.height='100%';});}});const link=document.createElement('a');link.download=`송쌤과학_${mode}_${Date.now()}.png`;link.href=canvas.toDataURL();link.click();showAlert("이미지가 저장되었습니다 📸");}catch(e){console.error(e);showAlert("저장 실패. 다시 시도해주세요.");}};
 
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
-    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{try{localStorage.removeItem(SESSION_KEY);}catch(e){}setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSeatFixed([]);setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
+    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{try{localStorage.removeItem(SESSION_KEY);}catch(e){}setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSeatFixed([]);setSeatPresentMode(false);setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
 
     // ★ 타이머 ref - 모든 타이머 동작은 이 ref들 기반
     const timerStartRef=useRef(null);
@@ -2763,7 +2765,7 @@ function App(){
             </div>}
 
             {mode==='seat'&&<div className="card-enter space-y-3 w-full">
-                <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
+                <div className={`bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5 ${seatPresentMode&&seats.length>0?'hidden':''}`}>
                     <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#FFD3B6] border-[#FFD3B6] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
                     {placementType==='number'&&<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFD3B6" playSound={playSound}/>}
                     {placementType==='name'&&<textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-2.5 bg-[#FFF8F0] rounded-xl border-2 border-transparent focus:border-[#FFD3B6] resize-none h-16 outline-none text-sm" placeholder="학생 이름 입력"/>}
@@ -2771,7 +2773,7 @@ function App(){
                     <div className="flex gap-2 items-end flex-wrap">
                         <div className="flex bg-[#FFF8F0] p-0.5 rounded-lg border border-gray-100"><button onClick={()=>setSeatType('single')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target ${seatType==='single'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>혼자</button><button onClick={()=>setSeatType('pair')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target ${seatType==='pair'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>짝꿍</button></div>
                         {seatType==='pair'&&<button onClick={()=>{playSound('click');setShowPairSettings(true);}} className="relative py-2 px-3 bg-white border-2 border-dashed border-[#FFD3B6] text-[#D68C60] rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="settings-2" size={14}/> 조건{(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<span className="absolute -top-1.5 -right-1.5 bg-[#FFB7B2] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">{seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length}</span>}</button>}
-                        <button onClick={()=>{playSound('click');setShowFixSettings(true);}} className="relative py-2 px-3 bg-white border-2 border-dashed border-[#C3B1E1] text-[#8267C4] rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="pin" size={14}/> 고정{seatFixed.length>0&&<span className="absolute -top-1.5 -right-1.5 bg-[#B39DDB] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">{seatFixed.length}</span>}</button>
+                        <button onClick={()=>{playSound('click');setShowFixSettings(true);}} className="py-2 px-3 bg-white border border-gray-200 text-gray-400 rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="pin" size={14}/> 고정</button>
                         <button onClick={createSeats} className="ml-auto py-2.5 px-4 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm"><Icon name="layout-grid" size={16}/> 생성</button>
                     </div>
 
@@ -2793,7 +2795,7 @@ function App(){
                         playSound={playSound}
                     />}
                 </div>
-                {seats.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div>
+                {seats.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={()=>{playSound('click');setSeatPresentMode(v=>!v);}} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target border ${seatPresentMode?'bg-[#5D5D5D] border-[#5D5D5D] text-white':'bg-white border-gray-200 text-gray-400'}`} title="시연 모드: 켜면 위 설정 창을 숨겨 학생에게 정보가 보이지 않습니다"><Icon name={seatPresentMode?'eye-off':'eye'} size={12}/> {seatPresentMode?'설정':'시연'}</button><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div>
                     <div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg">
                         <div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div>
 
