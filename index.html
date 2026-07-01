@@ -2264,12 +2264,21 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
 }
 
 
+// ★ 세션 저장/복원 (창을 껐다 켜도 설정 유지)
+const SESSION_KEY='songsam_session_v1';
+const loadSession=()=>{try{const s=localStorage.getItem(SESSION_KEY);return s?JSON.parse(s):{};}catch(e){return {};}};
+
 function App(){
-    const [step,setStep]=useState('input');
-    const [studentCount,setStudentCount]=useState('');
-    const [students,setStudents]=useState([]);
-    const [mode,setMode]=useState('pick');
-    const [isSoundOn,setIsSoundOn]=useState(true);
+    // 저장된 세션을 한 번만 읽어 초기값으로 사용
+    const bootRef=useRef(null);
+    if(bootRef.current===null)bootRef.current=loadSession();
+    const boot=bootRef.current;
+
+    const [step,setStep]=useState(boot.step||'input');
+    const [studentCount,setStudentCount]=useState(boot.studentCount??'');
+    const [students,setStudents]=useState(boot.students||[]);
+    const [mode,setMode]=useState(boot.mode||'pick');
+    const [isSoundOn,setIsSoundOn]=useState(boot.isSoundOn??true);
     // ★ 전역 다크모드 + UI 스케일
     const [isDarkMode,setIsDarkMode]=useState(()=>{try{return localStorage.getItem('songsam_dark')==='1';}catch(e){return false;}});
     const [uiScale,setUiScale]=useState(()=>{try{const v=parseFloat(localStorage.getItem('songsam_ui_scale'));return isNaN(v)?1:v;}catch(e){return 1;}});
@@ -2289,45 +2298,50 @@ function App(){
     const [pickWinner,setPickWinner]=useState(null);
     const [isPicking,setIsPicking]=useState(false);
     const [isNoRepeat,setIsNoRepeat]=useState(false);
-    const [placementType,setPlacementType]=useState('number');
-    const [inputNames,setInputNames]=useState('');
-    const [maleInput,setMaleInput]=useState('');
-    const [femaleInput,setFemaleInput]=useState('');
-    const [genderOption,setGenderOption]=useState('mixed');
-    const [teams,setTeams]=useState([]);
-    const [teamCount,setTeamCount]=useState(6);
-    const [teamColumns,setTeamColumns]=useState(3);
-    const [seats,setSeats]=useState([]);
-    const [seatType,setSeatType]=useState('single');
-    const [excludedInput,setExcludedInput]=useState('');
-    const [seatPairSettings,setSeatPairSettings]=useState({mustPair:[],mustNotPair:[]});
+    const [placementType,setPlacementType]=useState(boot.placementType||'number');
+    const [inputNames,setInputNames]=useState(boot.inputNames||'');
+    const [maleInput,setMaleInput]=useState(boot.maleInput||'');
+    const [femaleInput,setFemaleInput]=useState(boot.femaleInput||'');
+    const [genderOption,setGenderOption]=useState(boot.genderOption||'mixed');
+    const [teams,setTeams]=useState(boot.teams||[]);
+    const [teamCount,setTeamCount]=useState(boot.teamCount??6);
+    const [teamColumns,setTeamColumns]=useState(boot.teamColumns??3);
+    const [seats,setSeats]=useState(boot.seats||[]);
+    const [seatType,setSeatType]=useState(boot.seatType||'single');
+    const [excludedInput,setExcludedInput]=useState(boot.excludedInput||'');
+    const [seatPairSettings,setSeatPairSettings]=useState(boot.seatPairSettings||{mustPair:[],mustNotPair:[]});
     const [showPairSettings,setShowPairSettings]=useState(false);
     const [pairSettingTab,setPairSettingTab]=useState('must');
     const [pairInputA,setPairInputA]=useState('');
     const [pairInputB,setPairInputB]=useState('');
+    // ★ 고정 좌석(비밀) - 특정 학생을 특정 자리에 고정
+    const [seatFixed,setSeatFixed]=useState(boot.seatFixed||[]); // [{student, pos}] (pos: 1부터 시작하는 자리 순번)
+    const [showFixSettings,setShowFixSettings]=useState(false);
+    const [fixStudent,setFixStudent]=useState('');
+    const [fixPos,setFixPos]=useState(null);
     const [selectedItem,setSelectedItem]=useState(null);
-    const [timeLeft,setTimeLeft]=useState(300);
-    const [initialTime,setInitialTime]=useState(300);
+    const [timeLeft,setTimeLeft]=useState(boot.initialTime??300);
+    const [initialTime,setInitialTime]=useState(boot.initialTime??300);
     const [isTimerRunning,setIsTimerRunning]=useState(false);
     const [timerEverStarted,setTimerEverStarted]=useState(false);
     const [minEdit,setMinEdit]=useState('');const [secEdit,setSecEdit]=useState('');
     const [editingMin,setEditingMin]=useState(false);const [editingSec,setEditingSec]=useState(false);
-    const [showClockInTimer,setShowClockInTimer]=useState(false);
+    const [showClockInTimer,setShowClockInTimer]=useState(boot.showClockInTimer||false);
     const [qrInput,setQrInput]=useState('');const [qrUrl,setQrUrl]=useState(null);
-    const [memos,setMemos]=useState([]);const [memoInput,setMemoInput]=useState('');
+    const [memos,setMemos]=useState(boot.memos||[]);const [memoInput,setMemoInput]=useState('');
     const [editingMemoId,setEditingMemoId]=useState(null);
-    const [memoColor,setMemoColor]=useState('#FFE0E0');
-    const [memoFontSize,setMemoFontSize]=useState(14);
+    const [memoColor,setMemoColor]=useState(boot.memoColor||'#FFE0E0');
+    const [memoFontSize,setMemoFontSize]=useState(boot.memoFontSize??14);
     const [uploadedImg,setUploadedImg]=useState(null);
     const [fullScreenContent,setFullScreenContent]=useState(null);const [fsFontSize,setFsFontSize]=useState(60);
 
-    const [seatRowMode,setSeatRowMode]=useState('auto');
-    const [seatColumns,setSeatColumns]=useState(5);
-    const [seatRows,setSeatRows]=useState(6);
-    const [seatGrid,setSeatGrid]=useState([]);
-    const [savedSeatLayout,setSavedSeatLayout]=useState(null); // 저장(잠금)된 자리 배치 스냅샷 {grid, cols}
+    const [seatRowMode,setSeatRowMode]=useState(boot.seatRowMode||'auto');
+    const [seatColumns,setSeatColumns]=useState(boot.seatColumns??5);
+    const [seatRows,setSeatRows]=useState(boot.seatRows??6);
+    const [seatGrid,setSeatGrid]=useState(boot.seatGrid||[]);
+    const [savedSeatLayout,setSavedSeatLayout]=useState(boot.savedSeatLayout||null); // 저장(잠금)된 자리 배치 스냅샷 {grid, cols}
     const [seatLayoutDirty,setSeatLayoutDirty]=useState(false); // 저장 이후 격자가 변경되었는지
-    const [dDays, setDDays] = useState([]); 
+    const [dDays, setDDays] = useState(boot.dDays||[]); 
 
     const audioCtx=useRef(null);const timerRef=useRef(null);const captureRef=useRef(null);const fileInputRef=useRef(null);
 
@@ -2360,6 +2374,13 @@ function App(){
         setSeatLayoutDirty(false);
     };
 
+    // ★ 세션 자동 저장 (변경 시 400ms 디바운스로 localStorage에 저장)
+    useEffect(()=>{
+        const data={step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays};
+        const t=setTimeout(()=>{try{localStorage.setItem(SESSION_KEY,JSON.stringify(data));}catch(e){}},400);
+        return()=>clearTimeout(t);
+    },[step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays]);
+
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
     const playSound=type=>{
         if(!isSoundOn)return;initAudio();const ctx=audioCtx.current;const t=ctx.currentTime;
@@ -2376,7 +2397,7 @@ function App(){
     const handleCapture=async()=>{if(!captureRef.current)return;playSound('click');try{await document.fonts.ready;const canvas=await html2canvas(captureRef.current,{scale:2,backgroundColor:'#FDFBF7',useCORS:true,logging:false,allowTaint:true,onclone:doc=>{doc.querySelectorAll('.center-content').forEach(el=>{el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.style.paddingBottom='12px';el.style.lineHeight='1';el.style.height='100%';});}});const link=document.createElement('a');link.download=`송쌤과학_${mode}_${Date.now()}.png`;link.href=canvas.toDataURL();link.click();showAlert("이미지가 저장되었습니다 📸");}catch(e){console.error(e);showAlert("저장 실패. 다시 시도해주세요.");}};
 
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
-    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
+    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{try{localStorage.removeItem(SESSION_KEY);}catch(e){}setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSeatFixed([]);setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
 
     // ★ 타이머 ref - 모든 타이머 동작은 이 ref들 기반
     const timerStartRef=useRef(null);
@@ -2452,11 +2473,85 @@ function App(){
                 setSeatLayoutDirty(false);
             }
         }
-        playSound('click');setIsPicking(true);setSeats([]);setTimeout(()=>{let pool=buildPool(data);if(seatType==='pair'&&(seatPairSettings.mustPair.length>0||seatPairSettings.mustNotPair.length>0))pool=applyPC(pool,seatPairSettings);setSeats(pool);setIsPicking(false);playSound('win');},350);};
+        playSound('click');setIsPicking(true);setSeats([]);setTimeout(()=>{let pool=buildPool(data);if(seatType==='pair'&&(seatPairSettings.mustPair.length>0||seatPairSettings.mustNotPair.length>0))pool=applyPC(pool,seatPairSettings);pool=applyFixedSeats(pool);setSeats(pool);setIsPicking(false);playSound('win');},350);};
     const applyPC=(pool,settings)=>{const{mustPair,mustNotPair}=settings;const s=v=>String(v);for(let a=0;a<200;a++){let arr=[...pool].sort(()=>Math.random()-.5);for(const p of mustPair){const iA=arr.findIndex(x=>s(x)===s(p[0])),iB=arr.findIndex(x=>s(x)===s(p[1]));if(iA===-1||iB===-1)continue;const big=Math.max(iA,iB),sm=Math.min(iA,iB);const pB=arr.splice(big,1)[0],pS=arr.splice(sm,1)[0];arr.splice(0,0,pS,pB);}let ok=true;for(const p of mustPair){let f=false;for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){f=true;break;}if(!f){ok=false;break;}}if(!ok)continue;for(const p of mustNotPair){for(let i=0;i+1<arr.length;i+=2)if((s(arr[i])===s(p[0])&&s(arr[i+1])===s(p[1]))||(s(arr[i])===s(p[1])&&s(arr[i+1])===s(p[0]))){ok=false;break;}if(!ok)break;}if(ok)return arr;}return[...pool].sort(()=>Math.random()-.5);};
 
     const addPairSetting=()=>{const a=pairInputA.trim(),b=pairInputB.trim();if(!a||b)return showAlert("두 학생 모두 입력해주세요.");if(a===b)return showAlert("같은 학생을 입력할 수 없습니다.");const key=pairSettingTab==='must'?'mustPair':'mustNotPair';if(seatPairSettings[key].some(p=>(String(p[0])===a&&String(p[1])===b)||(String(p[0])===b&&String(p[1])===a)))return showAlert("이미 등록된 조합입니다.");setSeatPairSettings(prev=>({...prev,[key]:[...prev[key],[a,b]]}));setPairInputA('');setPairInputB('');playSound('click');};
     const removePairSetting=(key,idx)=>{playSound('click');setSeatPairSettings(prev=>({...prev,[key]:prev[key].filter((_,i)=>i!==idx)}));};
+
+    // ★ 고정 좌석: pool(섞인 학생 배열)에서 지정 학생을 지정 자리로 이동, 나머지는 순서대로 채움
+    const applyFixedSeats=(pool)=>{
+        if(!seatFixed.length)return pool;
+        const s=v=>String(v);
+        const n=pool.length;
+        const result=new Array(n).fill(undefined);
+        const remaining=[...pool];
+        seatFixed.forEach(f=>{
+            const pos=parseInt(f.pos)-1;
+            if(isNaN(pos)||pos<0||pos>=n)return;       // 자리 범위를 벗어나면 무시
+            if(result[pos]!==undefined)return;         // 이미 채워진 자리면 무시
+            const idx=remaining.findIndex(x=>s(x)===s(f.student));
+            if(idx===-1)return;                        // 명단에 없는 학생이면 무시
+            result[pos]=remaining.splice(idx,1)[0];
+        });
+        let ri=0;
+        for(let i=0;i<n;i++){if(result[i]===undefined)result[i]=remaining[ri++];}
+        return result;
+    };
+    // 현재 배치 인원 수(고정 좌석 미리보기용)
+    const getExpectedCount=()=>{const d=parseData();if(!d)return 0;if(placementType==='gender')return (d.m?.length||0)+(d.f?.length||0);return d.length;};
+    // 명단 목록(고정할 학생 유효성 검사용)
+    const rosterList=()=>{
+        if(placementType==='number')return activeStudents.map(String);
+        if(placementType==='name')return inputNames.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean);
+        if(placementType==='gender')return [...maleInput.split(/[\n,]+/),...femaleInput.split(/[\n,]+/)].map(x=>x.trim()).filter(Boolean);
+        return [];
+    };
+    const isInRoster=st=>rosterList().some(x=>String(x)===String(st));
+    // 미리보기 레이아웃(현재 좌석 모드/저장배치 기준) 계산
+    const buildFixLayout=()=>{
+        const expected=getExpectedCount();
+        if(seatType==='single'&&savedSeatLayout&&savedSeatLayout.grid){
+            const cols=savedSeatLayout.cols;let onIdx=0;
+            const rows=savedSeatLayout.grid.map(row=>{
+                const cells=[];
+                for(let ci=0;ci<cols;ci++){
+                    if(row[ci]){onIdx++;cells.push(onIdx<=expected?{pos:onIdx}:{empty:true});}
+                    else cells.push({spacer:true});
+                }
+                return {cols,cells};
+            });
+            return {rows,expected};
+        }
+        if(seatType==='pair'){
+            const rows=[];
+            for(let i=0;i<expected;i+=2){
+                const cells=[{pos:i+1}];
+                cells.push(i+1<expected?{pos:i+2}:{spacer:true});
+                rows.push({cols:2,cells,pair:true});
+            }
+            return {rows,expected};
+        }
+        const cols=seatColumns;const rows=[];
+        for(let i=0;i<expected;i+=cols){
+            const cells=[];
+            for(let c=0;c<cols;c++){const p=i+c+1;cells.push(p<=expected?{pos:p}:{spacer:true});}
+            rows.push({cols,cells});
+        }
+        return {rows,expected};
+    };
+    // 미리보기에서 자리를 탭했을 때
+    const onFixSeatTap=pos=>{
+        const occupant=seatFixed.find(f=>String(f.pos)===String(pos));
+        if(occupant){playSound('click');setSeatFixed(prev=>prev.filter(f=>String(f.pos)!==String(pos)));return;}
+        const st=fixStudent.trim();
+        if(!st){playSound('click');setFixPos(pos);return showAlert("먼저 위 칸에 학생 번호(또는 이름)를\n입력한 뒤 자리를 선택하세요.");}
+        if(!isInRoster(st))return showAlert("명단에 없는 학생입니다.\n번호/이름을 다시 확인해주세요.");
+        playSound('win');
+        setSeatFixed(prev=>{const cleaned=prev.filter(f=>String(f.student)!==String(st)&&String(f.pos)!==String(pos));return [...cleaned,{student:st,pos}];});
+        setFixStudent('');setFixPos(null);
+    };
+    const removeFix=pos=>{playSound('click');setSeatFixed(prev=>prev.filter(f=>String(f.pos)!==String(pos)));};
 
     const performSwap=(src,tgt)=>{if(src.type==='team'){const t=[...teams.map(x=>[...x])];const tmp=t[src.index][src.subIndex];t[src.index][src.subIndex]=t[tgt.index][tgt.subIndex];t[tgt.index][tgt.subIndex]=tmp;setTeams(t);}else{const s=[...seats];[s[src.index],s[tgt.index]]=[s[tgt.index],s[src.index]];setSeats(s);}};
     const handleItemTap=(type,index,subIndex=null)=>{if(isPicking)return;playSound('click');if(selectedItem){if(selectedItem.type===type&&selectedItem.index===index&&selectedItem.subIndex===subIndex){setSelectedItem(null);return;}if(selectedItem.type!==type){setSelectedItem({type,index,subIndex});return;}performSwap(selectedItem,{type,index,subIndex});setSelectedItem(null);playSound('win');}else setSelectedItem({type,index,subIndex});};
@@ -2676,6 +2771,7 @@ function App(){
                     <div className="flex gap-2 items-end flex-wrap">
                         <div className="flex bg-[#FFF8F0] p-0.5 rounded-lg border border-gray-100"><button onClick={()=>setSeatType('single')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target ${seatType==='single'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>혼자</button><button onClick={()=>setSeatType('pair')} className={`px-3 py-2 rounded-md text-[10px] font-bold touch-target ${seatType==='pair'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>짝꿍</button></div>
                         {seatType==='pair'&&<button onClick={()=>{playSound('click');setShowPairSettings(true);}} className="relative py-2 px-3 bg-white border-2 border-dashed border-[#FFD3B6] text-[#D68C60] rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="settings-2" size={14}/> 조건{(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<span className="absolute -top-1.5 -right-1.5 bg-[#FFB7B2] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">{seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length}</span>}</button>}
+                        <button onClick={()=>{playSound('click');setShowFixSettings(true);}} className="relative py-2 px-3 bg-white border-2 border-dashed border-[#C3B1E1] text-[#8267C4] rounded-lg text-[10px] font-bold touch-target flex items-center gap-1"><Icon name="pin" size={14}/> 고정{seatFixed.length>0&&<span className="absolute -top-1.5 -right-1.5 bg-[#B39DDB] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">{seatFixed.length}</span>}</button>
                         <button onClick={createSeats} className="ml-auto py-2.5 px-4 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm"><Icon name="layout-grid" size={16}/> 생성</button>
                     </div>
 
@@ -2823,6 +2919,36 @@ function App(){
             <div className="flex-1 overflow-y-auto px-3.5 py-2 min-h-0">{pairSettingTab==='must'?(seatPairSettings.mustPair.length?seatPairSettings.mustPair.map((p,i)=><div key={i} className="flex items-center justify-between bg-[#F0FFF0] p-2 rounded-lg border border-[#C8E6C9] mb-1.5"><div className="flex items-center gap-1.5"><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#4CAF50] border border-[#C8E6C9]">{p[0]}</span><span className="text-xs">💕</span><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#4CAF50] border border-[#C8E6C9]">{p[1]}</span></div><button onClick={()=>removePairSetting('mustPair',i)} className="p-1 text-red-300 touch-target"><Icon name="x" size={14}/></button></div>):<div className="text-center py-6 text-gray-300"><p className="text-xs font-bold">등록된 조합 없음</p></div>):(seatPairSettings.mustNotPair.length?seatPairSettings.mustNotPair.map((p,i)=><div key={i} className="flex items-center justify-between bg-[#FFF0F0] p-2 rounded-lg border border-[#FFCDD2] mb-1.5"><div className="flex items-center gap-1.5"><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#FF6B6B] border border-[#FFCDD2]">{p[0]}</span><span className="text-xs">🚫</span><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#FF6B6B] border border-[#FFCDD2]">{p[1]}</span></div><button onClick={()=>removePairSetting('mustNotPair',i)} className="p-1 text-red-300 touch-target"><Icon name="x" size={14}/></button></div>):<div className="text-center py-6 text-gray-300"><p className="text-xs font-bold">등록된 조합 없음</p></div>)}</div>
             <div className="p-3.5 border-t border-gray-100 flex gap-2 shrink-0">{(seatPairSettings.mustPair.length+seatPairSettings.mustNotPair.length)>0&&<button onClick={()=>{playSound('click');setSeatPairSettings({mustPair:[],mustNotPair:[]});}} className="px-3 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs touch-target">전체삭제</button>}<button onClick={()=>{playSound('click');setShowPairSettings(false);}} className="flex-1 py-2.5 bg-[#FFD3B6] text-white rounded-lg font-bold shadow-md active:scale-95 touch-target">설정 완료</button></div>
         </div></div>}
+
+        {showFixSettings&&(()=>{const fl=buildFixLayout();const posMap={};seatFixed.forEach(f=>{posMap[f.pos]=f.student;});return <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm" onClick={()=>setShowFixSettings(false)}><div className="modal-up bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl border-t-4 sm:border-4 border-[#C3B1E1] max-h-[85vh] flex flex-col safe-b" onClick={e=>e.stopPropagation()}>
+            <div className="flex items-center justify-between p-3.5 border-b border-gray-100 shrink-0"><div className="flex items-center gap-2"><div className="bg-[#B39DDB] p-1.5 rounded-lg text-white"><Icon name="pin" size={16}/></div><div><h3 className="text-sm font-black text-[#4A4A4A]">고정 좌석 설정</h3><p className="text-[9px] text-gray-400 font-bold">비밀 설정 · 학생 화면에는 표시되지 않아요</p></div></div><button onClick={()=>setShowFixSettings(false)} className="p-2 text-gray-400 rounded-lg touch-target"><Icon name="x" size={18}/></button></div>
+            <div className="px-3.5 pt-3 shrink-0">
+                <div className="bg-[#F5F0FF] rounded-lg p-2 border border-[#E1D5F5] flex items-start gap-1.5 mb-2.5"><Icon name="info" size={13} className="text-[#8267C4] shrink-0 mt-0.5"/><p className="text-[10px] text-[#6A4FA3] font-bold leading-snug">고정할 학생을 입력한 뒤 아래 자리를 누르면 그 자리에 고정돼요. '섞기'를 해도 항상 그 자리에 앉습니다. 고정된 자리를 다시 누르면 해제됩니다.</p></div>
+                <div className="flex gap-1.5 items-center p-2 rounded-lg border-2 bg-[#F5F0FF] border-[#E1D5F5]"><input type="text" value={fixStudent} onChange={e=>setFixStudent(e.target.value)} className="flex-1 bg-white p-2 rounded-md text-center font-bold text-xs border border-gray-100 focus:outline-none min-w-0" placeholder={placementType==='number'?'고정할 학생 번호 입력':'고정할 학생 이름 입력'}/><Icon name="arrow-right" size={16} className="text-[#B39DDB] shrink-0"/><span className="text-[10px] font-bold text-[#8267C4] shrink-0 pr-1">자리 선택</span></div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3.5 py-3 min-h-0">
+                {fl.expected===0?<div className="text-center py-8 text-gray-300"><Icon name="users" size={26} className="mx-auto opacity-30 mb-1"/><p className="text-xs font-bold">먼저 학생 명단(번호/이름)을 입력해주세요.</p></div>:<>
+                <div className="bg-white rounded-xl border-2 border-[#C3B1E1] p-2.5">
+                    <div className="w-full bg-[#5D5D5D] text-white py-1 rounded-lg text-center font-bold mb-2.5 text-[10px] tracking-widest">칠 판</div>
+                    <div className="flex flex-col gap-1.5">
+                        {fl.rows.map((r,ri)=><div key={ri} className="grid gap-1.5" style={{gridTemplateColumns:`repeat(${r.cols}, minmax(0, 1fr))`}}>
+                            {r.cells.map((c,ci)=>{
+                                if(c.spacer)return <div key={ci}/>;
+                                if(c.empty)return <div key={ci} className="py-2 rounded-md bg-gray-50 border-2 border-dashed border-gray-200"/>;
+                                const occ=posMap[c.pos];
+                                return <button key={ci} onClick={()=>onFixSeatTap(c.pos)} className={`py-2 rounded-md text-[11px] font-black border-2 touch-target flex flex-col items-center justify-center leading-none transition-all ${occ?'bg-[#B39DDB] border-[#9575CD] text-white':(fixPos===c.pos?'bg-[#F5F0FF] border-[#B39DDB] text-[#8267C4]':'bg-white border-gray-200 text-gray-400 active:bg-[#F5F0FF]')}`}>{occ?<><span className="text-[8px] opacity-80 mb-0.5">{c.pos}번 자리</span><span className="text-[13px]">{occ}</span></>:<span>{c.pos}</span>}</button>;
+                            })}
+                        </div>)}
+                    </div>
+                </div>
+                {seatFixed.length>0&&<div className="mt-3 space-y-1.5">
+                    <p className="text-[10px] font-black text-gray-400 px-1">고정된 학생 {seatFixed.length}명</p>
+                    {[...seatFixed].sort((a,b)=>a.pos-b.pos).map((f,i)=><div key={i} className="flex items-center justify-between bg-[#F5F0FF] p-2 rounded-lg border border-[#E1D5F5]"><div className="flex items-center gap-1.5"><span className="bg-[#B39DDB] text-white px-2 py-1 rounded-md font-black text-xs">{f.student}</span><Icon name="arrow-right" size={12} className="text-[#B39DDB]"/><span className="bg-white px-2 py-1 rounded-md font-bold text-xs text-[#8267C4] border border-[#E1D5F5]">{f.pos}번 자리</span></div><button onClick={()=>removeFix(f.pos)} className="p-1 text-red-300 touch-target"><Icon name="x" size={14}/></button></div>)}
+                </div>}
+                </>}
+            </div>
+            <div className="p-3.5 border-t border-gray-100 flex gap-2 shrink-0">{seatFixed.length>0&&<button onClick={()=>{playSound('click');setSeatFixed([]);}} className="px-3 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-bold text-xs touch-target">전체삭제</button>}<button onClick={()=>{playSound('click');setShowFixSettings(false);}} className="flex-1 py-2.5 bg-[#B39DDB] text-white rounded-lg font-bold shadow-md active:scale-95 touch-target">설정 완료</button></div>
+        </div></div>;})()}
 
         {systemModal&&<SystemModal modal={systemModal} closeModal={closeModal}/>}
         {showSettings&&<SettingsModal isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} uiScale={uiScale} setUiScale={setUiScale} onClose={()=>setShowSettings(false)} playSound={playSound}/>}
