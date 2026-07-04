@@ -99,8 +99,8 @@
         .highlight-anim{transition:all .08s;transform:scale(1.14);background:#B5EAD7!important;border-color:#7ECDB0!important;color:#1B5E3F!important;z-index:10;}
         .selected-item{border-color:#FF8A80!important;background:#FFF0F0!important;color:#E53935!important;transform:scale(.95);border-style:dashed!important;animation:bDance 1s infinite linear;}
         @keyframes bDance{0%{border-color:#FF8A80}50%{border-color:#FFDAC1}100%{border-color:#FF8A80}}
-        .glass-panel{background:rgba(255,255,255,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.6);box-shadow:0 1px 8px rgba(0,0,0,.04);}
-        .soft-shadow{box-shadow:0 2px 12px rgba(0,0,0,.04),0 .5px 2px rgba(0,0,0,.06);}
+        .glass-panel{background:rgba(255,255,255,.88);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(255,255,255,.6);box-shadow:0 2px 12px rgba(0,0,0,.05);}
+        .soft-shadow{box-shadow:0 4px 16px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.05);}
         .center-content{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;line-height:1;word-break:keep-all;}
         .timer-circle{transition:stroke-dashoffset 1s linear;}
         footer{font-family:'Do Hyeon',sans-serif;}
@@ -125,18 +125,26 @@
         .intro-icon{animation:gentleBounce 3s ease-in-out infinite;}
         @keyframes gentleBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         .input-glow:focus{box-shadow:0 0 0 4px rgba(255,183,178,.2);}
-        .nav-pill{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;transition:all .2s;flex-shrink:0;width:46px;height:52px;gap:1px;-webkit-user-select:none;user-select:none;}
+        .intro-title{background:linear-gradient(135deg,#FF9E99 0%,#F5A67A 45%,#7ECDB0 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;}
+        .intro-chip{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:bold;background:#fff;border:1.5px solid var(--border-soft);color:#8A8A8A;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+        body.dark-theme .intro-chip{background:#272B3C;border-color:#363B52;color:#B4B7C2;}
+        body.dark-theme .intro-title{background:linear-gradient(135deg,#FFB7B2 0%,#FFD3B6 45%,#B5EAD7 100%);-webkit-background-clip:text;background-clip:text;}
+        .nav-pill{--pill-c:#FFB7B2;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:14px;transition:all .2s;flex-shrink:0;width:46px;height:52px;gap:1px;-webkit-user-select:none;user-select:none;}
         @media(min-width:640px){.nav-pill{width:58px;height:58px;gap:2px}}
         @media(min-width:768px){.nav-pill{flex-direction:row;width:auto;height:auto;padding:10px 14px;gap:6px}}
-        .nav-pill.active{background:#FFB7B2;color:#fff;box-shadow:0 3px 12px rgba(255,183,178,.35);transform:scale(1.05);}
-        .nav-pill:not(.active){color:#A0A0A0}.nav-pill:not(.active):hover{background:rgba(255,255,255,.8);color:#FFB7B2;}
+        .nav-pill.active{background:linear-gradient(135deg,var(--pill-c) 0%,var(--pill-c) 100%);color:#fff;box-shadow:0 3px 12px rgba(0,0,0,.14);transform:scale(1.05);}
+        @supports(background:color-mix(in srgb,red 50%,blue)){.nav-pill.active{background:linear-gradient(140deg,color-mix(in srgb,var(--pill-c) 88%,#fff) 0%,var(--pill-c) 60%,color-mix(in srgb,var(--pill-c) 88%,#5D5D5D) 100%);box-shadow:0 3px 14px color-mix(in srgb,var(--pill-c) 45%,transparent),inset 0 1px 0 rgba(255,255,255,.35);}}
+        .nav-pill:not(.active){color:var(--nav-inactive)}.nav-pill:not(.active):hover{background:rgba(255,255,255,.85);color:var(--pill-c);transform:translateY(-1px);}
+        body.dark-theme .nav-pill:not(.active):hover{background:rgba(255,255,255,.08);}
+        .nav-divider{width:1px;align-self:stretch;margin:8px 3px;background:linear-gradient(180deg,transparent,var(--border-soft) 30%,var(--border-soft) 70%,transparent);flex-shrink:0;}
+        @media(max-width:767px){.nav-divider{margin:10px 2px;}}
         .sound-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:11px;font-weight:bold;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;}
         .sound-toggle.on{background:#E2F0CB;color:#6B8E23;border:1.5px solid #D4E8B4;}
         .sound-toggle.off{background:#F0F0F0;color:#AAA;border:1.5px solid #E0E0E0;}
         .student-cell{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;border:2px solid #EDE6DA;background:#fff;color:#5D5D5D;transition:all .12s;cursor:default;position:relative;overflow:hidden;font-size:14px;}
         @media(min-width:640px){.student-cell{border-radius:12px;font-size:18px}}
         .student-cell.done{background:#FAFAFA;border-color:#F0F0F0;color:#CCC;transform:scale(.9);filter:grayscale(1);}
-        .student-cell.winner{background:#FFB7B2;border-color:#FF9E99;color:#fff;z-index:20;}
+        .student-cell.winner{background:linear-gradient(140deg,#FFC4BD 0%,#FFB7B2 55%,#FF9E99 100%);border-color:#FF9E99;color:#fff;z-index:20;text-shadow:0 1px 2px rgba(0,0,0,.12);}
         .rec-pulse{animation:recPulse 1.2s ease-in-out infinite;}
         @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}50%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
         .clock-face{font-variant-numeric:tabular-nums;letter-spacing:-1px;}
@@ -2573,7 +2581,7 @@ function App(){
     const cancelEditMemo=()=>{setEditingMemoId(null);setMemoInput('');};
 
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
-    const NavBtn=({active,icon,label,onClick})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
+    const NavBtn=({active,icon,label,onClick,color='#FFB7B2'})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`} style={{'--pill-c':color}} title={label}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
 
     const getTimerFontSize=()=>{
         const totalChars=Math.floor(timeLeft/60).toString().length+3;
@@ -2594,8 +2602,15 @@ function App(){
             <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFB7B2] via-[#B5EAD7] to-[#C7CEEA]"/>
                 <div className="mb-4 sm:mb-6 inline-block p-5 rounded-full bg-gradient-to-br from-[#FFF0F0] to-[#FFE8E6] shadow-inner intro-icon"><Icon name="sprout" size={36} className="text-[#FFB7B2]"/></div>
-                <h1 className="text-2xl sm:text-4xl font-black text-[#4A4A4A] mb-1">송쌤과학</h1>
-                <p className="text-gray-400 font-bold mb-6 sm:mb-8 text-xs sm:text-sm">행복한 교실을 위한 스마트 도우미</p>
+                <h1 className="text-2xl sm:text-4xl font-black mb-1 intro-title">송쌤과학</h1>
+                <p className="text-gray-400 font-bold mb-4 text-xs sm:text-sm">행복한 교실을 위한 스마트 도우미</p>
+                <div className="flex flex-wrap justify-center gap-1.5 mb-6 sm:mb-8">
+                    <span className="intro-chip"><Icon name="trophy" size={12} className="text-[#FFB7B2]"/>발표뽑기</span>
+                    <span className="intro-chip"><Icon name="users" size={12} className="text-[#8F9FD6]"/>모둠·좌석</span>
+                    <span className="intro-chip"><Icon name="timer" size={12} className="text-[#FFAE8A]"/>타이머</span>
+                    <span className="intro-chip"><Icon name="palette" size={12} className="text-[#FF8A80]"/>판서</span>
+                    <span className="intro-chip">+ 9가지 도구</span>
+                </div>
                 <form onSubmit={startClass} className="space-y-4 sm:space-y-5">
                     <div className="text-left">
                         <label className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-gray-500 mb-2 pl-1"><Icon name="users" size={16} className="text-[#FFB7B2]"/>우리 반 마지막 번호를 입력하세요</label>
@@ -2700,21 +2715,25 @@ function App(){
 
     return(<div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden">
         <nav className="sticky top-0 z-40 glass-panel px-1.5 sm:px-4 py-2"><div className="max-w-7xl mx-auto flex items-center gap-1 sm:gap-2">
-            <div className="flex items-center gap-1 cursor-pointer shrink-0" onClick={goHome}><div className="bg-[#B5EAD7] p-1.5 sm:p-2 rounded-xl text-white shadow-sm"><Icon name="flask-conical" size={16}/></div><span className="hidden sm:block text-sm font-black text-gray-500">{students.length}명{excludedNums.length>0&&<span className="text-[10px] text-gray-400 font-bold ml-0.5">(-{excludedNums.length})</span>}</span></div>
+            <div className="flex items-center gap-1.5 cursor-pointer shrink-0" onClick={goHome} title="처음 화면으로"><div className="bg-gradient-to-br from-[#B5EAD7] to-[#8FD9BD] p-1.5 sm:p-2 rounded-xl text-white shadow-sm"><Icon name="flask-conical" size={16}/></div><div className="hidden sm:flex flex-col leading-none"><span className="hidden lg:block text-[13px] font-black text-[#7ECDB0]">송쌤과학</span><span className="text-sm lg:text-[11px] font-black text-gray-500">{students.length}명{excludedNums.length>0&&<span className="text-[10px] text-gray-400 font-bold ml-0.5">(-{excludedNums.length})</span>}</span></div></div>
             <div className="flex gap-px sm:gap-0.5 overflow-x-auto no-scrollbar flex-1 py-1 px-0.5 bg-white/50 rounded-2xl border border-white/60">
-                <NavBtn active={mode==='whiteboard'} icon="palette" label="판서" onClick={()=>setMode('whiteboard')}/>
-                <NavBtn active={mode==='pick'} icon="trophy" label="발표" onClick={()=>setMode('pick')}/>
-                <NavBtn active={mode==='lotto'} icon="dices" label="로또" onClick={()=>setMode('lotto')}/>
-                <NavBtn active={mode==='wheel'} icon="circle-dot" label="돌림판" onClick={()=>setMode('wheel')}/>
-                <NavBtn active={mode==='team'} icon="users" label="모둠" onClick={()=>setMode('team')}/>
-                <NavBtn active={mode==='seat'} icon="armchair" label="좌석" onClick={()=>setMode('seat')}/>
-                <NavBtn active={mode==='timer'} icon="timer" label="타이머" onClick={()=>setMode('timer')}/>
-                <NavBtn active={mode==='calendar'} icon="calendar" label="달력" onClick={()=>setMode('calendar')}/>
-                <NavBtn active={mode==='youtube'} icon="youtube" label="영상" onClick={()=>setMode('youtube')}/>
-                <NavBtn active={mode==='record'} icon="mic" label="녹음" onClick={()=>setMode('record')}/>
-                <NavBtn active={mode==='qr'} icon="qr-code" label="QR" onClick={()=>setMode('qr')}/>
-                <NavBtn active={mode==='memo'} icon="sticky-note" label="메모" onClick={()=>setMode('memo')}/>
-                <NavBtn active={mode==='img'} icon="image" label="사진" onClick={()=>setMode('img')}/>
+                <NavBtn active={mode==='whiteboard'} icon="palette" label="판서" color="#FF8A80" onClick={()=>setMode('whiteboard')}/>
+                <div className="nav-divider"/>
+                <NavBtn active={mode==='pick'} icon="trophy" label="발표" color="#FFB7B2" onClick={()=>setMode('pick')}/>
+                <NavBtn active={mode==='lotto'} icon="dices" label="로또" color="#FF6B6B" onClick={()=>setMode('lotto')}/>
+                <NavBtn active={mode==='wheel'} icon="circle-dot" label="돌림판" color="#B39DDB" onClick={()=>setMode('wheel')}/>
+                <div className="nav-divider"/>
+                <NavBtn active={mode==='team'} icon="users" label="모둠" color="#8F9FD6" onClick={()=>setMode('team')}/>
+                <NavBtn active={mode==='seat'} icon="armchair" label="좌석" color="#F5A67A" onClick={()=>setMode('seat')}/>
+                <div className="nav-divider"/>
+                <NavBtn active={mode==='timer'} icon="timer" label="타이머" color="#FFAE8A" onClick={()=>setMode('timer')}/>
+                <NavBtn active={mode==='calendar'} icon="calendar" label="달력" color="#7ECDB0" onClick={()=>setMode('calendar')}/>
+                <div className="nav-divider"/>
+                <NavBtn active={mode==='youtube'} icon="youtube" label="영상" color="#EF7B72" onClick={()=>setMode('youtube')}/>
+                <NavBtn active={mode==='record'} icon="mic" label="녹음" color="#E57373" onClick={()=>setMode('record')}/>
+                <NavBtn active={mode==='qr'} icon="qr-code" label="QR" color="#6FCF97" onClick={()=>setMode('qr')}/>
+                <NavBtn active={mode==='memo'} icon="sticky-note" label="메모" color="#F2C14E" onClick={()=>setMode('memo')}/>
+                <NavBtn active={mode==='img'} icon="image" label="사진" color="#64B5F6" onClick={()=>setMode('img')}/>
             </div>
             <div className="shrink-0 hidden sm:block"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/></div>
             <button onClick={()=>setIsSoundOn(!isSoundOn)} className="sm:hidden shrink-0 p-1.5 rounded-xl touch-target" style={{color:isSoundOn?'#6B8E23':'#AAA'}}><Icon name={isSoundOn?"volume-2":"volume-x"} size={16}/></button>
