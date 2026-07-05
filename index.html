@@ -249,6 +249,23 @@
         .wb-img-handle.br{bottom:-7px;right:-7px;cursor:nwse-resize;}
         .wb-img-handle.del{top:-32px;right:-7px;width:24px;height:24px;background:#FF6B6B;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;}
         .wb-text-edit{position:absolute;background:rgba(255,255,255,.6);border:2px dashed #FFB7B2;outline:none;padding:4px 6px;border-radius:6px;font-family:inherit;touch-action:auto;-webkit-user-select:text;user-select:text;resize:none;overflow:hidden;}
+        .wb-text-wrap{position:absolute;}
+        .wb-text-toolbar{position:absolute;top:-38px;left:-2px;display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.96);border:1.5px solid #FFD6D2;border-radius:10px;padding:3px 5px;box-shadow:0 2px 10px rgba(0,0,0,.14);z-index:13;-webkit-user-select:none;user-select:none;white-space:nowrap;}
+        .wb-text-toolbar button{width:26px;height:26px;border-radius:7px;border:none;background:#FFF0F0;color:#E57373;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .12s;}
+        .wb-text-toolbar button:hover{background:#FFB7B2;color:#fff;}
+        .wb-text-toolbar .fs-val{min-width:28px;text-align:center;font-size:12px;font-weight:900;color:#5D5D5D;}
+        .wb-text-del{position:absolute;top:-13px;right:-13px;width:28px;height:28px;border-radius:50%;background:#FF6B6B;color:#fff;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:14;padding:0;transition:transform .12s;}
+        .wb-text-del:hover{transform:scale(1.12);}
+        .wb-text-rh{position:absolute;touch-action:none;z-index:12;}
+        .wb-text-rh.l{left:-9px;top:0;bottom:0;width:18px;cursor:ew-resize;}
+        .wb-text-rh.r{right:-9px;top:0;bottom:0;width:18px;cursor:ew-resize;}
+        .wb-text-rh.l::after,.wb-text-rh.r::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:7px;height:28px;border-radius:4px;background:#FFB7B2;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+        .wb-text-rh.br{right:-10px;bottom:-10px;width:20px;height:20px;cursor:nwse-resize;}
+        .wb-text-rh.br::after{content:'';position:absolute;inset:3px;border-radius:50%;background:#FFB7B2;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+        .wb-dark .wb-text-toolbar{background:rgba(31,41,55,.96);border-color:#4B5563;}
+        .wb-dark .wb-text-toolbar button{background:#374151;color:#FFB7B2;}
+        .wb-dark .wb-text-toolbar button:hover{background:#FFB7B2;color:#fff;}
+        .wb-dark .wb-text-toolbar .fs-val{color:#F1F2F5;}
         .wb-page-tab{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:10px 10px 0 0;background:#F0F0F0;color:#888;font-weight:bold;font-size:11px;cursor:pointer;flex-shrink:0;-webkit-user-select:none;user-select:none;}
         .wb-page-tab.active{background:#fff;color:#FFB7B2;box-shadow:0 -2px 6px rgba(0,0,0,.06);}
         .wb-page-tab .wb-page-close{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:.5;}
@@ -1447,6 +1464,8 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     const imageCache=useRef(new Map());
     const measureCtx=useMemo(()=>{const c=document.createElement('canvas');return c.getContext('2d');},[]);
     const textDragRef=useRef(null);
+    const textEditDragRef=useRef(null);
+    const textCancelRef=useRef(false);
     const [textBoxDraft,setTextBoxDraft]=useState(null);
     // 텍스트 객체의 화면상 박스(줄바꿈/래핑 반영) 계산
     const wbTextBox=useCallback((o)=>{
@@ -1787,6 +1806,7 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
 
     const commitText=(content)=>{
         if(!textEdit)return;
+        if(textCancelRef.current){textCancelRef.current=false;setTextEdit(null);return;}
         const w=textEdit.width||undefined;
         if(textEdit.editId){
             if(content.trim())dispatch({type:'UPDATE_OBJECT',id:textEdit.editId,patch:{content,fontSize:textEdit.fontSize,fontFamily:textEdit.fontFamily,bold:textEdit.bold,italic:textEdit.italic,color:textEdit.color,width:w}});
@@ -1800,6 +1820,15 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
     const onTextPointerDown=(e,o,mode)=>{e.stopPropagation();try{e.target.setPointerCapture(e.pointerId);}catch(_){}textDragRef.current={id:o.id,mode,sx:e.clientX,sy:e.clientY,ox:o.x,oy:o.y,ow:o.width||wbTextBox(o).w};setSelectedTextId(o.id);setSelectedImageId(null);};
     const onTextPointerMove=(e)=>{const sd=textDragRef.current;if(!sd)return;const dx=e.clientX-sd.sx,dy=e.clientY-sd.sy;if(sd.mode==='move')dispatch({type:'UPDATE_OBJECT',id:sd.id,patch:{x:sd.ox+dx,y:sd.oy+dy},skipHistory:true});else if(sd.mode==='width')dispatch({type:'UPDATE_OBJECT',id:sd.id,patch:{width:Math.max(50,Math.round(sd.ow+dx))},skipHistory:true});};
     const onTextPointerUp=()=>{if(textDragRef.current){const o=objects.find(o=>o.id===textDragRef.current.id);if(o)dispatch({type:'UPDATE_OBJECT',id:o.id,patch:{x:o.x,y:o.y,width:o.width}});textDragRef.current=null;}};
+    // ★ 입력 중인 텍스트 박스: 테두리 핸들 드래그로 영역 크기 조절
+    const onEditResizeDown=(e,edge)=>{e.preventDefault();e.stopPropagation();try{e.target.setPointerCapture(e.pointerId);}catch(_){}textEditDragRef.current={edge,sx:e.clientX,ox:textEdit.x,ow:textEdit.width||220};};
+    const onEditResizeMove=(e)=>{const d=textEditDragRef.current;if(!d)return;const dx=e.clientX-d.sx;
+        if(d.edge==='l'){const nw=Math.max(80,Math.round(d.ow-dx));setTextEdit(t=>t?{...t,x:d.ox+(d.ow-nw),width:nw}:t);}
+        else setTextEdit(t=>t?{...t,width:Math.max(80,Math.round(d.ow+dx))}:t);};
+    const onEditResizeUp=()=>{textEditDragRef.current=null;};
+    // ★ 입력 중 X 버튼: 커밋 없이 삭제 (기존 글씨 수정 중이면 객체도 삭제)
+    const cancelTextEdit=()=>{textCancelRef.current=true;if(textEdit&&textEdit.editId)dispatch({type:'REMOVE_OBJECTS',ids:[textEdit.editId]});playSound&&playSound('click');setTextEdit(null);setTimeout(()=>{textCancelRef.current=false;},150);};
+    const setEditFontSize=(delta)=>{setTextEdit(t=>t?{...t,fontSize:Math.max(10,Math.min(200,t.fontSize+delta))}:t);};
     const selectedText=selectedTextId?objects.find(o=>o.id===selectedTextId&&o.type==='text'):null;
 
     const addImage=(src,cx,cy)=>{
@@ -2212,13 +2241,24 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
             ))}
 
             {textEdit&&(
-                <textarea autoFocus className="wb-text-edit"
-                    ref={el=>{if(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}}}
-                    style={{left:textEdit.x+pan.x,top:textEdit.y+pan.y,width:(textEdit.width||220)+'px',fontSize:textEdit.fontSize+'px',fontFamily:textEdit.fontFamily,fontWeight:textEdit.bold?'bold':'normal',fontStyle:textEdit.italic?'italic':'normal',color:textEdit.color,lineHeight:1.2,minHeight:textEdit.fontSize*1.2+8+'px',whiteSpace:'pre-wrap',wordBreak:'break-word',overflow:'hidden',zIndex:10}}
-                    defaultValue={textEdit.content}
-                    onChange={e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}}
-                    onBlur={e=>commitText(e.target.value)}
-                    onKeyDown={e=>{if(e.key==='Escape'){e.target.value=textEdit.editId?textEdit.content:'';setTextEdit(null);}if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commitText(e.target.value);}}}/>
+                <div className="wb-text-wrap" style={{left:textEdit.x+pan.x,top:textEdit.y+pan.y,width:(textEdit.width||220)+'px',zIndex:10}}>
+                    <div className="wb-text-toolbar" onPointerDown={e=>{e.preventDefault();e.stopPropagation();}}>
+                        <button type="button" title="글씨 작게" onPointerDown={e=>{e.preventDefault();e.stopPropagation();setEditFontSize(-4);}}><Icon name="minus" size={12}/></button>
+                        <span className="fs-val">{textEdit.fontSize}</span>
+                        <button type="button" title="글씨 크게" onPointerDown={e=>{e.preventDefault();e.stopPropagation();setEditFontSize(4);}}><Icon name="plus" size={12}/></button>
+                    </div>
+                    <button type="button" className="wb-text-del" title="글씨 삭제" onPointerDown={e=>{e.preventDefault();e.stopPropagation();cancelTextEdit();}}><Icon name="x" size={13}/></button>
+                    <textarea autoFocus className="wb-text-edit"
+                        ref={el=>{if(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}}}
+                        style={{position:'relative',left:0,top:0,width:'100%',display:'block',fontSize:textEdit.fontSize+'px',fontFamily:textEdit.fontFamily,fontWeight:textEdit.bold?'bold':'normal',fontStyle:textEdit.italic?'italic':'normal',color:textEdit.color,lineHeight:1.2,minHeight:textEdit.fontSize*1.2+8+'px',whiteSpace:'pre-wrap',wordBreak:'break-word',overflow:'hidden'}}
+                        defaultValue={textEdit.content}
+                        onChange={e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}}
+                        onBlur={e=>commitText(e.target.value)}
+                        onKeyDown={e=>{if(e.key==='Escape'){e.target.value=textEdit.editId?textEdit.content:'';setTextEdit(null);}if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commitText(e.target.value);}}}/>
+                    <div className="wb-text-rh l" title="영역 줄이기/늘리기" onPointerDown={e=>onEditResizeDown(e,'l')} onPointerMove={onEditResizeMove} onPointerUp={onEditResizeUp}/>
+                    <div className="wb-text-rh r" title="영역 줄이기/늘리기" onPointerDown={e=>onEditResizeDown(e,'r')} onPointerMove={onEditResizeMove} onPointerUp={onEditResizeUp}/>
+                    <div className="wb-text-rh br" onPointerDown={e=>onEditResizeDown(e,'r')} onPointerMove={onEditResizeMove} onPointerUp={onEditResizeUp}/>
+                </div>
             )}
 
             {laserTrail.map((p,i)=>{
