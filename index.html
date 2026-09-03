@@ -20,6 +20,8 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- HTML2Canvas -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <!-- jsPDF (좌석 배치도 PDF 저장) -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&family=Gamja+Flower&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     
@@ -178,6 +180,20 @@
         .lotto-glass{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;backdrop-filter:blur(10px);}
         .lotto-bounce{animation:lottoBounce .4s ease-out;}
         @keyframes lottoBounce{0%{transform:translateY(-20px);opacity:0}60%{transform:translateY(4px)}100%{transform:translateY(0);opacity:1}}
+        /* ===== 칠판 바 (좌석·모둠 배치도 상단) ===== */
+        .board-bar{position:relative;width:100%;border-radius:14px;padding:5px;box-sizing:border-box;background:linear-gradient(180deg,#EBD3B0 0%,#D3B085 55%,#C09A6B 100%);}
+        .board-bar-gloss{position:absolute;left:12px;right:12px;top:2px;height:1.5px;border-radius:1px;background:rgba(255,255,255,.55);}
+        .board-bar-inner{position:relative;border-radius:9px;background:linear-gradient(168deg,#41594E 0%,#2F423A 52%,#27362F 100%);display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 0;overflow:hidden;}
+        .board-bar-dust{position:absolute;left:0;right:0;bottom:0;height:10px;background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(233,244,238,.10) 100%);}
+        .board-bar-label{font-weight:800;font-size:12px;letter-spacing:.45em;margin-right:-.45em;color:#F0F7F3;text-shadow:0 1px 2px rgba(0,0,0,.35);white-space:nowrap;}
+        .board-bar-rule{width:34px;height:2px;border-radius:1px;background:rgba(240,247,243,.3);flex-shrink:0;}
+        .board-bar.is-sm{padding:4px;border-radius:11px;}
+        .board-bar.is-sm .board-bar-inner{border-radius:7px;padding:6px 0;gap:10px;}
+        .board-bar.is-sm .board-bar-label{font-size:10px;}
+        .board-bar.is-sm .board-bar-rule{width:24px;}
+        @media(min-width:640px){.board-bar-label{font-size:13px;}.board-bar-rule{width:44px;}}
+        body.dark-theme .board-bar{background:linear-gradient(180deg,#8E7454 0%,#6E5840 55%,#5C4A36 100%);}
+        body.dark-theme .board-bar-gloss{background:rgba(255,255,255,.22);}
         /* 줄별 좌석 배치 */
         .seat-row{display:flex;justify-content:center;gap:6px;}
         @media(min-width:640px){.seat-row{gap:10px;}}
@@ -302,6 +318,18 @@
 const {useState,useEffect,useRef,useMemo,useCallback}=React;
 
 // 아이콘 렌더링 픽스
+// 칠판 바 - 좌석/모둠 배치도 상단에 표시
+const BoardBar=({label='칠 판',small=false})=>(
+    <div className={`board-bar${small?' is-sm':''}`}>
+        <div className="board-bar-gloss"/>
+        <div className="board-bar-inner">
+            <span className="board-bar-rule"/>
+            <span className="board-bar-label">{label}</span>
+            <span className="board-bar-rule"/>
+            <span className="board-bar-dust"/>
+        </div>
+    </div>
+);
 const Icon=({name,size=24,className=""})=>{
     const ref=useRef(null);
     useEffect(()=>{
@@ -2369,6 +2397,10 @@ function App(){
     const [fixPos,setFixPos]=useState(null);
     // ★ 시연(발표) 모드 - 켜면 좌석 설정 패널을 숨겨 학생에게 정보가 드러나지 않게 함
     const [seatPresentMode,setSeatPresentMode]=useState(boot.seatPresentMode||false);
+    // ★ PDF 배치표에 들어갈 제목 / 교사 정보
+    const [seatTitle,setSeatTitle]=useState(boot.seatTitle||'');
+    const [seatTeacher,setSeatTeacher]=useState(boot.seatTeacher||'');
+    const [seatTeacherRole,setSeatTeacherRole]=useState(boot.seatTeacherRole||'담임');
     const [selectedItem,setSelectedItem]=useState(null);
     const [timeLeft,setTimeLeft]=useState(boot.initialTime??300);
     const [initialTime,setInitialTime]=useState(boot.initialTime??300);
@@ -2426,10 +2458,10 @@ function App(){
 
     // ★ 세션 자동 저장 (변경 시 400ms 디바운스로 localStorage에 저장)
     useEffect(()=>{
-        const data={step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays};
+        const data={step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays};
         const t=setTimeout(()=>{try{localStorage.setItem(SESSION_KEY,JSON.stringify(data));}catch(e){}},400);
         return()=>clearTimeout(t);
-    },[step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays]);
+    },[step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays]);
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
     const playSound=type=>{
@@ -2446,8 +2478,188 @@ function App(){
 
     const handleCapture=async()=>{if(!captureRef.current)return;playSound('click');try{await document.fonts.ready;const canvas=await html2canvas(captureRef.current,{scale:2,backgroundColor:'#FDFBF7',useCORS:true,logging:false,allowTaint:true,onclone:doc=>{doc.querySelectorAll('.center-content').forEach(el=>{el.style.display='flex';el.style.alignItems='center';el.style.justifyContent='center';el.style.paddingBottom='12px';el.style.lineHeight='1';el.style.height='100%';});}});const link=document.createElement('a');link.download=`송쌤과학_${mode}_${Date.now()}.png`;link.href=canvas.toDataURL();link.click();showAlert("이미지가 저장되었습니다 📸");}catch(e){console.error(e);showAlert("저장 실패. 다시 시도해주세요.");}};
 
+    // ===== 좌석 배치도 PDF 저장 (교탁 게시용 / 학생 게시용) =====
+    const seatEsc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    // 한글은 1칸, 영문/숫자는 약 0.58칸으로 보고 글자 폭을 어림
+    const seatTextUnits=s=>{let u=0;for(const ch of String(s??'')){u+=(ch.charCodeAt(0)<128)?0.58:1;}return Math.max(u,1);};
+
+    // 현재 좌석을 {rows:[[cell|null,...],...], cols, pair} 행렬로 변환 (화면 배치와 동일)
+    const buildSeatMatrix=()=>{
+        if(!seats.length)return null;
+        if(seatType==='pair'){
+            const desks=[];
+            for(let i=0;i<seats.length;i+=2)desks.push([seats[i]??null,seats[i+1]??null]);
+            const cols=Math.min(3,Math.max(1,desks.length));
+            const rows=[];
+            for(let i=0;i<desks.length;i+=cols){
+                const row=[];
+                for(let c=0;c<cols;c++)row.push(desks[i+c]?{labels:desks[i+c]}:null);
+                rows.push(row);
+            }
+            return {rows,cols,pair:true};
+        }
+        if(savedSeatLayout&&savedSeatLayout.grid&&savedSeatLayout.grid.length){
+            const cols=Math.max(1,savedSeatLayout.cols);
+            let idx=0;const rows=[];
+            savedSeatLayout.grid.forEach(gRow=>{
+                const row=[];
+                for(let c=0;c<cols;c++)row.push(gRow[c]?{labels:[idx<seats.length?seats[idx++]:null]}:null);
+                rows.push(row);
+            });
+            return {rows,cols,pair:false};
+        }
+        const cols=Math.max(1,seatColumns);
+        const rows=[];
+        for(let i=0;i<seats.length;i+=cols){
+            const row=[];
+            for(let c=0;c<cols;c++)row.push(i+c<seats.length?{labels:[seats[i+c]]}:null);
+            rows.push(row);
+        }
+        return {rows,cols,pair:false};
+    };
+
+    // 교탁에서 학생을 바라본 방향 = 180° 회전 (앞뒤 뒤집기 + 좌우 뒤집기)
+    const rotateSeatMatrix180=m=>({...m,rows:m.rows.slice().reverse().map(row=>row.slice().reverse().map(c=>c?{labels:c.labels.slice().reverse()}:null))});
+
+    const exportSeatPDF=async(view)=>{
+        const base=buildSeatMatrix();
+        if(!base)return showAlert("먼저 좌석을 생성해주세요.");
+        playSound('click');
+        const isTeacher=view==='teacher';
+        const m=isTeacher?rotateSeatMatrix180(base):base;
+
+        const rows=m.rows.length,cols=m.cols;
+        // 배치표는 항상 가로(A4 landscape)로 저장
+        const W=1123,H=794;                              // A4 가로 @96dpi
+        const M=44,headerH=78,barH=54,noteH=24,vgap=16;
+        const areaW=W-M*2;
+        const topBlock=isTeacher?noteH:barH;             // 교탁용은 위가 '교실 뒤쪽', 학생용은 위가 '칠판'
+        const botBlock=isTeacher?barH:noteH;
+        const areaY=M+headerH+vgap+topBlock+vgap;
+        const areaH=H-M-botBlock-vgap-areaY;
+        const gap=Math.max(6,Math.min(14,Math.round(Math.min(areaW/cols,areaH/rows)*0.10)));
+        // 학생 수가 적을 때 칸이 지나치게 커지지 않도록 상한을 두고 가운데 정렬
+        const CW=Math.min(m.pair?340:230,Math.floor((areaW-gap*(cols-1))/cols));
+        const CH=Math.min(120,Math.floor((areaH-gap*(rows-1))/rows));
+        const gridW=CW*cols+gap*(cols-1),gridH=CH*rows+gap*(rows-1);
+        const gridX=M+Math.round((areaW-gridW)/2),gridY=areaY+Math.round((areaH-gridH)/2);
+        const iw=CW-4,ih=CH-4;
+
+        let maxUnits=1;
+        m.rows.forEach(r=>r.forEach(c=>{if(c)c.labels.forEach(l=>{if(l!=null&&l!=='')maxUnits=Math.max(maxUnits,seatTextUnits(l));});}));
+        const textW=m.pair?(iw/2-10):(iw-12);
+        const fs=Math.max(9,Math.min(42,Math.min(ih*0.5,textW/maxUnits)));
+        const fsTxt=fs.toFixed(1);
+        // html2canvas 는 글자 기준선을 브라우저보다 약 0.45em 아래에 그린다.
+        // line-height 를 그만큼 줄여 글자가 칸 정중앙에 오도록 보정한다.
+        const vLine=(boxH,f)=>Math.max(1,boxH-f*0.9).toFixed(1);
+
+        const cellsHtml=[];
+        m.rows.forEach((row,ri)=>row.forEach((cell,ci)=>{
+            if(!cell)return;
+            const x=gridX+ci*(CW+gap),y=gridY+ri*(CH+gap);
+            const box=`position:absolute;left:${x}px;top:${y}px;width:${CW}px;height:${CH}px;box-sizing:border-box;`;
+            if(m.pair){
+                const lw=Math.round(iw/2),rw=iw-lw;
+                const half=(l,i)=>`<div style="position:absolute;left:${i===0?0:lw}px;top:0;width:${i===0?lw:rw}px;height:${ih}px;line-height:${vLine(ih,fs)}px;text-align:center;font-size:${fsTxt}px;font-weight:900;color:#3D3D3D;box-sizing:border-box;${i===0?'border-right:1.5px solid #F3C9A8;':''}">${l==null||l===''?'':seatEsc(l)}</div>`;
+                cellsHtml.push(`<div style="${box}background:#FFF8F0;border:2px solid #F0A868;border-radius:10px;overflow:hidden;">${cell.labels.map(half).join('')}</div>`);
+            }else{
+                const l=cell.labels[0];
+                if(l==null||l===''){
+                    cellsHtml.push(`<div style="${box}background:#FAFAFA;border:2px dashed #DDDDDD;border-radius:10px;"></div>`);
+                }else{
+                    cellsHtml.push(`<div style="${box}background:#ffffff;border:2px solid #F0A868;border-radius:10px;line-height:${vLine(ih,fs)}px;text-align:center;font-size:${fsTxt}px;font-weight:900;color:#3D3D3D;overflow:hidden;">${seatEsc(l)}</div>`);
+                }
+            }
+        }));
+
+        const d=new Date();
+        const p2=n=>String(n).padStart(2,'0');
+        const dateStr=`${d.getFullYear()}. ${p2(d.getMonth()+1)}. ${p2(d.getDate())}`;
+        const title=(seatTitle||'').trim()||'자리 배치도';
+        const teacherName=(seatTeacher||'').trim();
+        const teacherLine=teacherName?`${seatTeacherRole==='교과'?'교과교사':'담임교사'}  ${teacherName}`:'';
+        const sub=isTeacher?'교탁 게시용 · 교탁에서 학생을 바라본 방향 (좌우 반전)':'학생 게시용 · 칠판이 위쪽인 방향';
+        const barY=isTeacher?(H-M-barH):(M+headerH+vgap);
+        const noteY=isTeacher?(M+headerH+vgap):(H-M-noteH);
+        const noteLabel=isTeacher?'▲ 교실 뒤쪽':'교실 뒤쪽 ▼';
+        const cx=gridX+Math.round(gridW/2);
+        // 제목/교사명이 길면 자동으로 줄여 서로 겹치지 않게 함
+        const teacherFs=teacherLine?Math.max(13,Math.min(19,330/seatTextUnits(teacherLine))):19;
+        const titleFs=Math.max(17,Math.min(32,(areaW-(teacherLine?360:60))/seatTextUnits(title)));
+
+        // 칠판·교탁은 실제 사물처럼 보이도록 여러 겹으로 그림
+        // (html2canvas 가 box-shadow 를 그리지 못해 그림자·하이라이트를 그라데이션 레이어로 표현)
+        const sideRules=(midY,color)=>`
+<div style="position:absolute;left:${cx-148}px;top:${midY-1}px;width:64px;height:2px;border-radius:1px;background:${color};"></div>
+<div style="position:absolute;left:${cx+84}px;top:${midY-1}px;width:64px;height:2px;border-radius:1px;background:${color};"></div>`;
+
+        const boardHtml=y=>`
+<div style="position:absolute;left:${gridX}px;top:${y}px;width:${gridW}px;height:${barH}px;border-radius:14px;background:linear-gradient(180deg,#EBD3B0 0%,#D3B085 55%,#C09A6B 100%);"></div>
+<div style="position:absolute;left:${gridX+14}px;top:${y+2}px;width:${gridW-28}px;height:2px;border-radius:1px;background:rgba(255,255,255,.55);"></div>
+<div style="position:absolute;left:${gridX+7}px;top:${y+7}px;width:${gridW-14}px;height:${barH-14}px;border-radius:8px;background:linear-gradient(168deg,#41594E 0%,#2F423A 52%,#27362F 100%);"></div>
+<div style="position:absolute;left:${gridX+7}px;top:${y+barH-19}px;width:${gridW-14}px;height:12px;border-radius:0 0 8px 8px;background:linear-gradient(180deg,rgba(233,244,238,0) 0%,rgba(233,244,238,.11) 100%);"></div>
+<div style="position:absolute;left:${gridX}px;top:${y}px;width:${gridW}px;height:${barH}px;line-height:${vLine(barH,21)}px;text-align:center;font-size:21px;font-weight:900;letter-spacing:11px;text-indent:11px;color:#F0F7F3;text-shadow:0 1px 3px rgba(0,0,0,.45);">칠 판</div>
+${sideRules(y+Math.round(barH/2),'rgba(240,247,243,.32)')}`;
+
+        const deskHtml=y=>{
+            const bodyH=barH-7;
+            return `
+<div style="position:absolute;left:${gridX+Math.round(gridW*0.10)}px;top:${y+bodyH-2}px;width:${Math.round(gridW*0.80)}px;height:9px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#2E2721 0%,rgba(46,39,33,0) 100%);"></div>
+<div style="position:absolute;left:${gridX}px;top:${y}px;width:${gridW}px;height:${bodyH}px;border-radius:12px;background:linear-gradient(180deg,#584C43 0%,#3E362F 58%,#342D28 100%);"></div>
+<div style="position:absolute;left:${gridX+14}px;top:${y+2}px;width:${gridW-28}px;height:2px;border-radius:1px;background:rgba(255,255,255,.18);"></div>
+<div style="position:absolute;left:${gridX+18}px;top:${y+bodyH-9}px;width:${gridW-36}px;height:2.5px;border-radius:2px;background:linear-gradient(90deg,rgba(240,168,104,0) 0%,#F0A868 22%,#FFD9BC 50%,#F0A868 78%,rgba(240,168,104,0) 100%);"></div>
+<div style="position:absolute;left:${gridX}px;top:${y}px;width:${gridW}px;height:${bodyH-6}px;line-height:${vLine(bodyH-6,21)}px;text-align:center;font-size:21px;font-weight:900;letter-spacing:11px;text-indent:11px;color:#F8F0E6;text-shadow:0 1px 3px rgba(0,0,0,.4);">교 탁</div>
+${sideRules(y+Math.round((bodyH-6)/2),'rgba(248,240,230,.30)')}`;
+        };
+
+        const html=`
+<div style="position:absolute;left:${M}px;top:${M}px;width:${areaW-(teacherLine?360:60)}px;font-size:${titleFs.toFixed(1)}px;line-height:40px;font-weight:900;color:#2F3437;white-space:nowrap;overflow:hidden;">${seatEsc(title)}</div>
+<div style="position:absolute;left:${M}px;top:${M+44}px;width:${areaW}px;font-size:14px;line-height:19px;font-weight:700;color:#B0B0B0;">${seatEsc(sub)}</div>
+${teacherLine?`<div style="position:absolute;left:${M}px;top:${M+5}px;width:${areaW}px;text-align:right;font-size:${teacherFs.toFixed(1)}px;line-height:28px;font-weight:900;color:#5D5D5D;white-space:nowrap;">${seatEsc(teacherLine)}</div>`:''}
+<div style="position:absolute;left:${M}px;top:${M+(teacherLine?40:10)}px;width:${areaW}px;text-align:right;font-size:14px;line-height:19px;font-weight:700;color:#B5B5B5;">${dateStr}</div>
+<div style="position:absolute;left:${M}px;top:${M+headerH-4}px;width:${areaW}px;height:3px;border-radius:2px;background:linear-gradient(90deg,#F0A868 0%,#FFD3B6 45%,rgba(255,211,182,.12) 100%);"></div>
+${isTeacher?deskHtml(barY):boardHtml(barY)}
+<div style="position:absolute;left:${gridX}px;top:${noteY}px;width:${gridW}px;height:${noteH}px;line-height:${vLine(noteH,13)}px;text-align:center;font-size:13px;font-weight:700;color:#BEBEBE;letter-spacing:3px;">${noteLabel}</div>
+${cellsHtml.join('')}`;
+
+        const host=document.createElement('div');
+        host.setAttribute('style',`position:absolute;left:-99999px;top:0;width:${W}px;height:${H}px;background:#ffffff;font-family:'Jua','Noto Sans KR',sans-serif;`);
+        host.innerHTML=html;
+        document.body.appendChild(host);
+
+        const safeName=t=>t.replace(/[\\/:*?"<>|]/g,'').replace(/\s+/g,'_').slice(0,40)||'자리배치도';
+        const fbase=(seatTitle||'').trim()?safeName(title):'송쌤과학_자리배치도';
+        const fname=`${fbase}_${isTeacher?'교탁게시용':'학생게시용'}_${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}`;
+        try{
+            try{await document.fonts.ready;}catch(e){}
+            const canvas=await html2canvas(host,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,width:W,height:H,windowWidth:W,windowHeight:H});
+            const img=canvas.toDataURL('image/jpeg',0.95);
+            const JsPDF=window.jspdf&&window.jspdf.jsPDF;
+            if(JsPDF){
+                const pdf=new JsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+                pdf.addImage(img,'JPEG',0,0,pdf.internal.pageSize.getWidth(),pdf.internal.pageSize.getHeight());
+                pdf.save(fname+'.pdf');
+                showAlert(`${isTeacher?'교탁 게시용':'학생 게시용'} PDF가 저장되었습니다 📄`);
+            }else{
+                // jsPDF 로드 실패(오프라인 등) → 인쇄창에서 'PDF로 저장' 하도록 대체
+                const w=window.open('','_blank');
+                if(!w)return showAlert("PDF 저장에 실패했습니다.\n팝업 차단을 해제한 뒤 다시 시도해주세요.");
+                w.document.write(`<html><head><meta charset="utf-8"><title>${fname}</title><style>@page{size:A4 landscape;margin:0}html,body{margin:0;padding:0}img{width:100%;display:block}</style></head><body><img src="${img}"></body></html>`);
+                w.document.close();w.focus();
+                setTimeout(()=>{try{w.print();}catch(e){}},700);
+                showAlert("인쇄 창에서 '대상'을 'PDF로 저장'으로 선택해주세요.");
+            }
+        }catch(e){
+            console.error(e);
+            showAlert("PDF 저장에 실패했습니다.\n잠시 후 다시 시도해주세요.");
+        }finally{
+            host.remove();
+        }
+    };
+
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
-    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{try{localStorage.removeItem(SESSION_KEY);}catch(e){}setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSeatFixed([]);setSeatPresentMode(false);setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
+    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{try{localStorage.removeItem(SESSION_KEY);}catch(e){}setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSeatFixed([]);setSeatPresentMode(false);setSeatTitle('');setSeatTeacher('');setSeatTeacherRole('담임');setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
 
     // ★ 타이머 ref - 모든 타이머 동작은 이 ref들 기반
     const timerStartRef=useRef(null);
@@ -2853,10 +3065,31 @@ function App(){
                         onClearLayout={clearSeatLayout}
                         playSound={playSound}
                     />}
+
+                    {/* PDF 배치표에 인쇄될 제목 · 교사명 */}
+                    <div className="bg-[#FFF8F0] rounded-xl p-2.5 border border-[#F7E4D0] space-y-2">
+                        <div className="flex items-center gap-1.5">
+                            <Icon name="file-text" size={12} className="text-[#D68C60]"/>
+                            <span className="text-[10px] font-black text-[#D68C60]">PDF 배치표 정보</span>
+                            <span className="text-[9px] font-bold text-gray-400">비워두면 '자리 배치도'로 인쇄됩니다</span>
+                        </div>
+                        <input value={seatTitle} onChange={e=>setSeatTitle(e.target.value)} maxLength={40}
+                            className="w-full p-2 bg-white rounded-lg border-2 border-transparent focus:border-[#FFD3B6] outline-none text-xs font-bold"
+                            placeholder="배치표 제목 (예: 3학년 2반 자리 배치도)"/>
+                        <div className="flex gap-1.5">
+                            <div className="flex bg-white p-0.5 rounded-lg border border-gray-100 shrink-0">
+                                {['담임','교과'].map(r=><button key={r} onClick={()=>{playSound('click');setSeatTeacherRole(r);}}
+                                    className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold touch-target ${seatTeacherRole===r?'bg-[#FFD3B6] text-white':'text-gray-400'}`}>{r}</button>)}
+                            </div>
+                            <input value={seatTeacher} onChange={e=>setSeatTeacher(e.target.value)} maxLength={20}
+                                className="flex-1 min-w-0 p-2 bg-white rounded-lg border-2 border-transparent focus:border-[#FFD3B6] outline-none text-xs font-bold"
+                                placeholder="교사 이름 (예: 홍길동)"/>
+                        </div>
+                    </div>
                 </div>
-                {seats.length>0&&<div className="w-full"><div className="flex justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex gap-1.5"><button onClick={()=>{playSound('click');setSeatPresentMode(v=>!v);}} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target border ${seatPresentMode?'bg-[#5D5D5D] border-[#5D5D5D] text-white':'bg-white border-gray-200 text-gray-400'}`} title="시연 모드: 켜면 위 설정 창을 숨겨 학생에게 정보가 보이지 않습니다"><Icon name={seatPresentMode?'eye-off':'eye'} size={12}/> {seatPresentMode?'설정':'시연'}</button><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target"><Icon name="camera" size={16}/></button></div></div>
+                {seats.length>0&&<div className="w-full"><div className="flex flex-wrap justify-between items-center gap-2 mb-2 px-1"><p className="text-[10px] text-gray-400 font-bold">터치하여 자리 변경</p><div className="flex flex-wrap items-center gap-1.5"><button onClick={()=>{playSound('click');setSeatPresentMode(v=>!v);}} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target border ${seatPresentMode?'bg-[#5D5D5D] border-[#5D5D5D] text-white':'bg-white border-gray-200 text-gray-400'}`} title="시연 모드: 켜면 위 설정 창을 숨겨 학생에게 정보가 보이지 않습니다"><Icon name={seatPresentMode?'eye-off':'eye'} size={12}/> {seatPresentMode?'설정':'시연'}</button><button onClick={createSeats} className="text-[#FFD3B6] bg-white border border-[#FFD3B6] px-2.5 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-1 touch-target"><Icon name="shuffle" size={12}/> 섞기</button><button onClick={()=>exportSeatPDF('teacher')} className="bg-[#D68C60] text-white border border-[#D68C60] px-2.5 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 touch-target active:scale-95" title="교탁을 아래쪽에 두고, 교탁에서 학생을 바라본 방향으로 PDF 저장"><Icon name="file-down" size={12}/> 교탁용 PDF</button><button onClick={()=>exportSeatPDF('student')} className="bg-white text-[#D68C60] border border-[#D68C60] px-2.5 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1 touch-target active:scale-95" title="칠판을 위쪽에 두고 화면과 같은 방향으로 PDF 저장"><Icon name="file-down" size={12}/> 학생용 PDF</button><button onClick={handleCapture} className="text-[#FFD3B6] bg-white p-1.5 rounded-lg touch-target" title="PNG 이미지로 저장"><Icon name="camera" size={16}/></button></div></div>
                     <div ref={captureRef} className="bg-white p-3 sm:p-5 rounded-2xl border-2 border-[#FFD3B6] shadow-lg">
-                        <div className="w-full bg-[#5D5D5D] text-white py-1.5 rounded-xl text-center font-bold mb-3 sm:mb-5 text-xs tracking-widest">칠 판</div>
+                        <div className="mb-3 sm:mb-5"><BoardBar/></div>
 
                         {seatType==='single'?(
                             savedSeatLayout?renderSingleSeatsCustomGrid():renderSingleSeatsAuto()
@@ -2990,7 +3223,7 @@ function App(){
             <div className="flex-1 overflow-y-auto px-3.5 py-3 min-h-0">
                 {fl.expected===0?<div className="text-center py-8 text-gray-300"><Icon name="users" size={26} className="mx-auto opacity-30 mb-1"/><p className="text-xs font-bold">먼저 학생 명단(번호/이름)을 입력해주세요.</p></div>:<>
                 <div className="bg-white rounded-xl border-2 border-[#C3B1E1] p-2.5">
-                    <div className="w-full bg-[#5D5D5D] text-white py-1 rounded-lg text-center font-bold mb-2.5 text-[10px] tracking-widest">칠 판</div>
+                    <div className="mb-2.5"><BoardBar small/></div>
                     <div className="flex flex-col gap-1.5">
                         {fl.rows.map((r,ri)=><div key={ri} className="grid gap-1.5" style={{gridTemplateColumns:`repeat(${r.cols}, minmax(0, 1fr))`}}>
                             {r.cells.map((c,ci)=>{
