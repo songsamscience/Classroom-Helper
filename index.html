@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>송쌤과학 교실 도우미</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20width%3D%2232%22%20height%3D%2232%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFC4BD%22%2F%3E%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23FF9E99%22%2F%3E%20%3C%2FlinearGradient%3E%20%3C%2Fdefs%3E%20%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%2230%22%20height%3D%2230%22%20rx%3D%228%22%20fill%3D%22url%28%23bg%29%22%2F%3E%20%3C%21--%20flask%20body%20%28white%29%20--%3E%20%3Cpath%20d%3D%22M13%206.2%20h6%20a1%201%200%200%201%200%202%20h-0.4%20v4.3%20l5.2%209.3%20a2.4%202.4%200%200%201%20-2.1%203.6%20H10.3%20a2.4%202.4%200%200%201%20-2.1%20-3.6%20l5.2%20-9.3%20v-4.3%20H13%20a1%201%200%200%201%200%20-2%20Z%22%20fill%3D%22%23ffffff%22%2F%3E%20%3C%21--%20liquid%20--%3E%20%3Cpath%20d%3D%22M11.55%2019.2%20h8.9%20l2.0%203.6%20a2.4%202.4%200%200%201%20-2.1%203.6%20H11.65%20a2.4%202.4%200%200%201%20-2.1%20-3.6%20Z%22%20fill%3D%22%23B5EAD7%22%2F%3E%20%3C%21--%20bubbles%20--%3E%20%3Ccircle%20cx%3D%2214.3%22%20cy%3D%2223.2%22%20r%3D%221.05%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.92%22%2F%3E%20%3Ccircle%20cx%3D%2217.8%22%20cy%3D%2224.1%22%20r%3D%220.8%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.85%22%2F%3E%20%3Ccircle%20cx%3D%2216.2%22%20cy%3D%2221.6%22%20r%3D%220.62%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.8%22%2F%3E%20%3C%2Fsvg%3E">
@@ -62,7 +62,7 @@
         html{font-size:calc(16px * var(--ui-scale));}
         /* 다크모드에서 메인 배경, 텍스트 색상 자동 적용 */
         *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-        body{font-family:'Jua',sans-serif;background:var(--bg-main);background-image:radial-gradient(circle at 20% 80%,rgba(181,234,215,.15) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,183,178,.12) 0%,transparent 50%),radial-gradient(var(--bg-dots) .8px,transparent .8px);background-size:100% 100%,100% 100%,20px 20px;color:var(--text-main);touch-action:manipulation;overflow-x:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none;margin:0;padding:0;transition:background-color .3s,color .3s;}
+        body{font-family:'Noto Sans KR',sans-serif;background:var(--bg-main);background-image:radial-gradient(circle at 20% 80%,rgba(181,234,215,.15) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,183,178,.12) 0%,transparent 50%),radial-gradient(var(--bg-dots) .8px,transparent .8px);background-size:100% 100%,100% 100%,20px 20px;color:var(--text-main);touch-action:manipulation;overflow-x:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none;margin:0;padding:0;transition:background-color .3s,color .3s;}
         body.dark-theme{background-image:radial-gradient(circle at 20% 80%,rgba(181,234,215,.09) 0%,transparent 55%),radial-gradient(circle at 80% 20%,rgba(255,183,178,.08) 0%,transparent 55%),radial-gradient(var(--bg-dots) .8px,transparent .8px);}
         body.dark-theme .glass-panel{background:rgba(31,34,48,.92);border-bottom-color:rgba(255,255,255,.08);}
         body.dark-theme .bg-white{background-color:var(--bg-card)!important;}
@@ -105,12 +105,12 @@
         .soft-shadow{box-shadow:0 4px 16px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.05);}
         .center-content{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;line-height:1;word-break:keep-all;}
         .timer-circle{transition:stroke-dashoffset 1s linear;}
-        footer{font-family:'Do Hyeon',sans-serif;}
+        footer{font-family:'Noto Sans KR',sans-serif;}
         .mini-float{animation:miniIn .35s cubic-bezier(.34,1.56,.64,1);}
         @keyframes miniIn{from{opacity:0;transform:scale(.5) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
         .mini-pulse{animation:mPulse 2s infinite;}
         @keyframes mPulse{0%,100%{box-shadow:0 2px 10px rgba(255,183,178,.25)}50%{box-shadow:0 2px 18px rgba(255,183,178,.55)}}
-        .t-input{background:transparent;border:none;outline:none;text-align:center;font-family:'Jua',sans-serif;caret-color:#FFDAC1;}
+        .t-input{background:transparent;border:none;outline:none;text-align:center;font-family:'Noto Sans KR',sans-serif;caret-color:#FFDAC1;}
         .t-input:focus{background:rgba(255,218,193,.12);border-radius:10px;}
         .t-input::-webkit-inner-spin-button,.t-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.t-input{-moz-appearance:textfield;}
         .modal-up{animation:mUp .3s cubic-bezier(.34,1.56,.64,1);}
@@ -311,7 +311,200 @@
     
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 </style>
-</head>
+<style id="classroom-redesign">
+:root{--bg-main:#f4f6f8;--bg-card:#fff;--bg-soft:#edf1f4;--bg-input:#f3f5f7;--text-main:#243634;--text-sub:#657572;--text-mute:#74837f;--border-soft:#dfe6e4;--border-line:#e4eae8;--accent:#166b59;--accent-soft:#e5f2ec;--rail:222px}
+body.dark-theme{--bg-main:#131c20;--bg-card:#1c282c;--bg-soft:#253338;--bg-input:#253338;--text-main:#e6efeb;--text-sub:#a8bdb4;--text-mute:#91a69e;--border-soft:#344640;--border-line:#30403b;--accent:#88d6b6;--accent-soft:#29463a;color-scheme:dark}
+body,body.dark-theme{background:var(--bg-main)!important;background-image:none!important;color:var(--text-main);font-family:'Noto Sans KR',sans-serif;letter-spacing:-.025em;line-height:1.5}
+button,input,textarea,select{font-family:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent)!important;outline-offset:3px}::selection{background:#c8e6d8;color:#173e30}
+.font-black{font-weight:750!important}.font-bold{font-weight:600!important}.text-gray-400,.text-gray-300{color:var(--text-mute)}h1,h2,h3{letter-spacing:-.045em;word-break:keep-all}p{word-break:keep-all}
+.app-header{height:76px;position:sticky;top:0;z-index:45;display:flex;align-items:center;gap:28px;padding:0 28px;background:var(--bg-card);border-bottom:1px solid var(--border-line)}
+.brand-lockup{display:flex;align-items:center;gap:11px;min-width:190px;text-align:left}.brand-lockup strong{font-size:17px;display:block}.brand-lockup small{font-size:11px;color:var(--text-sub);display:block;margin-top:1px}.brand-mark{width:39px;height:43px;background:#166b59;color:white;display:grid;place-items:center;border-radius:12px 12px 12px 3px}.header-context{font-size:12px;color:var(--text-sub);display:flex;align-items:center;gap:8px}.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#3c9e79;flex-shrink:0}.header-actions{margin-left:auto;display:flex;align-items:center;gap:8px}.utility-btn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--border-line);border-radius:9px;color:var(--text-sub)}.utility-btn:hover{background:var(--accent-soft);color:var(--accent)}
+.tool-rail{position:fixed;top:76px;bottom:0;left:0;width:var(--rail);padding:26px 17px 18px;background:var(--bg-card);border-right:1px solid var(--border-line);overflow-y:auto;z-index:35}.rail-heading{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-mute);padding:0 12px;margin-bottom:23px}.tool-group{margin-bottom:19px}.group-label{font-size:11px;font-weight:500;color:var(--text-mute);margin:0 12px 7px}.rail-item{display:flex;align-items:center;gap:12px;width:100%;min-height:39px;padding:9px 12px;border-radius:7px;font-size:13px;color:var(--text-sub);margin:2px 0;text-align:left;transition:background .15s,color .15s}.rail-item:hover{background:var(--bg-soft)}.rail-item.is-active{background:var(--accent-soft);color:var(--accent);font-weight:700}.active-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);margin-left:auto}.class-summary{display:flex;align-items:center;gap:11px;border-top:1px solid var(--border-line);padding:20px 10px 0;width:100%;text-align:left;color:var(--text-sub)}.class-summary strong{font-size:12px;display:block}.class-summary small{display:block;font-size:10px;margin-top:4px}
+.workspace{margin-left:var(--rail)!important;width:calc(100% - var(--rail))!important;max-width:none!important;padding:26px clamp(24px,4vw,72px) 28px!important}.workspace-context{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-sub);margin-bottom:32px;gap:12px}.context-slash{margin:0 12px;color:#9daba6}.participation{display:flex;align-items:center;gap:7px;white-space:nowrap}.workspace>.card-enter{max-width:1100px;margin-left:auto;margin-right:auto}.workspace h2{font-size:28px}.workspace .soft-shadow{box-shadow:0 2px 4px #18392c03}.workspace .shadow-lg,.workspace .shadow-md{box-shadow:0 3px 12px #132d2408}.workspace .rounded-2xl{border-radius:12px}.workspace .border-2{border-width:1px}.workspace .student-cell{border:1px solid var(--border-soft);border-radius:9px;color:var(--text-main);background:var(--bg-card);font-weight:600;font-size:24px;aspect-ratio:1.15}.workspace .student-cell.done{color:var(--text-mute);opacity:.5}.workspace .student-cell.winner{background:#166b59;color:#fff;border-color:#166b59}.workspace .student-cell.highlight-anim{background:#dbefe4!important;color:#16523d!important}.workspace .card-enter>div:first-child{margin-bottom:20px}.workspace footer{margin-top:auto;padding-top:36px}
+button[class*="bg-[#FFB7B2]"],button[class*="bg-[#C7CEEA]"],button[class*="bg-[#FFD3B6]"],button[class*="bg-[#B39DDB]"]{background:#166b59!important;color:#fff!important;border-color:#166b59!important;box-shadow:none!important}button[class*="bg-[#FFB7B2]"]:hover,button[class*="bg-[#C7CEEA]"]:hover{background:#105340!important}button[class*="text-[#FFB7B2]"],button[class*="text-[#C7CEEA]"]{color:var(--accent)!important}input,textarea{caret-color:var(--accent)}.sound-toggle{font-size:11px;border-radius:8px;padding:9px 11px;min-height:38px}.sound-toggle.on{background:var(--accent-soft);border:1px solid var(--border-line);color:var(--accent)}.sound-toggle.off{background:var(--bg-soft);border:1px solid var(--border-line);color:var(--text-sub)}.card-enter{animation:reveal .18s ease-out}@keyframes reveal{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}.mini-float{left:calc(var(--rail) + 12px)!important;top:81px!important}.timer-box{box-shadow:none!important;border:1px solid var(--border-line);background:var(--bg-card)!important}.timer-num,.timer-colon,.t-input{font-family:'Noto Sans KR',sans-serif!important;font-variant-numeric:tabular-nums}
+.intro-bg,body.dark-theme .intro-bg{padding:0!important;display:grid;grid-template-columns:1.15fr 1fr;background:var(--bg-card)!important;align-items:center;overflow:auto}.intro-bg:before,.intro-bg:after{display:none}.welcome-story{align-self:stretch;min-height:100dvh;background:#183e35;color:#f2f8f3;display:flex;flex-direction:column;padding:44px clamp(36px,5vw,88px);position:relative}.welcome-brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:19px}.welcome-brand .brand-mark{background:#366252;color:#c9ead1}.welcome-brand>span:last-child{font-size:9px;letter-spacing:.15em;color:#a7c6b6;border-left:1px solid #5c7e6e;padding-left:13px;margin-left:5px}.welcome-copy{margin:auto 0;padding:64px 0}.eyebrow{font-size:12px;letter-spacing:.03em;color:#b1d0be;margin-bottom:22px}.welcome-copy h2{font-size:clamp(31px,3.5vw,54px);font-weight:650;line-height:1.35;margin:0 0 24px;color:#f1f6ee;letter-spacing:-.065em}.welcome-description{color:#b1cbbd;font-size:13px;line-height:1.9}.welcome-preview{margin-top:40px;padding:24px;background:#244a3f;border:1px solid #416052;border-radius:14px;max-width:440px;transform:rotate(-2deg);box-shadow:0 20px 40px #0a211530}.preview-label{display:flex;align-items:center;gap:7px;color:#d2e7d8;font-size:11px}.preview-label>span:last-child{margin-left:auto;font-size:8px;letter-spacing:.13em;color:#9ebcad}.preview-desks{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}.preview-desks>span{display:grid;place-items:center;height:53px;border:1px solid #547063;border-radius:7px;font-size:16px;color:#afc7b8;font-variant-numeric:tabular-nums}.preview-desks>.chosen{background:#d8ebaa;color:#254a32;border-color:#d8ebaa;box-shadow:0 5px 12px #102a2030;transform:rotate(5deg)}.preview-bottom{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:#a4c0b0;padding-top:5px}.preview-bottom strong{font-weight:500;color:#e0efde}.welcome-foot{font-size:10px;color:#9cb9a9;letter-spacing:.04em}.intro-card{width:100%!important;max-width:450px!important;margin:45px auto!important;padding:32px 38px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;backdrop-filter:none;animation:none;text-align:left!important}.setup-icon{display:inline-flex;padding:12px;background:var(--accent-soft);border-radius:12px;margin-bottom:26px;color:var(--accent)}.setup-icon svg{color:var(--accent)!important;width:25px;height:25px}.setup-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--accent);margin-bottom:10px}.intro-title,body.dark-theme .intro-title{font-size:28px!important;background:none!important;color:var(--text-main)!important;-webkit-text-fill-color:var(--text-main)!important;letter-spacing:-.06em;margin-bottom:12px!important}.intro-card>p.text-gray-400{font-size:12px!important;font-weight:400!important;line-height:1.8;margin-bottom:25px}.intro-card>.flex.flex-wrap{justify-content:flex-start;gap:6px;margin-bottom:32px}.intro-chip{background:var(--bg-soft);border:0;border-radius:5px;font-size:10px;box-shadow:none;padding:5px 7px;color:var(--text-sub)}.intro-chip svg{color:var(--accent)!important}.intro-card label{font-size:13px!important}.intro-card input{height:76px!important;font-size:34px!important;border:1px solid var(--border-soft)!important;border-radius:10px!important;background:var(--bg-input)!important;color:var(--text-main)!important;text-align:left;padding-left:22px}.intro-card input:focus{box-shadow:0 0 0 3px var(--accent-soft);border-color:var(--accent)!important}.intro-card button[type=submit]{font-size:15px!important;font-weight:600!important;border-radius:9px;padding:16px!important;justify-content:space-between}.intro-card>div.mt-5{justify-content:flex-start;margin-top:24px}.intro-bg>footer{position:absolute!important;bottom:12px!important;left:53.5%!important;width:46.5%!important;font-size:10px!important}.modal-up{border-width:1px!important;border-color:var(--border-soft)!important;border-radius:14px!important}.winner-pulse{animation:none}
+@media(min-width:1600px){.workspace{padding-left:80px!important;padding-right:80px!important}}
+@media(max-height:850px) and (min-width:901px){.tool-rail{padding-top:18px}.rail-heading{margin-bottom:14px}.tool-group{margin-bottom:12px}.rail-item{min-height:33px;padding-top:6px;padding-bottom:6px}.class-summary{padding-top:12px}.welcome-copy{padding:32px 0}}
+@media(max-width:1100px){:root{--rail:195px}.app-header{padding:0 20px}.header-context{display:none}.workspace{padding:24px!important}.welcome-story{padding:35px}.intro-card{padding:26px!important}}
+@media(max-width:900px){.app-header{height:66px;padding:0 16px}.brand-lockup{min-width:0}.brand-lockup strong{font-size:15px}.brand-mark{height:36px;width:34px}.tool-rail{position:sticky;top:66px;bottom:auto;display:flex;gap:12px;width:100%;padding:10px 14px;overflow-x:auto;overflow-y:hidden;border-right:0;border-bottom:1px solid var(--border-line);scrollbar-width:thin}.rail-heading,.group-label,.class-summary{display:none}.tool-group{display:flex;gap:4px;margin:0;padding-right:12px;border-right:1px solid var(--border-line);flex-shrink:0}.tool-group:last-of-type{border:0;padding-right:0}.rail-item{width:auto;white-space:nowrap;padding:10px;min-height:40px;gap:7px;font-size:12px;margin:0}.active-dot{display:none}.workspace{width:100%!important;margin:0!important;padding:22px!important}.workspace-context{margin-bottom:22px}.mini-float{left:auto!important;right:12px!important;top:auto!important;bottom:16px}.intro-bg{grid-template-columns:1fr 1fr}.welcome-story{padding:28px}.welcome-copy h2{font-size:32px}.welcome-description br{display:none}.welcome-preview{padding:16px}.preview-bottom{flex-direction:column}.welcome-brand>span:last-child{display:none}}
+@media(max-width:640px){.intro-bg{display:block}.welcome-story{min-height:auto;padding:22px 24px 28px}.welcome-brand{font-size:15px}.welcome-copy{padding:25px 0 0}.eyebrow{margin-bottom:12px;font-size:10px}.welcome-copy h2{font-size:29px;margin-bottom:12px}.welcome-description{font-size:12px}.welcome-preview,.welcome-foot{display:none}.intro-card{padding:29px 24px!important;margin:0 auto!important;max-width:480px!important}.setup-icon,.setup-eyebrow{display:none}.intro-title{font-size:23px!important}.intro-bg>footer{position:static!important;width:100%!important;padding:12px 0 20px}.intro-card>.flex.flex-wrap{margin-bottom:25px}.header-actions{gap:5px}.header-actions .sound-toggle{font-size:0;padding:8px;gap:0}.header-actions .sound-toggle svg{width:17px;height:17px}.utility-btn{width:36px;height:38px}.workspace{padding:20px 14px!important}.workspace h2{font-size:24px}.workspace .student-cell{font-size:20px}.workspace-context{font-size:10px;gap:5px}.context-slash{margin:0 6px}.workspace .text-\[10px\]{font-size:11px}.workspace .rounded-full{border-radius:10px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+body .text-gray-400,body .text-gray-300{color:var(--text-mute)!important}body .brand-lockup{color:var(--text-main)}
+button[class*="bg-[#B5EAD7]"],button[class*="bg-[#FFDAC1]"],button[class*="bg-[#FF9E99]"]{background:#166b59!important;color:#fff!important;border-color:#166b59!important;box-shadow:none!important}
+@media print{.app-header,.tool-rail,.workspace-context{display:none!important}.workspace{margin:0!important;width:100%!important;padding:0!important}}
+
+body :is(.workspace,.modal-up) button[class~='bg-[#1F2230]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#4CAF50]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#4CAF50]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#5D5D5D]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#6B8E23]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#B39DDB]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#B39DDB]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#B5EAD7]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#B5EAD7]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#C7CEEA]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#C7CEEA]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#D68C60]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#D68C60]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#E8F5E9]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#E8F5E9]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F0F8FF]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F0F8FF]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F0FDF4]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F0FDF4]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F0FFF0]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F0FFF0]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F5F0FF]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F5F0FF]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F7F7F7]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F7F7F7]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F7F9FC]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F7F9FC]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F9F7F4]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F9F7F4]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#F9F9F9]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#F9F9F9]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FECA57]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FECA57]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FF6B6B]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FF6B6B]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FF9E99]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FF9E99]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFB7B2]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFB7B2]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFD3B6]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFD3B6]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFDAC1]']{background:var(--accent-soft)!important;color:var(--accent)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFDAC1]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFEDD5]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFEDD5]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFF0F0]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFF0F0]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFF0F5]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFF0F5]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFF5F5]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFF5F5]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFF8E1]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFF8E1]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFF8F0]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFF8F0]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='bg-[#FFFDF0]']{background:var(--bg-soft)!important}
+body :is(.workspace,.modal-up) button[class~='bg-[#FFFDF0]'][class~='text-white']{background:#166b59!important;color:#fff!important;border-color:#166b59!important}
+body :is(.workspace,.modal-up) [class~='border-[#5D5D5D]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#9575CD]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#B39DDB]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#B5EAD7]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#C3B1E1]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#C7CEEA]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#C8E6C9]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#D68C60]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#D6EBFF]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#E1D5F5]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#EDE6DA]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#F0EBE3]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#F7E4D0]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FECA57]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FF6B6B]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FFB7B2]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FFC3A0]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FFCDD2]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FFD3B6]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FFDAC1]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='border-[#FFE082]']{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) [class~='text-[#388E3C]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#43A047]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#4A4A4A]']{color:var(--text-main)!important}
+body :is(.workspace,.modal-up) [class~='text-[#4CAF50]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#5C6B9E]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#5D5D5D]']{color:var(--text-main)!important}
+body :is(.workspace,.modal-up) [class~='text-[#6A4FA3]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#6BBF9A]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#8267C4]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#8F9FD6]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#B39DDB]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#C7CEEA]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#D68C60]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#D84315]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#E65100]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FECA57]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FF6B6B]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FF8A80]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FF9E99]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FFA000]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FFAE8A]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FFB7B2]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FFC3A0]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FFD3B6]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FFD700]']{color:var(--accent)!important}
+body :is(.workspace,.modal-up) [class~='text-[#FFDAC1]']{color:var(--accent)!important}
+
+/* Shared interior components: one material, consistent controls. */
+body :is(.workspace,.modal-up) :is(input:not(.t-input),textarea,select){background:var(--bg-input)!important;color:var(--text-main)!important;border-color:var(--border-soft)!important;border-radius:8px;box-shadow:none}
+body :is(.workspace,.modal-up) :is(input,textarea)::placeholder{color:var(--text-mute);opacity:1}
+body :is(.workspace,.modal-up) :is(h2,h3){color:var(--text-main)!important}
+body :is(.workspace,.modal-up) [class*="bg-gradient-"]{background-image:none!important;background-color:var(--bg-soft);box-shadow:none!important}
+body :is(.workspace,.modal-up) button[class~="text-white"]{color:#fff!important}
+body :is(.workspace,.modal-up) button[class~="text-white"] svg{color:inherit!important}
+body :is(.workspace,.modal-up) :is(.shadow-xl,.shadow-2xl,.shadow-lg,.shadow-md){box-shadow:0 3px 14px #14392b08!important}
+body :is(.workspace,.modal-up) [class*="rounded-"]:not(.rounded-full):not(.student-cell){border-width:1px}
+body .workspace .team-desk{background:var(--bg-soft);border:1px solid var(--border-line);border-radius:12px;box-shadow:none;padding:14px}
+body .workspace .team-desk-surface{background:var(--bg-card);border:1px solid var(--border-soft);box-shadow:none;border-radius:9px}
+body .workspace .team-desk-badge{background:#166b59;color:white;border-radius:6px;width:28px;height:28px}
+body .workspace .team-desk-count{color:var(--text-sub);font-size:11px}
+body .workspace .team-seat{background:var(--bg-card);color:var(--text-main);box-shadow:none;border:1px solid var(--border-line);font-weight:600}
+body .workspace .team-seat:not(.selected-item):hover{border-color:var(--accent);background:var(--accent-soft)}
+body :is(.workspace,.modal-up) .board-bar{background:var(--border-soft);border-radius:9px;padding:1px;box-shadow:none}
+body :is(.workspace,.modal-up) .board-bar-inner{background:#244b3e;border-radius:8px;padding:12px 0}
+body :is(.workspace,.modal-up) :is(.board-bar-gloss,.board-bar-dust){display:none}
+body :is(.workspace,.modal-up) .board-bar-label{font-family:inherit;font-weight:600;letter-spacing:.15em;text-shadow:none}
+body :is(.workspace,.modal-up) .row-config-chip{background:var(--bg-card);border:1px solid var(--border-soft);color:var(--text-sub);font-weight:600}
+body :is(.workspace,.modal-up) .row-config-chip.active{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+body :is(.workspace,.modal-up) .selected-item{background:var(--accent-soft)!important;color:var(--accent)!important;border:2px solid var(--accent)!important;animation:none;transform:none}
+body .workspace .timer-progress-track{height:5px;background:var(--border-line)}
+body .workspace .timer-progress-fill{background:var(--accent);border-radius:0}
+body .workspace .timer-box{border-radius:14px;border:1px solid var(--border-soft)!important}
+body .workspace :is(.timer-num,.timer-colon){color:var(--text-main);font-weight:600!important}
+body .workspace .cal-today{background:#166b59;color:#fff!important;box-shadow:none}
+body .workspace .cal-sun{color:#b54d4d}body .workspace .cal-sat{color:#42708c}
+body .workspace .lotto-machine{background:#183e35;border-radius:14px;box-shadow:none!important}
+body .workspace .lotto-machine:before{display:none}
+body .workspace .lotto-glass{border:1px solid #54796a;background:#244a3f;backdrop-filter:none;border-radius:10px}
+body .workspace .wheel-result-pop{background:#166b59!important;color:#fff!important;border-radius:10px;box-shadow:none}
+body .workspace .wheel-result-pop *{color:#fff!important}
+body .workspace .wheel-center{background:var(--bg-card);border:1px solid var(--border-soft);box-shadow:0 2px 8px #14392b15}
+body .workspace .wheel-pointer path{fill:#183e35}
+body .workspace .wb-tool-btn{border-radius:7px;color:var(--text-sub)}
+body .workspace .wb-tool-btn:hover{background:var(--bg-soft);color:var(--accent)}
+body .workspace .wb-tool-btn.active{background:#166b59;color:#fff;box-shadow:none;transform:none}
+body .workspace .wb-text-toolbar{background:var(--bg-card);border-color:var(--border-soft);box-shadow:0 3px 12px #14392b10}
+body .workspace .wb-text-toolbar button{background:var(--bg-soft);color:var(--text-main)}
+body .workspace .wb-swatch.active{border-color:var(--accent)}
+body :is(.workspace,.modal-up) .excluded-badge{background:var(--bg-soft);border:1px solid var(--border-soft);color:var(--text-sub)}
+body .workspace .student-cell.winner{background:#166b59!important;border-color:#166b59!important;color:white!important}
+body .workspace .color-dot{box-shadow:none}
+body .workspace button:disabled{opacity:.45}
+body .workspace .wb-tip{background:var(--bg-card);border:1px solid var(--border-soft);border-left:3px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px #14392b12}
+body .workspace .wb-tip :is(p,div,span){color:var(--text-main)!important}
+body .workspace .wb-tip button{background:var(--accent-soft)!important;color:var(--accent)!important;border-radius:6px}
+body .workspace .wb-range::-webkit-slider-thumb{background:var(--accent);box-shadow:none;width:16px;height:16px}
+body .workspace .wb-range::-moz-range-thumb{background:var(--accent);box-shadow:none;width:16px;height:16px}
+body :is(.workspace,.modal-up) [class*="border-[#"][class*="/"]{border-color:var(--border-soft)!important}
+body :is(.workspace,.modal-up) input[type=range]{accent-color:var(--accent)}
+body .workspace .lotto-machine{--text-main:#eff8f3;--text-sub:#c4d8cc;--text-mute:#b7cfc1}
+body .workspace .lotto-machine :is(h2,h3,p){color:#eff8f3!important}
+body .workspace .lotto-machine button[class*="bg-gradient-"]{background:#e3efda!important;color:#183e35!important;box-shadow:none!important}
+body .workspace .lotto-machine button[class*="bg-gradient-"] *{color:inherit!important}
+body .workspace[data-tool="youtube"] button[class~="bg-red-500"]{background:#166b59!important}
+body .workspace[data-tool="youtube"] .border-red-100,body .workspace[data-tool="wheel"] .border-yellow-200{border-color:var(--border-soft)!important}
+body .workspace[data-tool="wheel"]>div.card-enter>div{border-color:var(--border-soft)!important}
+
+</style><style id="classroom-storage-ui">
+.library-bar{height:46px;display:flex;align-items:center;gap:6px;padding:0 26px;background:var(--bg-card);border-bottom:1px solid var(--border-line);position:sticky;top:0;z-index:55;font-size:12px;color:var(--text-main)}.library-bar button{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:6px;min-height:34px}.library-bar button:hover{background:var(--accent-soft)}.library-bar button:disabled{opacity:.35}.library-current strong{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.library-current{color:var(--accent)}.local-badge{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-sub)}.library-spacer{flex:1}.library-bar~div .app-header{top:46px}.tool-rail{top:122px}.intro-bg .welcome-story{min-height:calc(100dvh - 46px)}.library-status{position:fixed;bottom:12px;right:16px;z-index:60;pointer-events:none;font-size:11px;background:var(--bg-card);color:var(--text-sub);border:1px solid var(--border-line);border-radius:7px;padding:8px 12px;max-width:min(90vw,520px)}.library-status:empty{display:none}.library-error{position:relative;z-index:56;padding:12px 24px;background:#fff1e6;color:#8c360e;font-size:13px}.library-error button{margin-left:12px;text-decoration:underline;font-weight:700}.library-overlay{position:fixed;inset:0;z-index:1000;background:#0c211866;display:grid;place-items:center;padding:24px}.library-dialog{background:var(--bg-card);color:var(--text-main);border:1px solid var(--border-line);border-radius:16px;width:min(760px,100%);max-height:90dvh;overflow:auto;padding:28px;box-shadow:0 24px 80px #10231b30;outline:none}.library-dialog-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.library-dialog-title p{font-size:10px;color:var(--accent);letter-spacing:.13em;font-weight:700}.library-dialog-title h2{font-size:25px;font-weight:700;margin-top:5px}.library-dialog button{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border-soft);padding:9px 12px;border-radius:7px;font-size:12px;white-space:nowrap;min-height:38px}.library-dialog button:hover{background:var(--bg-soft)}.library-dialog .primary{background:#166b59;color:#fff;border-color:#166b59}.library-privacy{display:flex;gap:12px;background:var(--accent-soft);border-radius:10px;padding:17px;color:var(--accent)}.library-privacy>svg{flex-shrink:0;margin-top:3px}.library-privacy strong{font-size:13px}.library-privacy p{font-size:12px;line-height:1.8;margin-top:6px;color:var(--text-main)}.library-scope{font-size:11px;line-height:1.8;color:var(--text-sub);margin:13px 0 20px}.library-tabs{display:flex;border-bottom:1px solid var(--border-line);gap:14px;margin-bottom:20px}.library-tabs button{border:0;border-radius:0;padding:10px 0;color:var(--text-sub)}.library-tabs button.selected{border-bottom:2px solid var(--accent);color:var(--accent);font-weight:700}.library-form label{font-size:12px;display:block;margin-bottom:8px}.library-form>div{display:flex;gap:7px}.library-form input{min-width:0;flex:1;background:var(--bg-input);border:1px solid var(--border-soft);border-radius:7px;padding:10px;font-size:14px;color:var(--text-main)}.library-list{margin:18px 0;max-height:320px;overflow:auto}.library-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 12px;border-bottom:1px solid var(--border-line)}.library-row.current{background:var(--bg-soft);border-radius:8px}.library-row strong{font-size:13px;overflow-wrap:anywhere}.library-row small{display:block;font-size:10px;color:var(--text-sub);margin-top:5px}.library-row>span{font-size:11px;color:var(--accent);white-space:nowrap}.library-backup{padding-top:18px;border-top:1px solid var(--border-line)}.library-backup strong{font-size:12px}.library-backup p{font-size:11px;color:var(--text-sub);margin:5px 0 12px}.library-backup>div:last-child{display:flex;gap:8px}.library-dialog-status{font-size:12px;color:var(--accent);margin-top:16px}.library-import{margin-top:16px;padding:16px;background:var(--bg-soft);border-radius:8px;font-size:12px}.library-import p{margin:8px 0}.library-import button{margin-right:7px}.library-empty{font-size:13px;color:var(--text-sub);padding:20px;line-height:1.8}.mini-float{top:127px!important}
+@media(max-width:900px){.tool-rail{top:112px}.library-bar{padding:0 12px}.mini-float{top:auto!important}}
+@media(max-width:640px){.library-bar{height:auto;min-height:46px;flex-wrap:wrap;padding:6px 9px;gap:2px;position:relative}.library-bar button{padding:6px;min-height:34px}.library-bar button>span{font-size:10px}.library-current strong{max-width:95px}.local-badge{font-size:9px}.local-badge svg{display:none}.library-bar~div .app-header{top:0}.tool-rail{top:66px}.library-overlay{padding:10px}.library-dialog{padding:19px;max-height:94dvh}.library-form>div{flex-wrap:wrap}.library-form input{flex-basis:100%;font-size:16px}.library-dialog button{font-size:11px}.library-privacy{padding:12px}.library-privacy>svg{display:none}.library-row{padding:12px 4px}.library-status{bottom:6px;right:8px;font-size:10px}.library-backup>div:last-child{flex-wrap:wrap}}
+@media print{.library-bar,.library-overlay,.library-status,.library-error{display:none!important}}
+
+</style></head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
@@ -733,7 +926,7 @@ function YouTubePlayer({playSound:ps}){
     </div>);
 }
 
-const WHEEL_COLORS=['#FF6B6B','#FECA57','#48DBFB','#FF9FF3','#54A0FF','#5F27CD','#01A3A4','#F368E0','#FF6348','#2ED573','#FFA502','#3742FA','#EE5A24','#7BED9F','#E056CF','#6C5CE7'];
+const WHEEL_COLORS=['#166B59','#486A63','#344E59','#66754A','#286F73','#5B6555','#285346','#756B51','#405E70','#536B40','#38635C','#76614E','#356267','#567052','#4B5963','#365344'];
 
 function SpinWheel({playSound:ps,isSoundOn}){
     const [itemsInput,setItemsInput]=useState('');
@@ -743,7 +936,7 @@ function SpinWheel({playSound:ps,isSoundOn}){
     const [result,setResult]=useState(null);
     const [history,setHistory]=useState([]);
     // ★ 중복방지 기능 - ON일 때 이미 뽑힌 항목은 휠에서 제거
-    const [isNoRepeat,setIsNoRepeat]=useState(false);
+    const [isNoRepeat,setIsNoRepeat]=useState(boot.isNoRepeat||false);
     const [usedItems,setUsedItems]=useState([]);
     const canvasRef=useRef(null);
     const audioCtxRef=useRef(null);
@@ -1002,7 +1195,7 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     const [rollingNums,setRollingNums]=useState([]);
     const [revealedCount,setRevealedCount]=useState(0);
     const [history,setHistory]=useState([]);
-    const [isNoRepeat,setIsNoRepeat]=useState(false);
+    const [isNoRepeat,setIsNoRepeat]=useState(boot.isNoRepeat||false);
     const [usedNums,setUsedNums]=useState([]);
     const rollTimersRef=useRef([]);
     const audioCtxRef=useRef(null);
@@ -2345,9 +2538,10 @@ const SESSION_KEY='songsam_session_v1';
 const loadSession=()=>{try{const s=localStorage.getItem(SESSION_KEY);return s?JSON.parse(s):{};}catch(e){return {};}};
 
 function App(){
+    const classContext=React.useContext(ClassContext);
     // 저장된 세션을 한 번만 읽어 초기값으로 사용
     const bootRef=useRef(null);
-    if(bootRef.current===null)bootRef.current=loadSession();
+    if(bootRef.current===null)bootRef.current=classClone(classContext.boot);
     const boot=bootRef.current;
 
     const [step,setStep]=useState(boot.step||'input');
@@ -2369,11 +2563,11 @@ function App(){
         try{localStorage.setItem('songsam_ui_scale',String(uiScale));}catch(e){}
     },[uiScale]);
     const [systemModal,setSystemModal]=useState(null);
-    const [pickHistory,setPickHistory]=useState([]);
+    const [pickHistory,setPickHistory]=useState(boot.pickHistory||[]);
     const [currentPick,setCurrentPick]=useState(null);
     const [pickWinner,setPickWinner]=useState(null);
     const [isPicking,setIsPicking]=useState(false);
-    const [isNoRepeat,setIsNoRepeat]=useState(false);
+    const [isNoRepeat,setIsNoRepeat]=useState(boot.isNoRepeat||false);
     const [placementType,setPlacementType]=useState(boot.placementType||'number');
     const [inputNames,setInputNames]=useState(boot.inputNames||'');
     const [maleInput,setMaleInput]=useState(boot.maleInput||'');
@@ -2456,12 +2650,7 @@ function App(){
         setSeatLayoutDirty(false);
     };
 
-    // ★ 세션 자동 저장 (변경 시 400ms 디바운스로 localStorage에 저장)
-    useEffect(()=>{
-        const data={step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays};
-        const t=setTimeout(()=>{try{localStorage.setItem(SESSION_KEY,JSON.stringify(data));}catch(e){}},400);
-        return()=>clearTimeout(t);
-    },[step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays]);
+    useClassroomData({step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays,pickHistory,isNoRepeat});
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
     const playSound=type=>{
@@ -2659,7 +2848,7 @@ ${cellsHtml.join('')}`;
     };
 
     const startClass=e=>{e.preventDefault();const c=parseInt(studentCount);if(!c||c<1||c>100)return showAlert("1~100 사이의 번호를 입력해주세요.");playSound('click');setStudents(Array.from({length:c},(_,i)=>i+1));setStep('main');setTimeout(initAudio,300);};
-    const goHome=()=>{playSound('click');showConfirm("초기 화면으로 돌아갈까요?\n모든 데이터가 초기화됩니다.",()=>{try{localStorage.removeItem(SESSION_KEY);}catch(e){}setStep('input');setStudentCount('');setStudents([]);setPickHistory([]);setTeams([]);setSeats([]);setMemos([]);setUploadedImg(null);setIsTimerRunning(false);setTimerEverStarted(false);setSelectedItem(null);setExcludedInput('');setSeatPairSettings({mustPair:[],mustNotPair:[]});setSeatFixed([]);setSeatPresentMode(false);setSeatTitle('');setSeatTeacher('');setSeatTeacherRole('담임');setSavedSeatLayout(null);setSeatLayoutDirty(false);setSeatGrid([]);setSeatRowMode('auto');setDDays([]);});};
+    const goHome=()=>classContext.openPanel('classes');
 
     // ★ 타이머 ref - 모든 타이머 동작은 이 ref들 기반
     const timerStartRef=useRef(null);
@@ -2833,7 +3022,7 @@ ${cellsHtml.join('')}`;
     const cancelEditMemo=()=>{setEditingMemoId(null);setMemoInput('');};
 
     const showMiniTimer=step==='main'&&mode!=='timer'&&(isTimerRunning||timerEverStarted)&&timeLeft>0;
-    const NavBtn=({active,icon,label,onClick,color='#FFB7B2'})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`} style={{'--pill-c':color}} title={label}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
+    const NavBtn=({active,icon,label,onClick,color='#FFB7B2'})=><button onClick={()=>{playSound('click');onClick();}} className={`nav-pill ${active?'active':''}`} style={{'--pill-c':color}} title={label} aria-pressed={active}><Icon name={icon} size={16}/><span className="text-[8px] sm:text-[10px] md:text-sm font-bold leading-tight">{label}</span></button>;
 
     const getTimerFontSize=()=>{
         const totalChars=Math.floor(timeLeft/60).toString().length+3;
@@ -2851,11 +3040,12 @@ ${cellsHtml.join('')}`;
 
     if(step==='input') return(
         <div className="intro-bg p-4">
+            <section className="welcome-story"><div className="welcome-brand"><span className="brand-mark"><Icon name="flask-conical" size={24}/></span>송쌤과학 <span>CLASSROOM</span></div><div className="welcome-copy"><p className="eyebrow">선생님의 수업에, 여유를 더하다</p><h2>수업에 필요한 도구,<br/>한 곳에서 가볍게.</h2><p className="welcome-description">발표자를 뽑고, 모둠을 만들고, 생각을 기록하세요.<br/>작은 준비는 도우미에게 맡기고 수업에 집중하세요.</p><div className="welcome-preview"><div className="preview-label"><span className="live-dot"/> 오늘의 교실 <span>READY TO START</span></div><div className="preview-desks">{['01','02','03','04','05','06','07','08'].map((n,i)=><span key={n} className={i===2?'chosen':''}>{i===2?<Icon name="sparkles" size={23}/>:n}</span>)}</div><div className="preview-bottom"><span>함께 배우는 시간을 위한</span><strong>13가지 수업 도구 <span>↗</span></strong></div></div></div><div className="welcome-foot">준비는 간결하게. 수업은 풍성하게.</div></section>
             <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#FFB7B2] via-[#B5EAD7] to-[#C7CEEA]"/>
-                <div className="mb-4 sm:mb-6 inline-block p-5 rounded-full bg-gradient-to-br from-[#FFF0F0] to-[#FFE8E6] shadow-inner intro-icon"><Icon name="sprout" size={36} className="text-[#FFB7B2]"/></div>
-                <h1 className="text-2xl sm:text-4xl font-black mb-1 intro-title">송쌤과학</h1>
-                <p className="text-gray-400 font-bold mb-4 text-xs sm:text-sm">행복한 교실을 위한 스마트 도우미</p>
+                <div className="hidden"/>
+                <div className="setup-icon"><Icon name="sprout" size={36} className="text-[#FFB7B2]"/></div>
+                <p className="setup-eyebrow">LETS GET STARTED</p><h1 className="text-2xl sm:text-4xl font-black mb-1 intro-title">우리 반을 준비해요</h1>
+                <p className="text-gray-400 font-bold mb-4 text-xs sm:text-sm">마지막 번호를 입력하면 바로 시작할 수 있어요</p>
                 <div className="flex flex-wrap justify-center gap-1.5 mb-6 sm:mb-8">
                     <span className="intro-chip"><Icon name="trophy" size={12} className="text-[#FFB7B2]"/>발표뽑기</span>
                     <span className="intro-chip"><Icon name="users" size={12} className="text-[#8F9FD6]"/>모둠·좌석</span>
@@ -2865,7 +3055,7 @@ ${cellsHtml.join('')}`;
                 </div>
                 <form onSubmit={startClass} className="space-y-4 sm:space-y-5">
                     <div className="text-left">
-                        <label className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-gray-500 mb-2 pl-1"><Icon name="users" size={16} className="text-[#FFB7B2]"/>우리 반 마지막 번호를 입력하세요</label>
+                        <label className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-gray-500 mb-2 pl-1"><Icon name="users" size={16} className="text-[#FFB7B2]"/>우리 반 마지막 번호</label>
                         <div className="relative"><input type="number" inputMode="numeric" pattern="[0-9]*" value={studentCount} onChange={e=>setStudentCount(e.target.value)} className="w-full h-16 sm:h-20 text-center text-4xl sm:text-5xl font-black text-[#4A4A4A] bg-[#F9F7F4] rounded-2xl border-2 border-[#EDE6DA] focus:border-[#FFB7B2] focus:bg-white focus:outline-none input-glow placeholder-gray-300 transition-all" placeholder="30" autoFocus/><span className="absolute right-5 top-1/2 -translate-y-1/2 text-base font-bold text-gray-400">번</span></div>
                         <p className="text-[11px] text-gray-400 mt-1.5 pl-1 font-bold">예: 30번까지 있으면 → 30 입력 (1~30번 생성)</p>
                     </div>
@@ -2966,39 +3156,29 @@ ${cellsHtml.join('')}`;
     };
 
     return(<div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden">
-        <nav className="sticky top-0 z-40 glass-panel px-1.5 sm:px-4 py-2"><div className="max-w-7xl mx-auto flex items-center gap-1 sm:gap-2">
-            <div className="flex items-center gap-1.5 cursor-pointer shrink-0" onClick={goHome} title="처음 화면으로"><div className="bg-gradient-to-br from-[#B5EAD7] to-[#8FD9BD] p-1.5 sm:p-2 rounded-xl text-white shadow-sm"><Icon name="flask-conical" size={16}/></div><div className="hidden sm:flex flex-col leading-none"><span className="hidden lg:block text-[13px] font-black text-[#7ECDB0]">송쌤과학</span><span className="text-sm lg:text-[11px] font-black text-gray-500">{students.length}명{excludedNums.length>0&&<span className="text-[10px] text-gray-400 font-bold ml-0.5">(-{excludedNums.length})</span>}</span></div></div>
-            <div className="flex gap-px sm:gap-0.5 overflow-x-auto no-scrollbar flex-1 py-1 px-0.5 bg-white/50 rounded-2xl border border-white/60">
-                <NavBtn active={mode==='whiteboard'} icon="palette" label="판서" color="#FF8A80" onClick={()=>setMode('whiteboard')}/>
-                <div className="nav-divider"/>
-                <NavBtn active={mode==='pick'} icon="trophy" label="발표" color="#FFB7B2" onClick={()=>setMode('pick')}/>
-                <NavBtn active={mode==='lotto'} icon="dices" label="로또" color="#FF6B6B" onClick={()=>setMode('lotto')}/>
-                <NavBtn active={mode==='wheel'} icon="circle-dot" label="돌림판" color="#B39DDB" onClick={()=>setMode('wheel')}/>
-                <div className="nav-divider"/>
-                <NavBtn active={mode==='team'} icon="users" label="모둠" color="#8F9FD6" onClick={()=>setMode('team')}/>
-                <NavBtn active={mode==='seat'} icon="armchair" label="좌석" color="#F5A67A" onClick={()=>setMode('seat')}/>
-                <div className="nav-divider"/>
-                <NavBtn active={mode==='timer'} icon="timer" label="타이머" color="#FFAE8A" onClick={()=>setMode('timer')}/>
-                <NavBtn active={mode==='calendar'} icon="calendar" label="달력" color="#7ECDB0" onClick={()=>setMode('calendar')}/>
-                <div className="nav-divider"/>
-                <NavBtn active={mode==='youtube'} icon="youtube" label="영상" color="#EF7B72" onClick={()=>setMode('youtube')}/>
-                <NavBtn active={mode==='record'} icon="mic" label="녹음" color="#E57373" onClick={()=>setMode('record')}/>
-                <NavBtn active={mode==='qr'} icon="qr-code" label="QR" color="#6FCF97" onClick={()=>setMode('qr')}/>
-                <NavBtn active={mode==='memo'} icon="sticky-note" label="메모" color="#F2C14E" onClick={()=>setMode('memo')}/>
-                <NavBtn active={mode==='img'} icon="image" label="사진" color="#64B5F6" onClick={()=>setMode('img')}/>
-            </div>
-            <div className="shrink-0 hidden sm:block"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/></div>
-            <button onClick={()=>setIsSoundOn(!isSoundOn)} className="sm:hidden shrink-0 p-1.5 rounded-xl touch-target" style={{color:isSoundOn?'#6B8E23':'#AAA'}}><Icon name={isSoundOn?"volume-2":"volume-x"} size={16}/></button>
-            <button onClick={()=>{playSound('click');setShowSettings(true);}} className="shrink-0 p-1.5 rounded-xl touch-target" style={{color:isDarkMode?'#FFDAC1':'#A0A0A0'}} title="설정 (다크모드 · UI 크기)"><Icon name="settings" size={16}/></button>
-        </div></nav>
+        <header className="app-header">
+            <button className="brand-lockup" onClick={goHome} title="학급 보관함 열기"><span className="brand-mark"><Icon name="flask-conical" size={23}/></span><span><strong>송쌤과학</strong><small>교실 도우미</small></span></button>
+            <div className="header-context"><span className="live-dot"/> 수업 준비부터 마무리까지</div>
+            <div className="header-actions"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/><button className="utility-btn" onClick={()=>setIsDarkMode(!isDarkMode)} aria-label={isDarkMode?'밝은 화면으로 전환':'어두운 화면으로 전환'} title="테마 전환"><Icon name={isDarkMode?'sun':'moon'} size={18}/></button><button className="utility-btn" onClick={()=>setShowSettings(true)} aria-label="화면 설정" title="화면 설정"><Icon name="settings-2" size={18}/></button></div>
+        </header>
+        <nav className="tool-rail" aria-label="수업 도구">
+            <div className="rail-heading">CLASSROOM TOOLS</div>
+            {[
+                {title:'참여와 모둠',items:[['pick','발표자 뽑기','trophy'],['lotto','로또 추첨','dices'],['wheel','돌림판','circle-dot'],['team','모둠 만들기','users'],['seat','좌석 배치','armchair']]},
+                {title:'수업 진행',items:[['whiteboard','화이트보드','palette'],['timer','타이머','timer'],['calendar','달력','calendar']]},
+                {title:'자료와 기록',items:[['youtube','영상 재생','youtube'],['record','녹음','mic'],['qr','QR 코드','qr-code'],['memo','메모','sticky-note'],['img','사진 보기','image']]}
+            ].map(group=><div className="tool-group" key={group.title}><p className="group-label">{group.title}</p>{group.items.map(([id,label,icon])=><button key={id} className={'rail-item '+(mode===id?'is-active':'')} aria-current={mode===id?'page':undefined} onClick={()=>{playSound('click');setMode(id);}}><Icon name={icon} size={18}/><span>{label}</span>{mode===id&&<span className="active-dot"/>}</button>)}</div>)}
+            <button className="class-summary" onClick={goHome}><Icon name="users" size={19}/><span><strong>우리 반 {students.length}명</strong><small>학급 보관함 <span aria-hidden="true">↗</span></small></span></button>
+        </nav>
 
         {showMiniTimer&&<div className={`fixed top-[68px] sm:top-[76px] left-2 z-50 mini-float ${isTimerRunning?'mini-pulse':''}`} onClick={()=>{playSound('click');setMode('timer');}}><div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shadow-lg border-2 cursor-pointer active:scale-95 ${isTimerRunning?'bg-white border-[#FFB7B2]':'bg-white/90 border-gray-200'}`}><svg viewBox="0 0 32 32" className="w-6 h-6 -rotate-90"><circle cx="16" cy="16" r="13" stroke="#F0F0F0" strokeWidth="2.5" fill="none"/><circle cx="16" cy="16" r="13" stroke={isTimerRunning?"#FFDAC1":"#D1D5DB"} strokeWidth="2.5" fill="none" strokeDasharray={2*Math.PI*13} strokeDashoffset={(2*Math.PI*13)-(timeLeft/(initialTime||1))*(2*Math.PI*13)} strokeLinecap="round"/></svg><span className={`text-sm font-black tabular-nums ${isTimerRunning?'text-[#5D5D5D]':'text-gray-400'}`}>{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span></div></div>}
 
-        <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
+        <main data-tool={mode} className="workspace flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
+            <div className="workspace-context"><span>우리 반 작업실 <span className="context-slash">/</span> {({pick:'발표자 뽑기',lotto:'로또 추첨',wheel:'돌림판',team:'모둠 만들기',seat:'좌석 배치',whiteboard:'화이트보드',timer:'타이머',calendar:'달력',youtube:'영상 재생',record:'녹음',qr:'QR 코드',memo:'메모',img:'사진 보기'})[mode]}</span><span className="participation"><span className="live-dot"/>{activeStudents.length}명 참여</span></div>
 
             {mode==='pick'&&<div className="card-enter w-full">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1"><div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">발표자 뽑기</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">오늘의 행운의 주인공은?</p></div><div className="flex gap-1.5"><button onClick={()=>setIsNoRepeat(!isNoRepeat)} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-[10px] sm:text-sm font-bold border-2 touch-target transition-all ${isNoRepeat?'bg-[#FFB7B2] border-[#FFB7B2] text-white':'bg-white border-gray-200 text-gray-400'}`}>중복방지 {isNoRepeat?'ON':'OFF'}</button><button onClick={()=>setPickHistory([])} className="flex-1 sm:flex-none px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[10px] sm:text-sm font-bold touch-target">초기화 ({pickHistory.length})</button></div></div>
-                <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFB7B2" playSound={playSound}/></div>
+                <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#166B59" playSound={playSound}/></div>
                 <div className="bg-white rounded-2xl p-3 sm:p-5 soft-shadow border border-[#F0EBE3] relative overflow-hidden"><div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5 sm:gap-2 relative z-10">{students.map(num=>{const isExcluded=excludedNums.includes(num),isWin=pickWinner===num,isHL=currentPick===num,isDone=pickHistory.includes(num);return<div key={num} className={`student-cell ${isExcluded?'excluded-cell':isWin?'winner winner-pulse':isHL?'highlight-anim':isDone?'done':''}`}>{isExcluded?<span className="text-gray-300 text-[11px]">✕</span>:num}{!isExcluded&&isDone&&<div className="absolute inset-0 flex items-center justify-center opacity-25 bg-gray-100/40"><Icon name="check" size={14}/></div>}</div>;})}</div></div>
                 <div className="mt-5 text-center"><button onClick={()=>{if(isPicking)return;let pool=isNoRepeat?activeStudents.filter(s=>!pickHistory.includes(s)):activeStudents;if(!pool.length)return showAlert(activeStudents.length===0?"참여할 학생이 없습니다.":"모든 학생이 발표했습니다!\n기록을 초기화해주세요.");playSound('click');setIsPicking(true);setPickWinner(null);let cnt=0;const mx=20+Math.floor(Math.random()*10);let d=50;const loop=()=>{setCurrentPick(activeStudents[Math.floor(Math.random()*activeStudents.length)]);playSound('tick');cnt++;if(cnt>mx){const w=pool[Math.floor(Math.random()*pool.length)];setCurrentPick(w);setPickWinner(w);if(isNoRepeat)setPickHistory(prev=>[...prev,w]);playSound('win');fireConfetti();setIsPicking(false);}else{d*=1.1;setTimeout(loop,d);}};loop();}} disabled={isPicking} className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-[#FFB7B2] hover:bg-[#FF9E99] text-white rounded-full text-lg sm:text-xl font-black shadow-lg shadow-[#FFB7B2]/25 active:scale-95 flex items-center justify-center gap-2 mx-auto touch-target transition-all">{isPicking?<Icon name="loader-2" size={18} className="animate-spin"/>:<Icon name="sparkles" size={18}/>}{isPicking?'두구두구...':'발표자 뽑기'}</button></div>
             </div>}
@@ -3007,14 +3187,14 @@ ${cellsHtml.join('')}`;
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1">
                     <div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">로또 추첨기</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">로또처럼 발표자를 뽑아보세요!</p></div>
                 </div>
-                <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FF6B6B" playSound={playSound}/></div>
+                <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#166B59" playSound={playSound}/></div>
                 <LottoPicker students={students} excludedNums={excludedNums} playSound={playSound} isSoundOn={isSoundOn}/>
             </div>}
 
             {mode==='team'&&<div className="card-enter space-y-3 w-full">
                 <div className="bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5">
                     <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#C7CEEA] border-[#C7CEEA] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
-                    {placementType==='number'&&<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#C7CEEA" playSound={playSound}/>}
+                    {placementType==='number'&&<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#166B59" playSound={playSound}/>}
                     {placementType==='name'&&<textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-2.5 bg-[#F7F9FC] rounded-xl border-2 border-transparent focus:border-[#C7CEEA] resize-none h-16 outline-none text-sm" placeholder="학생 이름 (쉼표/줄바꿈 구분)"/>}
                     {placementType==='gender'&&<div className="flex gap-2"><textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#F0F8FF] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#90CAF9] outline-none" placeholder="남학생"/><textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#FFF0F5] rounded-xl h-16 resize-none text-xs border-2 border-transparent focus:border-[#F48FB1] outline-none" placeholder="여학생"/></div>}
                     <div className="flex gap-2 items-end"><div className="flex items-center gap-1 bg-[#F7F9FC] p-1 rounded-lg border border-gray-100">{[2,3].map(c=><button key={c} onClick={()=>setTeamColumns(c)} className={`px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${teamColumns===c?'bg-white shadow-sm text-[#5C6B9E]':'text-gray-400'}`}>{c}열</button>)}</div><div className="flex items-center bg-[#F7F9FC] rounded-lg border border-gray-100 px-1.5 gap-1"><button onClick={()=>setTeamCount(Math.max(2,teamCount-1))} className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="minus" size={14}/></button><span className="text-sm font-black text-[#5C6B9E] min-w-[2rem] text-center">{teamCount}</span><button onClick={()=>setTeamCount(Math.min(20,teamCount+1))} className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-500 touch-target flex items-center justify-center"><Icon name="plus" size={14}/></button></div><button onClick={createTeams} className="ml-auto py-2.5 px-4 bg-[#C7CEEA] text-white rounded-lg font-bold shadow-md active:scale-95 flex items-center gap-1.5 touch-target text-sm"><Icon name="wand-2" size={16}/> 생성</button></div>
@@ -3038,7 +3218,7 @@ ${cellsHtml.join('')}`;
             {mode==='seat'&&<div className="card-enter space-y-3 w-full">
                 <div className={`bg-white p-3 sm:p-5 rounded-2xl soft-shadow border border-gray-100 space-y-2.5 ${seatPresentMode&&seats.length>0?'hidden':''}`}>
                     <div className="flex gap-1.5">{['number','name','gender'].map(t=><button key={t} onClick={()=>setPlacementType(t)} className={`flex-1 py-2 rounded-lg font-bold text-xs sm:text-sm border-2 touch-target transition-all ${placementType===t?'bg-[#FFD3B6] border-[#FFD3B6] text-white':'bg-white border-gray-100 text-gray-400'}`}>{t==='number'?'번호':t==='name'?'이름':'남녀'}</button>)}</div>
-                    {placementType==='number'&&<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#FFD3B6" playSound={playSound}/>}
+                    {placementType==='number'&&<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#166B59" playSound={playSound}/>}
                     {placementType==='name'&&<textarea value={inputNames} onChange={e=>setInputNames(e.target.value)} className="w-full p-2.5 bg-[#FFF8F0] rounded-xl border-2 border-transparent focus:border-[#FFD3B6] resize-none h-16 outline-none text-sm" placeholder="학생 이름 입력"/>}
                     {placementType==='gender'&&<div className="space-y-2"><div className="flex bg-[#FFF8F0] p-0.5 rounded-lg"><button onClick={()=>setGenderOption('mixed')} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold ${genderOption==='mixed'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>이성끼리 👫</button><button onClick={()=>setGenderOption('same')} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold ${genderOption==='same'?'bg-white shadow-sm text-[#D68C60]':'text-gray-400'}`}>동성끼리</button></div><div className="flex gap-2"><textarea value={maleInput} onChange={e=>setMaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#F0F8FF] rounded-xl h-16 resize-none text-xs outline-none" placeholder="남학생"/><textarea value={femaleInput} onChange={e=>setFemaleInput(e.target.value)} className="flex-1 p-2.5 bg-[#FFF0F5] rounded-xl h-16 resize-none text-xs outline-none" placeholder="여학생"/></div></div>}
                     <div className="flex gap-2 items-end flex-wrap">
@@ -3256,8 +3436,107 @@ ${cellsHtml.join('')}`;
     </div>);
 }
 
+// Local-only class library. No network calls: persistence is localStorage and JSON files.
+const CLASSROOM_KEY='songsam_classrooms_v1';
+const ClassContext=React.createContext(null);
+const classClone=x=>JSON.parse(JSON.stringify(x));
+const classId=()=>globalThis.crypto?.randomUUID?.()||('class-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+const classDefaults={step:'input',studentCount:'',students:[],mode:'pick',isSoundOn:true,placementType:'number',inputNames:'',maleInput:'',femaleInput:'',genderOption:'mixed',excludedInput:'',teams:[],teamCount:6,teamColumns:3,seats:[],seatType:'single',seatPairSettings:{mustPair:[],mustNotPair:[]},seatFixed:[],seatPresentMode:false,seatTitle:'',seatTeacher:'',seatTeacherRole:'담임',seatRowMode:'auto',seatColumns:5,seatRows:6,seatGrid:[],savedSeatLayout:null,initialTime:300,showClockInTimer:false,memos:[],memoColor:'#FFE0E0',memoFontSize:14,dDays:[],pickHistory:[],isNoRepeat:false};
+function validateClassData(raw){
+    if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('학급 데이터 형식이 올바르지 않습니다.');
+    const out=classClone(classDefaults),str=x=>typeof x==='string'&&x.length<=20000,num=x=>Number.isFinite(x),student=x=>(str(x)&&x.length<=100)||num(x),list=(x,test,max=200)=>Array.isArray(x)&&x.length<=max&&x.every(test),grid=x=>list(x,r=>list(r,c=>typeof c==='boolean',100),100);
+    const validators={students:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,100),pickHistory:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,10000),teams:x=>list(x,t=>list(t,student,100),100),seats:x=>list(x,student,100),seatPairSettings:x=>x&&list(x.mustPair,p=>list(p,student,2)&&p.length===2)&&list(x.mustNotPair,p=>list(p,student,2)&&p.length===2),seatFixed:x=>list(x,f=>f&&student(f.student)&&Number.isInteger(f.pos)&&f.pos>=1&&f.pos<=100,100),seatGrid:grid,savedSeatLayout:x=>x===null||(x&&grid(x.grid)&&Number.isInteger(x.cols)&&x.cols>=1&&x.cols<=100),memos:x=>list(x,m=>m&&student(m.id)&&str(m.text)&&/^#[a-f0-9]{6}$/i.test(m.color)&&(!m.fontSize||(num(m.fontSize)&&m.fontSize>=10&&m.fontSize<=32))),dDays:x=>list(x,d=>d&&student(d.id)&&str(d.title)&&typeof d.targetDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d.targetDate)&&!isNaN(Date.parse(d.targetDate))),studentCount:x=>x===''||(Number.isInteger(Number(x))&&Number(x)>=1&&Number(x)<=100)};
+    for(const key of Object.keys(out))if(Object.prototype.hasOwnProperty.call(raw,key)){
+        const v=raw[key];const ok=validators[key]?validators[key](v):typeof out[key]==='string'?str(v):typeof out[key]==='number'?num(v)&&v>=0&&v<=86400:typeof out[key]==='boolean'?typeof v==='boolean':false;
+        if(!ok)throw Error('학급 데이터 항목을 확인해 주세요: '+key);out[key]=classClone(v);
+    }
+    const enums={step:['input','main'],mode:['pick','lotto','wheel','team','seat','whiteboard','timer','calendar','youtube','record','qr','memo','img'],placementType:['number','name','gender'],seatType:['single','pair'],seatRowMode:['auto','custom'],seatTeacherRole:['담임','교과']};
+    for(const [key,allowed] of Object.entries(enums))if(!allowed.includes(out[key]))throw Error('지원하지 않는 설정입니다: '+key);
+    for(const key of ['teamCount','teamColumns','seatColumns','seatRows'])if(!Number.isInteger(out[key])||out[key]<1||out[key]>100)throw Error('학급 배치 숫자가 올바르지 않습니다.');
+    if(out.step==='main'&&!out.students.length)throw Error('학급 명단이 비어 있습니다.');
+    return out;
+}
+const classRecord=(name,data=classDefaults)=>({id:classId(),name,updated:Date.now(),data:classClone(data),past:[],future:[]});
+function parseClassRecord(raw){
+    if(!raw||typeof raw.name!=='string'||!raw.name.trim()||raw.name.length>40)throw Error('학급 이름이 올바르지 않습니다.');
+    const record=classRecord(raw.name,validateClassData(raw.data));
+    for(const key of ['past','future']){if(raw[key]!==undefined&&!Array.isArray(raw[key]))throw Error('복구 기록 형식이 올바르지 않습니다.');record[key]=(raw[key]||[]).slice(-20).map(h=>{if(!h||!Number.isFinite(h.at)||typeof h.label!=='string'||h.label.length>100)throw Error('복구 기록을 읽을 수 없습니다.');return {at:h.at,label:h.label,data:validateClassData(h.data)};});}
+    record.updated=Number.isFinite(raw.updated)?raw.updated:Date.now();return record;
+}
+function loadClassLibrary(){
+    try{
+        const saved=localStorage.getItem(CLASSROOM_KEY);
+        if(saved){const raw=JSON.parse(saved);if(raw.version!==1||!Array.isArray(raw.classes)||!raw.classes.length||raw.classes.length>30)throw Error();const classes=raw.classes.map(parseClassRecord);let index=raw.classes.findIndex(c=>c.id===raw.activeId);if(index<0)index=0;return {version:1,classes,activeId:classes[index].id};}
+        const old=loadSession();const first=classRecord('우리 반',validateClassData(old));return {version:1,classes:[first],activeId:first.id};
+    }catch(e){const first=classRecord('우리 반');return {version:1,classes:[first],activeId:first.id,loadError:'저장된 학급 정보를 읽지 못했습니다. 기존 저장 내용은 덮어쓰지 않았습니다. 백업을 불러오거나 백업 파일을 먼저 보관해 주세요.'};}
+}
+const classFingerprint=data=>{const copy={...data};for(const k of ['mode','isSoundOn','memoColor','memoFontSize','seatPresentMode','showClockInTimer'])delete copy[k];return JSON.stringify(copy);};
+function classChangeLabel(before,after){
+    const groups=[['메모',['memos']],['모둠',['teams','teamCount','teamColumns']],['좌석',['seats','seatFixed','seatPairSettings','seatGrid','savedSeatLayout','seatType']],['발표 기록',['pickHistory','isNoRepeat']],['학급 명단',['students','inputNames','maleInput','femaleInput','excludedInput']],['일정',['dDays']],['타이머 설정',['initialTime']]];
+    return (groups.find(([,keys])=>keys.some(k=>JSON.stringify(before[k])!==JSON.stringify(after[k])))?.[0]||'학급 설정')+' 변경 전';
+}
+function useClassroomData(data){
+    const ctx=React.useContext(ClassContext),serialized=JSON.stringify(data);
+    React.useLayoutEffect(()=>{ctx.capture(data);},[serialized,ctx.capture]);
+}
+function ClassroomShell(){
+    const library=useRef(null);if(!library.current)library.current=loadClassLibrary();
+    const active=()=>library.current.classes.find(c=>c.id===library.current.activeId);
+    const latest=useRef(classClone(active().data)),timer=useRef(null),[revision,setRevision]=useState(0),[epoch,setEpoch]=useState(0),[panel,setPanel]=useState(null),[name,setName]=useState(''),[notice,setNotice]=useState(''),[saveError,setSaveError]=useState(library.current.loadError||''),[pendingImport,setPendingImport]=useState(null),fileRef=useRef(null),dialogRef=useRef(null);
+    const redraw=()=>setRevision(x=>x+1);
+    const persist=(notify=true)=>{
+        if(library.current.loadError)return false;
+        try{localStorage.setItem(CLASSROOM_KEY,JSON.stringify(library.current));if(notify){setSaveError('');setNotice('이 기기에 저장했어요');}return true;}
+        catch(e){if(notify){setSaveError('이 기기에 저장하지 못했습니다. 브라우저 저장 공간 또는 권한을 확인하고, 지금 백업 파일을 저장해 주세요. 현재 변경 내용은 이 창에 남아 있습니다.');setNotice('저장되지 않은 변경 내용이 있습니다.');}return false;}
+    };
+    const commit=(notify=true)=>{
+        clearTimeout(timer.current);const c=active(),next=classClone(latest.current);
+        if(JSON.stringify(c.data)!==JSON.stringify(next)){
+            if(classFingerprint(c.data)!==classFingerprint(next)){c.past.push({at:Date.now(),label:classChangeLabel(c.data,next),data:classClone(c.data)});c.past=c.past.slice(-20);c.future=[];}
+            c.data=next;c.updated=Date.now();if(notify)redraw();
+        }
+        return persist(notify);
+    };
+    const actions=useRef(null);actions.current={commit,persist};
+    const capture=React.useCallback(data=>{latest.current=classClone({...classDefaults,...data});clearTimeout(timer.current);timer.current=setTimeout(()=>actions.current.commit(),500);},[]);
+    useEffect(()=>{const flush=()=>actions.current.commit(false);const hidden=()=>{if(document.visibilityState==='hidden')flush();};window.addEventListener('pagehide',flush);window.addEventListener('beforeunload',flush);document.addEventListener('visibilitychange',hidden);return()=>{clearTimeout(timer.current);window.removeEventListener('pagehide',flush);window.removeEventListener('beforeunload',flush);document.removeEventListener('visibilitychange',hidden);};},[]);
+    useEffect(()=>{if(!panel)return;const prior=document.activeElement,overflow=document.body.style.overflow;document.body.style.overflow='hidden';dialogRef.current?.focus();return()=>{document.body.style.overflow=overflow;if(prior?.isConnected)prior.focus();};},[panel]);
+    const remount=()=>{latest.current=classClone(active().data);setEpoch(x=>x+1);redraw();};
+    const openPanel=which=>{commit();setPendingImport(null);setName(active().name);setPanel(which);};
+    const undo=()=>{commit();const c=active(),h=c.past.pop();if(!h)return;c.future.push({at:Date.now(),label:'다시 실행',data:classClone(c.data)});c.future=c.future.slice(-20);c.data={...h.data,mode:c.data.mode};c.updated=Date.now();persist();remount();setNotice('이전 상태로 되돌렸어요');};
+    const redo=()=>{commit();const c=active(),h=c.future.pop();if(!h)return;c.past.push({at:Date.now(),label:'다시 실행 전',data:classClone(c.data)});c.past=c.past.slice(-20);c.data={...h.data,mode:c.data.mode};c.updated=Date.now();persist();remount();setNotice('다시 실행했어요');};
+    const switchClass=id=>{commit();library.current.activeId=id;persist();remount();setPanel(null);setNotice(active().name+'을 불러왔어요');};
+    const addClass=()=>{if(!name.trim())return setNotice('학급 이름을 입력해 주세요');if(library.current.classes.length>=30)return setNotice('학급은 최대 30개까지 저장할 수 있어요');commit();const c=classRecord(name.trim().slice(0,40));library.current.classes.push(c);library.current.activeId=c.id;persist();remount();setPanel(null);setNotice('새 학급을 만들었어요. 마지막 번호를 입력해 주세요.');};
+    const rename=()=>{if(!name.trim())return;active().name=name.trim().slice(0,40);persist();redraw();setNotice('학급 이름을 변경했어요');};
+    const restore=index=>{commit();const c=active(),h=c.past[index];if(!h)return;const target=classClone(h.data);c.past.push({at:Date.now(),label:'기록 복구 전',data:classClone(c.data)});c.past=c.past.slice(-20);c.future=[];c.data={...target,mode:c.data.mode};c.updated=Date.now();persist();remount();setPanel(null);setNotice('기록을 복구했어요. 실행 취소로 복구 전 상태로 돌아갈 수 있어요.');};
+    const download=()=>{commit();let payload=JSON.stringify(library.current,null,2);if(library.current.loadError){try{payload=localStorage.getItem(CLASSROOM_KEY)||payload;}catch(e){}}const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='송쌤과학_학급백업_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setNotice('백업 파일을 저장했어요');};
+    const readBackup=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>5*1024*1024)throw Error('백업 파일은 5MB 이하만 불러올 수 있습니다.');const raw=JSON.parse(await file.text());if(raw.version!==1||!Array.isArray(raw.classes)||!raw.classes.length||raw.classes.length>30)throw Error('송쌤과학 학급 백업 파일이 아닙니다.');const imported=raw.classes.map(parseClassRecord);if(imported.length+library.current.classes.length>30)throw Error('불러온 뒤 학급 수가 30개를 넘습니다.');setPendingImport(imported);setNotice('아래 학급 목록을 확인한 후 추가해 주세요.');}catch(err){setPendingImport(null);setNotice('불러오기 실패: '+(err.message||'파일을 확인해 주세요.'));}};
+    const importBackup=()=>{if(!pendingImport)return;commit();for(const c of pendingImport){c.name=(c.name+' (불러옴)').slice(0,40);library.current.classes.push(c);}delete library.current.loadError;persist();redraw();setPendingImport(null);setNotice('백업 학급을 추가했어요. 기존 학급은 그대로 유지됩니다.');};
+    const c=active();
+    const ctx={boot:c.data,capture,name:c.name,openPanel};
+    return <ClassContext.Provider value={ctx}>
+        <div className="library-bar"><button className="library-current" onClick={()=>openPanel('classes')}><Icon name="folder-open" size={17}/><strong>{c.name}</strong><Icon name="chevron-down" size={14}/></button><span className="local-badge"><Icon name="hard-drive" size={13}/>이 기기에만 저장</span><span className="library-spacer"/><button title="명단·모둠·좌석·메모 등의 이전 상태로 되돌리기" disabled={!c.past.length} onClick={undo}><Icon name="undo-2" size={16}/><span>실행 취소</span></button><button title="취소한 변경 다시 실행" disabled={!c.future.length} onClick={redo}><Icon name="redo-2" size={16}/><span>다시 실행</span></button><button onClick={()=>openPanel('history')}><Icon name="history" size={16}/><span>복구 기록</span></button><button onClick={()=>openPanel('classes')} aria-label="학급 관리"><Icon name="settings-2" size={16}/></button></div>
+        {saveError&&<div className="library-error" role="alert">{saveError}<button onClick={download}>백업 파일 저장</button></div>}
+        <App key={c.id+':'+epoch}/>
+        <div className="library-status" role="status" aria-live="polite">{notice}</div>
+        {panel&&<div className="library-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setPanel(null);}}><section className="library-dialog" role="dialog" aria-modal="true" aria-labelledby="library-title" ref={dialogRef} tabIndex={-1} onKeyDown={e=>{if(e.key==='Escape'){setPanel(null);return;}if(e.key==='Tab'){const nodes=[...e.currentTarget.querySelectorAll('button:not(:disabled),input:not([type=hidden]),[tabindex="0"]')].filter(n=>n.getClientRects().length);const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===e.currentTarget)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>
+            <div className="library-dialog-title"><div><p>LOCAL CLASSROOM</p><h2 id="library-title">{panel==='classes'?'학급 보관함':'기록 복구'}</h2></div><button aria-label="학급 창 닫기" onClick={()=>setPanel(null)}><Icon name="x" size={21}/></button></div>
+            <div className="library-privacy"><Icon name="hard-drive" size={20}/><div><strong>학급 정보는 이 기기에만 저장됩니다.</strong><p>명단·모둠·좌석·메모·발표 기록·일정과 복구 기록은 외부 서버로 전송되지 않으며, 현재 사용하는 브라우저에 저장됩니다.</p><p>다른 기기나 브라우저에는 자동 공유되지 않습니다. 브라우저 데이터를 삭제하면 기록이 사라질 수 있으니 중요한 내용은 백업 파일로 보관해 주세요.</p></div></div>
+            <p className="library-scope">최근 변경 20개를 학급별로 보관합니다. 타이머는 학급 전환·복구 시 정지합니다. 판서는 자체 실행 취소·저장을 사용하며, 판서·사진·녹음·영상·돌림판은 이 학급 백업 및 복구 대상에 포함되지 않습니다.</p>
+            <div className="library-tabs"><button className={panel==='classes'?'selected':''} onClick={()=>setPanel('classes')}>학급 관리</button><button className={panel==='history'?'selected':''} onClick={()=>setPanel('history')}>복구 기록 · {c.past.length}</button></div>
+            {panel==='classes'?<>
+                <div className="library-form"><label htmlFor="class-name">학급 이름</label><div><input id="class-name" value={name} maxLength={40} placeholder="예: 1학년 3반" onChange={e=>setName(e.target.value)}/><button onClick={rename} disabled={!name.trim()}>이름 변경</button><button className="primary" onClick={addClass} disabled={!name.trim()}>새 학급 만들기</button></div></div>
+                <div className="library-list">{library.current.classes.map(item=><div className={'library-row '+(item.id===c.id?'current':'')} key={item.id}><div><strong>{item.name}</strong><small>{item.data.students.length}명 · 메모 {item.data.memos.length}개 · {new Date(item.updated).toLocaleString('ko-KR')}</small></div>{item.id===c.id?<span>사용 중</span>:<button onClick={()=>switchClass(item.id)}>불러오기</button>}</div>)}</div>
+                <div className="library-backup"><div><strong>학급과 복구 기록을 파일로 보관</strong><p>다른 컴퓨터로 옮기거나 브라우저 저장 내용을 복구할 수 있어요.</p></div><div><button onClick={download}><Icon name="download" size={15}/>백업 파일 저장</button><button onClick={()=>fileRef.current.click()}><Icon name="upload" size={15}/>백업 불러오기</button><input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={readBackup}/></div></div>
+                {pendingImport&&<div className="library-import"><strong>{pendingImport.length}개 학급을 추가합니다</strong><p>{pendingImport.map(x=>x.name).join(', ')}</p><p>기존 학급을 덮어쓰지 않고 별도 학급으로 추가합니다.</p><button className="primary" onClick={importBackup}>확인 후 추가</button><button onClick={()=>setPendingImport(null)}>취소</button></div>}
+            </>:<div className="library-list">{!c.past.length?<p className="library-empty">아직 복구 기록이 없습니다. 명단·좌석·메모 등을 변경하면 이전 상태를 자동으로 보관합니다.</p>:[...c.past].reverse().map((h,i)=><div className="library-row" key={i}><div><strong>{h.label}</strong><small>{new Date(h.at).toLocaleString('ko-KR')} · 메모 {h.data.memos.length}개 · 좌석 {h.data.seats.length}개</small></div><button onClick={()=>restore(c.past.length-1-i)}>이 상태로 복구</button></div>)}</div>}
+            <p className="library-dialog-status" role="status">{notice}</p>
+        </section></div>}
+    </ClassContext.Provider>;
+}
+
 const root=ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App/>);
+root.render(<ClassroomShell/>);
 </script>
 </body>
 </html>
