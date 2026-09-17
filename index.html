@@ -504,7 +504,135 @@ body .workspace[data-tool="wheel"]>div.card-enter>div{border-color:var(--border-
 @media(max-width:640px){.library-bar{height:auto;min-height:46px;flex-wrap:wrap;padding:6px 9px;gap:2px;position:relative}.library-bar button{padding:6px;min-height:34px}.library-bar button>span{font-size:10px}.library-current strong{max-width:95px}.local-badge{font-size:9px}.local-badge svg{display:none}.library-bar~div .app-header{top:0}.tool-rail{top:66px}.library-overlay{padding:10px}.library-dialog{padding:19px;max-height:94dvh}.library-form>div{flex-wrap:wrap}.library-form input{flex-basis:100%;font-size:16px}.library-dialog button{font-size:11px}.library-privacy{padding:12px}.library-privacy>svg{display:none}.library-row{padding:12px 4px}.library-status{bottom:6px;right:8px;font-size:10px}.library-backup>div:last-child{flex-wrap:wrap}}
 @media print{.library-bar,.library-overlay,.library-status,.library-error{display:none!important}}
 
-</style></head>
+</style>
+<style id="classroom-navigation-and-tools">
+:root{--library-height:46px;--header-height:76px;--tools-height:62px}
+#root{padding-top:var(--library-height)}
+.library-bar{position:fixed;inset:0 0 auto;height:auto;min-height:46px;flex-wrap:wrap;padding:6px 24px}
+.library-bar .local-badge{border:1px solid var(--border-line)}
+.library-current .current-label{color:var(--text-sub);font-size:10px}
+.classroom-app{min-height:calc(100dvh - var(--library-height));padding-top:var(--header-height);overflow:visible}
+.classroom-app .app-header{position:fixed;top:var(--library-height);left:0;right:0;flex-shrink:0}
+.classroom-app .tool-rail{position:fixed;top:calc(var(--library-height) + var(--header-height));overscroll-behavior:contain}
+.classroom-app .mini-float{top:calc(var(--library-height) + var(--header-height) + 8px)!important}
+.class-summary strong{overflow-wrap:anywhere}.workspace-context>span:first-child{min-width:0;overflow-wrap:anywhere}
+.library-form{margin:18px 0}.library-form p,.library-hint{font-size:12px;line-height:1.8;color:var(--text-sub);margin:8px 0}
+.library-form>div{display:flex;gap:8px}.library-form input{width:100%}
+.library-tabs{flex-wrap:wrap;gap:14px}.library-new-intro{font-size:13px;line-height:1.8;color:var(--text-sub)}
+.library-list-title{font-size:14px;font-weight:700;margin-top:20px}.library-storage-info{margin:16px 0;font-size:12px;line-height:1.9;padding-left:20px;list-style:disc}
+.library-storage-info li{margin:8px 0}.library-row>div{min-width:0}.library-row button{flex-shrink:0}
+.class-tool{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:12px;padding:24px}
+.class-tool h2{font-weight:700;margin:0 0 6px}.class-tool p{font-size:13px;color:var(--text-sub);line-height:1.8}
+.tool-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:20px 0}
+.class-tool button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 13px;border:1px solid var(--border-soft);border-radius:8px;font-size:12px;color:var(--text-main)}
+.class-tool button:hover{background:var(--bg-soft)}.class-tool button.primary{background:#166b59;color:white;border-color:#166b59}
+.class-tool input:not([type=checkbox]){min-width:0;padding:10px 12px;background:var(--bg-input);border:1px solid var(--border-soft);border-radius:8px;color:var(--text-main)}
+.class-tool label{font-size:13px}.attendance-counts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.attendance-counts span{background:var(--bg-soft);border-radius:7px;padding:8px 12px;font-size:12px}
+.attendance-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.attendance-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;background:var(--bg-soft);border-radius:8px}
+.attendance-row strong{font-size:14px}.attendance-row select{padding:7px 10px;border:1px solid var(--border-soft);border-radius:6px;background:var(--bg-card);color:var(--text-main);font:inherit;font-size:13px;min-height:38px}
+.checklist-form{display:flex;gap:8px;margin:20px 0}.checklist-form input{flex:1}.checklist-form button{flex-shrink:0}
+.lesson-task{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border-line);padding:14px 0}
+.lesson-task label{display:flex;align-items:center;gap:12px;flex:1;min-width:0;cursor:pointer}.lesson-task input{width:19px;height:19px;flex-shrink:0;accent-color:#166b59}.lesson-task span{overflow-wrap:anywhere}.lesson-task.is-done label span{text-decoration:line-through;color:var(--text-sub)}
+.class-tool .tool-notice{color:var(--accent);margin-top:14px;min-height:24px}
+@media(max-width:900px){:root{--header-height:66px}.classroom-app{padding-top:calc(var(--header-height) + var(--tools-height))}.classroom-app .tool-rail{bottom:auto;left:0;right:0;flex-wrap:nowrap}.classroom-app .mini-float{top:auto!important;bottom:16px}.library-bar{padding:6px 12px}}
+@media(max-width:640px){.library-bar{padding:5px 8px;position:fixed;gap:3px}.library-bar .library-current strong{max-width:110px}.library-bar .current-label{display:none}.library-bar .local-badge{margin-left:auto}.library-spacer{display:none}.library-bar button{min-height:34px}.library-bar button>span{font-size:11px}.library-form>div{flex-wrap:wrap}.library-form input{flex-basis:100%}.class-tool{padding:18px}.attendance-grid{grid-template-columns:1fr}.checklist-form{flex-wrap:wrap}.checklist-form input{flex-basis:100%}.library-tabs{gap:12px}.workspace-context .context-slash{margin:0 5px}}
+@media print{#root,.classroom-app{padding-top:0!important}.classroom-app{min-height:0}.class-tool{border:0}.tool-toolbar,.checklist-form,.lesson-task>button{display:none!important}}
+</style>
+<style id="classroom-refined-design">
+/* Calm classroom: shared navigation, surfaces, and readable controls. */
+:root{--bg-main:#f4f5f0;--bg-card:#fff;--bg-soft:#f0f3ee;--bg-input:#f5f7f3;--text-main:#223a32;--text-sub:#607168;--text-mute:#6f7d73;--border-soft:#dce4da;--border-line:#e4e9df;--accent:#21634d;--accent-soft:#e8f1e3;--rail:236px;--surface-shadow:0 8px 32px #253a2905}
+body.dark-theme{--bg-main:#111d18;--bg-card:#192a22;--bg-soft:#21352b;--bg-input:#203229;--text-main:#e5eee1;--text-sub:#b0c4b5;--text-mute:#9fb1a4;--border-soft:#354c3d;--border-line:#2d4435;--accent:#b4d995;--accent-soft:#2b4531;--surface-shadow:0 8px 32px #00000016}
+body{font-feature-settings:'ss01' on;line-height:1.6}
+.library-bar{background:var(--bg-soft);border-color:var(--border-soft);padding-left:22px;padding-right:22px;gap:8px}
+.library-bar .library-current{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:8px;padding:6px 12px;gap:9px}
+.library-current .current-label{font-size:10px;letter-spacing:-.02em}.library-current strong{font-weight:700}
+.library-bar .library-new{font-size:12px}.library-bar .local-badge{font-size:11px;background:var(--bg-card);border-radius:8px}
+.library-bar button{transition:background .15s,border-color .15s}
+.library-bar~.classroom-app .app-header{top:var(--library-height);background:var(--bg-card);border-bottom-color:var(--border-soft);padding-left:26px;padding-right:30px}
+.brand-lockup{gap:12px;min-width:185px}.brand-lockup strong{font-size:18px;letter-spacing:-.06em}.brand-lockup small{font-size:10px;letter-spacing:.06em;font-weight:500;margin-top:0}
+.brand-mark{background:#254d3b;box-shadow:inset 0 0 0 1px #ffffff1a;border-radius:13px;width:42px;height:42px;color:#edf5d9}
+.header-context{gap:14px}.header-context .header-divider{height:16px;width:1px;background:var(--border-soft)}.header-context time{font-size:12px;font-variant-numeric:tabular-nums;color:var(--text-sub)}
+.utility-btn{border-radius:11px}.sound-toggle{border-radius:10px!important;font-size:11px}
+.tool-rail{background:#173e31;border:0;color:#c0d2c5;padding:24px 14px 18px;scrollbar-color:#40634d transparent}
+.rail-heading{display:flex;align-items:center;justify-content:space-between;color:#adbea9;font-size:11px;letter-spacing:.08em;margin-bottom:21px;padding:0 14px}.rail-heading span{font-size:10px;border:1px solid #54715c;border-radius:5px;padding:1px 5px;color:#c4d5bc}
+.group-label{color:#91ad98;font-size:10px;letter-spacing:.025em;margin:0 14px 6px;font-weight:500}
+.tool-group{margin-bottom:19px}.rail-item{min-height:37px;padding:8px 13px;border-radius:9px;color:#c5d6c9;gap:11px;font-size:12px;margin:2px 0;transition:background .15s,color .15s}
+.rail-item:hover{background:#ffffff0c;color:#fff}.rail-item.is-active{background:#dbe9c0;color:#234735;box-shadow:0 2px 8px #061b171c;font-weight:700}.rail-item.is-active .active-dot{background:#345d3e}.rail-item>span:first-child{opacity:.9}.active-dot{width:5px;height:5px}
+.class-summary{border-color:#ffffff20;color:#c7d9c6;margin-top:16px;padding:18px 13px 0;gap:11px}.class-summary small{color:#93b39b}.class-summary strong{font-size:12px}
+.workspace{padding:27px clamp(24px,3.6vw,64px) 24px!important;gap:0}
+.workspace-context{margin-bottom:24px;min-height:32px;font-size:12px;letter-spacing:-.02em}
+.workspace-context .context-class{display:inline-flex;align-items:center;gap:7px;color:var(--text-main);font-weight:600}
+.workspace-context>span:first-child{display:flex;flex-wrap:wrap;align-items:center;gap:0;line-height:1.8}
+.context-slash{color:#a2b29f;margin:0 13px}.participation{background:var(--bg-card);border:1px solid var(--border-soft);padding:5px 11px;border-radius:20px;font-size:11px;color:var(--text-sub)}
+.workspace>.card-enter{padding:28px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:18px;box-shadow:var(--surface-shadow);width:100%}
+.workspace h2{font-size:28px;line-height:1.35;font-weight:700!important;letter-spacing:-.055em}
+.workspace h2+p{margin-top:8px;line-height:1.8;font-weight:400!important;color:var(--text-sub)!important}
+.workspace .card-enter>div:first-child{margin-bottom:24px}.workspace .class-tool>div:first-child{margin-bottom:0}
+.workspace .rounded-2xl{border-radius:14px}.workspace .student-cell{aspect-ratio:1.1;font-size:25px;border-color:var(--border-soft);border-radius:12px;background:var(--bg-input);font-weight:600;transition:border-color .15s,background .15s}
+.workspace[data-tool=pick] .student-cell:not(.excluded-cell):not(.done):not(.winner):hover{border-color:#a6bba1}
+.workspace .student-cell.excluded-cell{opacity:.5}.workspace .student-cell.done{border-style:dashed}
+.workspace input:not([type=range]):not([type=color]):not([type=checkbox]),.workspace textarea,.workspace select{color:var(--text-main);border-color:var(--border-soft);border-radius:9px}
+.workspace input:not([type=range]):not([type=color]):focus,.workspace textarea:focus,.workspace select:focus{border-color:var(--accent);outline-offset:2px}
+.workspace input[type=checkbox]{accent-color:#21634d}.workspace button{letter-spacing:-.02em;transition:background-color .15s,color .15s,box-shadow .15s}
+.workspace button:focus-visible{outline-offset:3px}.workspace .board-bar-inner{background:#254d3b!important}
+.workspace .team-desk{border-radius:13px!important}.workspace .team-seat{border-radius:9px;font-weight:600}
+.workspace .timer-box{background:var(--bg-input)!important;border-radius:20px!important}.workspace .timer-num{letter-spacing:-.055em}.workspace .timer-colon{opacity:.55}
+.workspace .wheel-container{width:min(360px,100%)}.workspace .wheel-container>div:first-of-type{width:100%}.workspace .wheel-container canvas{width:100%!important;height:auto!important;display:block}
+.workspace footer{font-size:9px;letter-spacing:.12em;padding-top:28px;opacity:.75}
+.class-tool .tool-toolbar{border-bottom:1px solid var(--border-line);padding-bottom:18px;margin-bottom:18px;gap:10px}
+.class-tool button{border-radius:9px;min-height:40px;font-size:12px;background:var(--bg-card)}.class-tool button.primary{background:#21634d;border-color:#21634d}
+.class-tool button:hover{border-color:#a8bfa8;background:var(--bg-soft)}
+.attendance-counts{gap:8px;margin:18px 0 22px}.attendance-counts span{background:var(--bg-input);border:1px solid var(--border-soft);border-radius:8px;padding:8px 13px;font-size:12px}
+.attendance-counts [data-status=present]{background:var(--accent-soft);border-color:#b9ceb2;color:var(--accent)}
+.attendance-counts [data-status=absent]{background:#faf0ec;color:#925240;border-color:#ead4c9}
+.attendance-counts [data-status=late],.attendance-counts [data-status=early]{background:#fbf4e5;color:#82672e;border-color:#e7dbba}
+.attendance-grid{gap:10px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.attendance-row{background:var(--bg-input);border:1px solid var(--border-line);border-radius:11px;padding:12px 14px;min-height:65px}
+.attendance-row[data-status=absent]{border-left:3px solid #c48469}.attendance-row[data-status=late],.attendance-row[data-status=early]{border-left:3px solid #c4a45f}
+.attendance-row select{background:var(--bg-card);font-size:12px;border-radius:7px}
+.lesson-task{padding:16px 4px;gap:16px}.lesson-task label{font-size:14px;line-height:1.65}.lesson-task button{border-color:transparent;color:var(--text-sub);background:transparent}
+.lesson-task.is-done{opacity:.7}.checklist-form{padding:17px;background:var(--bg-soft);border-radius:12px;gap:10px}.checklist-form input{background:var(--bg-card)!important}
+.library-overlay{background:#10271f80;backdrop-filter:blur(5px)}.library-dialog{border-radius:22px;padding:32px;box-shadow:0 28px 100px #10291d40;border:1px solid var(--border-soft)}
+.library-dialog-title{padding-bottom:18px;border-bottom:1px solid var(--border-line);margin-bottom:18px}.library-dialog-title h2{font-size:26px}.library-dialog-title p{font-size:9px;letter-spacing:.15em}
+.library-dialog-title>button{border:0;background:var(--bg-soft);border-radius:50%;width:36px;min-height:36px;padding:7px}
+.library-tabs{border:0;gap:5px;background:var(--bg-soft);padding:5px;border-radius:10px;margin-bottom:22px;display:flex}
+.library-tabs button{padding:9px 11px;border:0!important;border-radius:7px;font-size:12px;flex:1}
+.library-tabs button.selected{background:var(--bg-card);color:var(--accent);box-shadow:0 1px 5px #1c362412}
+.library-form{padding:18px;background:var(--bg-soft);border-radius:12px;margin:20px 0}.library-form label{font-weight:600;margin-bottom:10px}.library-form input{background:var(--bg-card);border-radius:8px;min-height:44px}
+.library-row{border:1px solid var(--border-line);border-radius:10px;margin-bottom:8px;padding:16px}.library-row.current{border-color:#adc9a2;background:var(--accent-soft)}
+.library-row.current>span{background:var(--bg-card);padding:4px 9px;border-radius:20px;font-size:10px}.library-row strong{font-size:14px}.library-row small{font-size:11px;margin-top:5px}
+.library-privacy{padding:20px;border-radius:12px}.library-privacy strong{font-size:14px}.library-storage-info{line-height:1.95}.library-backup{padding-top:22px}
+.library-dialog .primary{background:#21634d;border-color:#21634d}.library-status{border-radius:10px;box-shadow:0 4px 18px #173e3110;right:20px;bottom:16px;padding:10px 14px}
+.intro-bg .welcome-story{min-height:calc(100dvh - var(--library-height));background:#173e31}.welcome-preview{background:#254d3b;border-color:#46664e;border-radius:20px;transform:rotate(-1.5deg)}.preview-desks>.chosen{background:#dbe9c0}.welcome-copy h2{color:#f4f6df;letter-spacing:-.06em}.intro-card{max-width:480px!important}.intro-card input{background:var(--bg-input)!important}.intro-chip{border-radius:6px}
+body.dark-theme .tool-rail{background:#102c20}.dark-theme .attendance-counts [data-status=absent]{background:#402e26;color:#efb9a4;border-color:#664438}.dark-theme .attendance-counts [data-status=late],.dark-theme .attendance-counts [data-status=early]{background:#393622;color:#dcc98a;border-color:#5f5532}.dark-theme .attendance-counts [data-status=present]{border-color:#46633d}.dark-theme .library-row.current{border-color:#55744a}
+@media(min-width:901px) and (max-height:950px){.tool-rail{padding-top:18px}.rail-heading{margin-bottom:16px}.tool-group{margin-bottom:13px}.rail-item{min-height:32px;padding-top:6px;padding-bottom:6px}.class-summary{padding-top:13px;margin-top:12px}}
+@media(max-width:1100px) and (min-width:901px){:root{--rail:210px}.workspace{padding:24px!important}}
+@media(max-width:900px){.tool-rail{padding:9px 12px;background:var(--bg-card);border-bottom:1px solid var(--border-soft);gap:10px;box-shadow:0 4px 12px #173e3105}.rail-heading,.group-label,.class-summary{display:none}.tool-group{margin:0;border-color:var(--border-soft);gap:3px}.rail-item{color:var(--text-sub);padding:9px 11px;margin:0;min-height:40px;flex-shrink:0}.rail-item:hover{background:var(--bg-soft);color:var(--text-main)}.rail-item.is-active{background:var(--accent-soft);color:var(--accent);box-shadow:none}.workspace{padding:22px!important}.workspace>.card-enter{padding:24px}.dark-theme .tool-rail{background:var(--bg-card)}.header-context{display:none}.classroom-app .app-header{padding:0 18px}.library-bar{padding-left:12px;padding-right:12px}}
+@media(max-width:640px){.library-bar{gap:4px;padding:5px 8px}.library-bar .library-current{padding:5px 8px;gap:5px}.library-bar .library-current strong{max-width:104px}.library-bar button>span{font-size:10px}.library-bar .local-badge{font-size:10px;padding:5px 7px;gap:3px}.library-bar .local-badge>span:first-child{display:none}.library-bar .library-new{gap:3px}.brand-lockup{min-width:0;gap:9px}.brand-lockup strong{font-size:16px}.brand-mark{height:36px;width:36px;border-radius:10px}.brand-lockup small{font-size:9px}.library-bar~.classroom-app .app-header{padding:0 14px}.workspace{padding:18px 12px!important}.workspace-context{font-size:10px;margin-bottom:15px;gap:7px;align-items:flex-start}.workspace-context .context-class{max-width:190px}.workspace-context .participation{font-size:10px;padding:4px 8px}.workspace>.card-enter{padding:20px 16px;border-radius:14px}.workspace h2{font-size:25px}.workspace .student-cell{font-size:21px;border-radius:9px;aspect-ratio:1}.workspace .card-enter>div:first-child{margin-bottom:18px}.attendance-grid{grid-template-columns:1fr}.class-tool .tool-toolbar{gap:9px}.class-tool .tool-toolbar button{flex:1;white-space:normal}.class-tool .tool-toolbar input{flex:1;max-width:100%;font-size:14px}.attendance-counts{gap:6px}.attendance-counts span{font-size:11px;padding:6px 9px}.class-tool p{font-size:12px}.checklist-form{padding:12px}.checklist-form input{width:100%;font-size:14px}.library-dialog{padding:20px;border-radius:17px}.library-dialog-title h2{font-size:24px}.library-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px}.library-tabs button{font-size:11px;padding:7px}.library-form{padding:14px}.library-form>div button{width:100%}.library-row{padding:13px;gap:10px}.library-row strong{font-size:13px}.library-row small{font-size:10px}.library-status{font-size:10px;bottom:10px;right:10px;max-width:calc(100vw - 20px)}.intro-bg .welcome-story{min-height:auto}.intro-title{font-size:24px!important}}
+@media print{.workspace>.card-enter{border:0;box-shadow:none;padding:0}.classroom-app{padding-top:0!important}#root{padding-top:0!important}}
+
+</style>
+
+<style id="classroom-delete-ui">
+.library-row .library-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0}
+.library-current-tag{background:var(--bg-card);color:var(--accent);padding:5px 9px;border-radius:20px;font-size:10px;white-space:nowrap}
+.library-dialog .library-delete-button{color:#a4483a;border-color:#ecd1c8;background:transparent;padding:8px 10px}
+.library-dialog .library-delete-button:hover{background:#fff2ed;border-color:#ca998a}
+.library-delete-icon{display:inline-flex;align-items:center;justify-content:center;background:#f9ebe6;color:#a4483a;border-radius:14px;width:50px;height:50px;margin:4px 0 17px}
+.library-delete-confirm h3{font-size:20px;font-weight:700;line-height:1.6;overflow-wrap:anywhere;margin-bottom:12px}
+.library-delete-confirm>p{font-size:13px;line-height:1.9;color:var(--text-sub)}
+.library-delete-summary{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.library-delete-summary span{font-size:12px;background:var(--bg-soft);padding:7px 11px;border-radius:7px}
+.library-delete-backup{margin:18px 0 22px}.library-delete-actions{display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border-line);padding-top:18px}
+.library-dialog .library-delete-submit{background:#a4483a;border-color:#a4483a;color:#fff}.library-dialog .library-delete-submit:hover{background:#87392e}
+body.dark-theme .library-delete-icon{background:#432c25;color:#f1b3a1}body.dark-theme .library-dialog .library-delete-button{color:#f1b3a1;border-color:#6c493e}body.dark-theme .library-dialog .library-delete-button:hover{background:#432c25}
+@media(max-width:640px){.library-row{flex-wrap:wrap}.library-row>div:first-child{flex:1 1 140px}.library-row .library-row-actions{flex:1 1 auto;flex-wrap:wrap}.library-delete-confirm h3{font-size:18px}.library-delete-confirm>p{font-size:12px}.library-delete-actions button{flex:1}}
+</style>
+<style id="classroom-history-clear-ui">
+.library-history-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg-soft);padding:14px;border-radius:10px;margin:16px 0 10px}.library-history-toolbar p{font-size:12px;color:var(--text-sub)}
+@media(max-width:640px){.library-history-toolbar{align-items:flex-start;flex-direction:column}.library-history-toolbar button{width:100%}}
+</style>
+</head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
@@ -936,7 +1064,7 @@ function SpinWheel({playSound:ps,isSoundOn}){
     const [result,setResult]=useState(null);
     const [history,setHistory]=useState([]);
     // ★ 중복방지 기능 - ON일 때 이미 뽑힌 항목은 휠에서 제거
-    const [isNoRepeat,setIsNoRepeat]=useState(boot.isNoRepeat||false);
+    const [isNoRepeat,setIsNoRepeat]=useState(false);
     const [usedItems,setUsedItems]=useState([]);
     const canvasRef=useRef(null);
     const audioCtxRef=useRef(null);
@@ -1195,7 +1323,7 @@ function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     const [rollingNums,setRollingNums]=useState([]);
     const [revealedCount,setRevealedCount]=useState(0);
     const [history,setHistory]=useState([]);
-    const [isNoRepeat,setIsNoRepeat]=useState(boot.isNoRepeat||false);
+    const [isNoRepeat,setIsNoRepeat]=useState(false);
     const [usedNums,setUsedNums]=useState([]);
     const rollTimersRef=useRef([]);
     const audioCtxRef=useRef(null);
@@ -2537,6 +2665,50 @@ function WhiteboardTab({playSound,showAlert,globalDarkMode}){
 const SESSION_KEY='songsam_session_v1';
 const loadSession=()=>{try{const s=localStorage.getItem(SESSION_KEY);return s?JSON.parse(s):{};}catch(e){return {};}};
 
+
+// 학급별로 저장되는 출결 확인과 수업 체크리스트.
+const localDateString=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const ATTENDANCE_LABELS={present:'출석',absent:'결석',late:'지각',early:'조퇴'};
+function AttendanceTool({students,records,setRecords,excludedInput,setExcludedInput}){
+    const [date,setDate]=useState(localDateString),[notice,setNotice]=useState('');
+    const entries=records.find(r=>r.date===date)?.entries||{};
+    const counts=Object.fromEntries(Object.keys(ATTENDANCE_LABELS).map(key=>[key,students.filter(n=>entries[n]===key).length]));
+    const saveEntries=next=>{
+        if(!date)return setNotice('날짜를 선택해 주세요.');
+        if(!records.some(r=>r.date===date)&&records.length>=366)return setNotice('출결은 학급당 366일을 보관할 수 있어요. 다음 학년도는 새 학급으로 등록해 주세요.');
+        setRecords(prev=>[...prev.filter(r=>r.date!==date),{date,entries:next}].sort((a,b)=>a.date.localeCompare(b.date)));
+        setNotice('출결을 변경했어요. 이 브라우저에 자동 저장됩니다.');
+    };
+    const excludeAbsent=()=>{
+        const absent=students.filter(n=>['absent','early'].includes(entries[n]));
+        if(!absent.length)return setNotice('선택한 날짜에 결석·조퇴로 표시한 학생이 없습니다.');
+        const previous=excludedInput.split(/[\s,]+/).map(Number).filter(n=>students.includes(n));
+        setExcludedInput([...new Set([...previous,...absent])].sort((a,b)=>a-b).join(', '));
+        setNotice('결석·조퇴 번호를 추첨 제외 목록에 추가했어요. 기존 제외 번호는 유지됩니다.');
+    };
+    return <section className="class-tool card-enter w-full">
+        <h2>출결 확인</h2><p>날짜별로 학생 번호의 출결을 확인하세요. 처음에는 모두 ‘미확인’이며 학급별로 기록됩니다.</p>
+        <div className="tool-toolbar"><label htmlFor="attendance-date">확인 날짜</label><input id="attendance-date" type="date" value={date} onChange={e=>{setDate(e.target.value);setNotice('');}}/>
+            <button disabled={!date} onClick={()=>saveEntries({...entries,...Object.fromEntries(students.filter(n=>!entries[n]).map(n=>[n,'present']))})}>미확인 모두 출석</button>
+            <button disabled={!date} onClick={excludeAbsent}>결석·조퇴를 추첨 제외에 추가</button></div>
+        <div className="attendance-counts"><span>전체 {students.length}명</span>{Object.entries(ATTENDANCE_LABELS).map(([key,label])=><span key={key} data-status={key}>{label} {counts[key]}명</span>)}<span>미확인 {students.filter(n=>!entries[n]).length}명</span></div>
+        <div className="attendance-grid">{students.map(n=><div className="attendance-row" key={n} data-status={entries[n]||'unchecked'}><strong>{n}번</strong><select aria-label={`${n}번 출결`} disabled={!date} value={entries[n]||''} onChange={e=>{const next={...entries};if(e.target.value)next[n]=e.target.value;else delete next[n];saveEntries(next);}}><option value="">미확인</option>{Object.entries(ATTENDANCE_LABELS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></div>)}</div>
+        <p className="mt-4">다른 날짜의 출결은 날짜를 바꾸어 확인할 수 있어요. 출결을 바꿔도 추첨 제외 목록은 자동으로 바뀌지 않으니, 수업 시작 전 제외 번호를 확인해 주세요.</p>
+        <p className="tool-notice" role="status">{notice}</p>
+    </section>;
+}
+function LessonChecklist({items,setItems}){
+    const [text,setText]=useState(''),[notice,setNotice]=useState('');
+    const add=e=>{e.preventDefault();if(!text.trim())return;if(items.length>=200)return setNotice('체크리스트는 학급당 200개까지 저장할 수 있어요.');setItems(prev=>[...prev,{id:classId(),text:text.trim(),done:false}]);setText('');setNotice('할 일을 추가했어요.');};
+    return <section className="class-tool card-enter w-full"><h2>수업 체크리스트</h2><p>준비물, 과제 수합, 수업 마무리를 확인하세요. 학급별로 저장되어 다음에 열어도 이어서 사용할 수 있어요.</p>
+        <form className="checklist-form" onSubmit={add}><input aria-label="새 할 일" maxLength={200} value={text} onChange={e=>setText(e.target.value)} placeholder="예: 실험 준비물 확인, 활동지 걷기"/><button type="submit" className="primary" disabled={!text.trim()||items.length>=200}><Icon name="plus" size={16}/>할 일 추가</button></form>
+        <div className="tool-toolbar"><p>완료 {items.filter(x=>x.done).length} / 전체 {items.length}</p><button disabled={!items.some(x=>x.done)} onClick={()=>{setItems(prev=>prev.map(x=>({...x,done:false})));setNotice('완료 표시를 해제했어요. 할 일은 그대로 유지됩니다.');}}>완료 표시 모두 해제</button></div>
+        {!items.length&&<p className="library-empty">아직 등록한 할 일이 없습니다. 오늘 확인할 일을 추가해 보세요.</p>}
+        {items.map(item=><div className={'lesson-task '+(item.done?'is-done':'')} key={item.id}><label><input type="checkbox" checked={item.done} onChange={()=>setItems(prev=>prev.map(x=>x.id===item.id?{...x,done:!x.done}:x))}/><span>{item.text}</span></label><button aria-label={item.text+' 삭제'} onClick={()=>{setItems(prev=>prev.filter(x=>x.id!==item.id));setNotice('할 일을 삭제했어요. 상단 실행 취소로 되돌릴 수 있어요.');}}><Icon name="trash-2" size={16}/></button></div>)}
+        <p className="tool-notice" role="status">{notice}</p>
+    </section>;
+}
+
 function App(){
     const classContext=React.useContext(ClassContext);
     // 저장된 세션을 한 번만 읽어 초기값으로 사용
@@ -2553,6 +2725,20 @@ function App(){
     const [isDarkMode,setIsDarkMode]=useState(()=>{try{return localStorage.getItem('songsam_dark')==='1';}catch(e){return false;}});
     const [uiScale,setUiScale]=useState(()=>{try{const v=parseFloat(localStorage.getItem('songsam_ui_scale'));return isNaN(v)?1:v;}catch(e){return 1;}});
     const [showSettings,setShowSettings]=useState(false);
+    useEffect(()=>{
+        if(step!=='main')return;
+        window.scrollTo(0,0);
+        const centerMenu=()=>{const rail=document.querySelector('.tool-rail'),item=rail?.querySelector('.is-active');if(rail&&item&&window.innerWidth<=900)rail.scrollLeft=item.offsetLeft-(rail.clientWidth-item.offsetWidth)/2;};
+        centerMenu();window.addEventListener('resize',centerMenu);return()=>window.removeEventListener('resize',centerMenu);
+    },[step,mode]);
+    const [attendanceRecords,setAttendanceRecords]=useState(boot.attendanceRecords||[]);
+    const [lessonTasks,setLessonTasks]=useState(boot.lessonTasks||[]);
+    React.useLayoutEffect(()=>{
+        if(step!=='main')return;
+        const header=document.querySelector('.app-header'),rail=document.querySelector('.tool-rail');
+        const measure=()=>{if(header)document.documentElement.style.setProperty('--header-height',header.getBoundingClientRect().height+'px');if(rail)document.documentElement.style.setProperty('--tools-height',rail.getBoundingClientRect().height+'px');};
+        const observer=new ResizeObserver(measure);if(header)observer.observe(header);if(rail)observer.observe(rail);measure();return()=>observer.disconnect();
+    },[step]);
     useEffect(()=>{
         if(isDarkMode)document.body.classList.add('dark-theme');
         else document.body.classList.remove('dark-theme');
@@ -2650,7 +2836,7 @@ function App(){
         setSeatLayoutDirty(false);
     };
 
-    useClassroomData({step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays,pickHistory,isNoRepeat});
+    useClassroomData({step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays,pickHistory,isNoRepeat,attendanceRecords,lessonTasks});
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
     const playSound=type=>{
@@ -3040,22 +3226,22 @@ ${cellsHtml.join('')}`;
 
     if(step==='input') return(
         <div className="intro-bg p-4">
-            <section className="welcome-story"><div className="welcome-brand"><span className="brand-mark"><Icon name="flask-conical" size={24}/></span>송쌤과학 <span>CLASSROOM</span></div><div className="welcome-copy"><p className="eyebrow">선생님의 수업에, 여유를 더하다</p><h2>수업에 필요한 도구,<br/>한 곳에서 가볍게.</h2><p className="welcome-description">발표자를 뽑고, 모둠을 만들고, 생각을 기록하세요.<br/>작은 준비는 도우미에게 맡기고 수업에 집중하세요.</p><div className="welcome-preview"><div className="preview-label"><span className="live-dot"/> 오늘의 교실 <span>READY TO START</span></div><div className="preview-desks">{['01','02','03','04','05','06','07','08'].map((n,i)=><span key={n} className={i===2?'chosen':''}>{i===2?<Icon name="sparkles" size={23}/>:n}</span>)}</div><div className="preview-bottom"><span>함께 배우는 시간을 위한</span><strong>13가지 수업 도구 <span>↗</span></strong></div></div></div><div className="welcome-foot">준비는 간결하게. 수업은 풍성하게.</div></section>
+            <section className="welcome-story"><div className="welcome-brand"><span className="brand-mark"><Icon name="flask-conical" size={24}/></span>송쌤과학 <span>CLASSROOM</span></div><div className="welcome-copy"><p className="eyebrow">선생님의 수업에, 여유를 더하다</p><h2>수업에 필요한 도구,<br/>한 곳에서 가볍게.</h2><p className="welcome-description">발표자를 뽑고, 모둠을 만들고, 생각을 기록하세요.<br/>작은 준비는 도우미에게 맡기고 수업에 집중하세요.</p><div className="welcome-preview"><div className="preview-label"><span className="live-dot"/> 오늘의 교실 <span>READY TO START</span></div><div className="preview-desks">{['01','02','03','04','05','06','07','08'].map((n,i)=><span key={n} className={i===2?'chosen':''}>{i===2?<Icon name="sparkles" size={23}/>:n}</span>)}</div><div className="preview-bottom"><span>함께 배우는 시간을 위한</span><strong>15가지 수업 도구 <span>↗</span></strong></div></div></div><div className="welcome-foot">준비는 간결하게. 수업은 풍성하게.</div></section>
             <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
                 <div className="hidden"/>
                 <div className="setup-icon"><Icon name="sprout" size={36} className="text-[#FFB7B2]"/></div>
-                <p className="setup-eyebrow">LETS GET STARTED</p><h1 className="text-2xl sm:text-4xl font-black mb-1 intro-title">우리 반을 준비해요</h1>
-                <p className="text-gray-400 font-bold mb-4 text-xs sm:text-sm">마지막 번호를 입력하면 바로 시작할 수 있어요</p>
+                <p className="setup-eyebrow">LETS GET STARTED</p><h1 className="text-2xl sm:text-4xl font-black mb-1 intro-title">선택한 학급의 명단 설정</h1>
+                <p className="text-gray-400 font-bold mb-4 text-xs sm:text-sm">{classContext.name} · 마지막 번호를 입력하면 이 학급의 수업을 시작해요</p>
                 <div className="flex flex-wrap justify-center gap-1.5 mb-6 sm:mb-8">
                     <span className="intro-chip"><Icon name="trophy" size={12} className="text-[#FFB7B2]"/>발표뽑기</span>
                     <span className="intro-chip"><Icon name="users" size={12} className="text-[#8F9FD6]"/>모둠·좌석</span>
                     <span className="intro-chip"><Icon name="timer" size={12} className="text-[#FFAE8A]"/>타이머</span>
                     <span className="intro-chip"><Icon name="palette" size={12} className="text-[#FF8A80]"/>판서</span>
-                    <span className="intro-chip">+ 9가지 도구</span>
+                    <span className="intro-chip">+ 11가지 도구</span>
                 </div>
                 <form onSubmit={startClass} className="space-y-4 sm:space-y-5">
                     <div className="text-left">
-                        <label className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-gray-500 mb-2 pl-1"><Icon name="users" size={16} className="text-[#FFB7B2]"/>우리 반 마지막 번호</label>
+                        <label className="flex items-center gap-1.5 text-sm sm:text-base font-bold text-gray-500 mb-2 pl-1"><Icon name="users" size={16} className="text-[#FFB7B2]"/>학생 마지막 번호</label>
                         <div className="relative"><input type="number" inputMode="numeric" pattern="[0-9]*" value={studentCount} onChange={e=>setStudentCount(e.target.value)} className="w-full h-16 sm:h-20 text-center text-4xl sm:text-5xl font-black text-[#4A4A4A] bg-[#F9F7F4] rounded-2xl border-2 border-[#EDE6DA] focus:border-[#FFB7B2] focus:bg-white focus:outline-none input-glow placeholder-gray-300 transition-all" placeholder="30" autoFocus/><span className="absolute right-5 top-1/2 -translate-y-1/2 text-base font-bold text-gray-400">번</span></div>
                         <p className="text-[11px] text-gray-400 mt-1.5 pl-1 font-bold">예: 30번까지 있으면 → 30 입력 (1~30번 생성)</p>
                     </div>
@@ -3155,27 +3341,31 @@ ${cellsHtml.join('')}`;
         );
     };
 
-    return(<div className="min-h-screen min-h-[100dvh] flex flex-col w-full overflow-x-hidden">
+    return(<div className="classroom-app flex flex-col w-full">
         <header className="app-header">
-            <button className="brand-lockup" onClick={goHome} title="학급 보관함 열기"><span className="brand-mark"><Icon name="flask-conical" size={23}/></span><span><strong>송쌤과학</strong><small>교실 도우미</small></span></button>
-            <div className="header-context"><span className="live-dot"/> 수업 준비부터 마무리까지</div>
+            <button className="brand-lockup" onClick={goHome} title="학급 선택·관리 열기"><span className="brand-mark"><Icon name="flask-conical" size={23}/></span><span><strong>송쌤과학</strong><small>교실 도우미</small></span></button>
+            <div className="header-context"><span>수업 준비부터 마무리까지</span><span className="header-divider"/><time>{new Date().toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'})}</time></div>
             <div className="header-actions"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/><button className="utility-btn" onClick={()=>setIsDarkMode(!isDarkMode)} aria-label={isDarkMode?'밝은 화면으로 전환':'어두운 화면으로 전환'} title="테마 전환"><Icon name={isDarkMode?'sun':'moon'} size={18}/></button><button className="utility-btn" onClick={()=>setShowSettings(true)} aria-label="화면 설정" title="화면 설정"><Icon name="settings-2" size={18}/></button></div>
         </header>
         <nav className="tool-rail" aria-label="수업 도구">
-            <div className="rail-heading">CLASSROOM TOOLS</div>
+            <div className="rail-heading">수업 도구 <span>15</span></div>
             {[
                 {title:'참여와 모둠',items:[['pick','발표자 뽑기','trophy'],['lotto','로또 추첨','dices'],['wheel','돌림판','circle-dot'],['team','모둠 만들기','users'],['seat','좌석 배치','armchair']]},
+                {title:'학급 운영',items:[['attendance','출결 확인','clipboard-check'],['checklist','수업 체크리스트','list-checks']]},
                 {title:'수업 진행',items:[['whiteboard','화이트보드','palette'],['timer','타이머','timer'],['calendar','달력','calendar']]},
                 {title:'자료와 기록',items:[['youtube','영상 재생','youtube'],['record','녹음','mic'],['qr','QR 코드','qr-code'],['memo','메모','sticky-note'],['img','사진 보기','image']]}
             ].map(group=><div className="tool-group" key={group.title}><p className="group-label">{group.title}</p>{group.items.map(([id,label,icon])=><button key={id} className={'rail-item '+(mode===id?'is-active':'')} aria-current={mode===id?'page':undefined} onClick={()=>{playSound('click');setMode(id);}}><Icon name={icon} size={18}/><span>{label}</span>{mode===id&&<span className="active-dot"/>}</button>)}</div>)}
-            <button className="class-summary" onClick={goHome}><Icon name="users" size={19}/><span><strong>우리 반 {students.length}명</strong><small>학급 보관함 <span aria-hidden="true">↗</span></small></span></button>
+            <button className="rail-item" onClick={()=>classContext.openPanel('backup')}><Icon name="hard-drive-download" size={18}/><span>저장·백업 안내</span></button>
+            <button className="class-summary" onClick={goHome}><Icon name="users" size={19}/><span><strong>{classContext.name} · {students.length}명</strong><small>학급 선택·관리 <span aria-hidden="true">↗</span></small></span></button>
         </nav>
 
         {showMiniTimer&&<div className={`fixed top-[68px] sm:top-[76px] left-2 z-50 mini-float ${isTimerRunning?'mini-pulse':''}`} onClick={()=>{playSound('click');setMode('timer');}}><div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shadow-lg border-2 cursor-pointer active:scale-95 ${isTimerRunning?'bg-white border-[#FFB7B2]':'bg-white/90 border-gray-200'}`}><svg viewBox="0 0 32 32" className="w-6 h-6 -rotate-90"><circle cx="16" cy="16" r="13" stroke="#F0F0F0" strokeWidth="2.5" fill="none"/><circle cx="16" cy="16" r="13" stroke={isTimerRunning?"#FFDAC1":"#D1D5DB"} strokeWidth="2.5" fill="none" strokeDasharray={2*Math.PI*13} strokeDashoffset={(2*Math.PI*13)-(timeLeft/(initialTime||1))*(2*Math.PI*13)} strokeLinecap="round"/></svg><span className={`text-sm font-black tabular-nums ${isTimerRunning?'text-[#5D5D5D]':'text-gray-400'}`}>{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span></div></div>}
 
         <main data-tool={mode} className="workspace flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
-            <div className="workspace-context"><span>우리 반 작업실 <span className="context-slash">/</span> {({pick:'발표자 뽑기',lotto:'로또 추첨',wheel:'돌림판',team:'모둠 만들기',seat:'좌석 배치',whiteboard:'화이트보드',timer:'타이머',calendar:'달력',youtube:'영상 재생',record:'녹음',qr:'QR 코드',memo:'메모',img:'사진 보기'})[mode]}</span><span className="participation"><span className="live-dot"/>{activeStudents.length}명 참여</span></div>
+            <div className="workspace-context"><span><span className="context-class"><Icon name="school" size={14}/>{classContext.name}</span><span className="context-slash">/</span> {({attendance:'출결 확인',checklist:'수업 체크리스트',pick:'발표자 뽑기',lotto:'로또 추첨',wheel:'돌림판',team:'모둠 만들기',seat:'좌석 배치',whiteboard:'화이트보드',timer:'타이머',calendar:'달력',youtube:'영상 재생',record:'녹음',qr:'QR 코드',memo:'메모',img:'사진 보기'})[mode]}</span><span className="participation"><span className="live-dot"/>{activeStudents.length}명 참여</span></div>
 
+            {mode==='attendance'&&<AttendanceTool students={students} records={attendanceRecords} setRecords={setAttendanceRecords} excludedInput={excludedInput} setExcludedInput={setExcludedInput}/>}
+            {mode==='checklist'&&<LessonChecklist items={lessonTasks} setItems={setLessonTasks}/>}
             {mode==='pick'&&<div className="card-enter w-full">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1"><div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">발표자 뽑기</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">오늘의 행운의 주인공은?</p></div><div className="flex gap-1.5"><button onClick={()=>setIsNoRepeat(!isNoRepeat)} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-[10px] sm:text-sm font-bold border-2 touch-target transition-all ${isNoRepeat?'bg-[#FFB7B2] border-[#FFB7B2] text-white':'bg-white border-gray-200 text-gray-400'}`}>중복방지 {isNoRepeat?'ON':'OFF'}</button><button onClick={()=>setPickHistory([])} className="flex-1 sm:flex-none px-3 py-1.5 bg-gray-100 text-gray-500 rounded-lg text-[10px] sm:text-sm font-bold touch-target">초기화 ({pickHistory.length})</button></div></div>
                 <div className="mb-3"><ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#166B59" playSound={playSound}/></div>
@@ -3441,16 +3631,17 @@ const CLASSROOM_KEY='songsam_classrooms_v1';
 const ClassContext=React.createContext(null);
 const classClone=x=>JSON.parse(JSON.stringify(x));
 const classId=()=>globalThis.crypto?.randomUUID?.()||('class-'+Date.now()+'-'+Math.random().toString(36).slice(2));
-const classDefaults={step:'input',studentCount:'',students:[],mode:'pick',isSoundOn:true,placementType:'number',inputNames:'',maleInput:'',femaleInput:'',genderOption:'mixed',excludedInput:'',teams:[],teamCount:6,teamColumns:3,seats:[],seatType:'single',seatPairSettings:{mustPair:[],mustNotPair:[]},seatFixed:[],seatPresentMode:false,seatTitle:'',seatTeacher:'',seatTeacherRole:'담임',seatRowMode:'auto',seatColumns:5,seatRows:6,seatGrid:[],savedSeatLayout:null,initialTime:300,showClockInTimer:false,memos:[],memoColor:'#FFE0E0',memoFontSize:14,dDays:[],pickHistory:[],isNoRepeat:false};
+const classDefaults={step:'input',studentCount:'',students:[],mode:'pick',isSoundOn:true,placementType:'number',inputNames:'',maleInput:'',femaleInput:'',genderOption:'mixed',excludedInput:'',teams:[],teamCount:6,teamColumns:3,seats:[],seatType:'single',seatPairSettings:{mustPair:[],mustNotPair:[]},seatFixed:[],seatPresentMode:false,seatTitle:'',seatTeacher:'',seatTeacherRole:'담임',seatRowMode:'auto',seatColumns:5,seatRows:6,seatGrid:[],savedSeatLayout:null,initialTime:300,showClockInTimer:false,memos:[],memoColor:'#FFE0E0',memoFontSize:14,dDays:[],pickHistory:[],isNoRepeat:false,attendanceRecords:[],lessonTasks:[]};
 function validateClassData(raw){
     if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('학급 데이터 형식이 올바르지 않습니다.');
     const out=classClone(classDefaults),str=x=>typeof x==='string'&&x.length<=20000,num=x=>Number.isFinite(x),student=x=>(str(x)&&x.length<=100)||num(x),list=(x,test,max=200)=>Array.isArray(x)&&x.length<=max&&x.every(test),grid=x=>list(x,r=>list(r,c=>typeof c==='boolean',100),100);
-    const validators={students:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,100),pickHistory:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,10000),teams:x=>list(x,t=>list(t,student,100),100),seats:x=>list(x,student,100),seatPairSettings:x=>x&&list(x.mustPair,p=>list(p,student,2)&&p.length===2)&&list(x.mustNotPair,p=>list(p,student,2)&&p.length===2),seatFixed:x=>list(x,f=>f&&student(f.student)&&Number.isInteger(f.pos)&&f.pos>=1&&f.pos<=100,100),seatGrid:grid,savedSeatLayout:x=>x===null||(x&&grid(x.grid)&&Number.isInteger(x.cols)&&x.cols>=1&&x.cols<=100),memos:x=>list(x,m=>m&&student(m.id)&&str(m.text)&&/^#[a-f0-9]{6}$/i.test(m.color)&&(!m.fontSize||(num(m.fontSize)&&m.fontSize>=10&&m.fontSize<=32))),dDays:x=>list(x,d=>d&&student(d.id)&&str(d.title)&&typeof d.targetDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d.targetDate)&&!isNaN(Date.parse(d.targetDate))),studentCount:x=>x===''||(Number.isInteger(Number(x))&&Number(x)>=1&&Number(x)<=100)};
+    const validDate=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&!isNaN(Date.parse(x))&&new Date(x).toISOString().slice(0,10)===x;
+    const validators={attendanceRecords:x=>list(x,r=>r&&validDate(r.date)&&r.entries&&typeof r.entries==='object'&&!Array.isArray(r.entries)&&Object.keys(r.entries).length<=100&&Object.entries(r.entries).every(([n,status])=>/^[1-9]\d{0,2}$/.test(n)&&Number(n)<=100&&Object.hasOwn(ATTENDANCE_LABELS,status)),366)&&new Set(x.map(r=>r.date)).size===x.length,lessonTasks:x=>list(x,t=>t&&typeof t.id==='string'&&t.id.length<=100&&typeof t.text==='string'&&t.text.trim().length>0&&t.text.length<=200&&typeof t.done==='boolean',200)&&new Set(x.map(t=>t.id)).size===x.length,students:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,100),pickHistory:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,10000),teams:x=>list(x,t=>list(t,student,100),100),seats:x=>list(x,student,100),seatPairSettings:x=>x&&list(x.mustPair,p=>list(p,student,2)&&p.length===2)&&list(x.mustNotPair,p=>list(p,student,2)&&p.length===2),seatFixed:x=>list(x,f=>f&&student(f.student)&&Number.isInteger(f.pos)&&f.pos>=1&&f.pos<=100,100),seatGrid:grid,savedSeatLayout:x=>x===null||(x&&grid(x.grid)&&Number.isInteger(x.cols)&&x.cols>=1&&x.cols<=100),memos:x=>list(x,m=>m&&student(m.id)&&str(m.text)&&/^#[a-f0-9]{6}$/i.test(m.color)&&(!m.fontSize||(num(m.fontSize)&&m.fontSize>=10&&m.fontSize<=32))),dDays:x=>list(x,d=>d&&student(d.id)&&str(d.title)&&typeof d.targetDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d.targetDate)&&!isNaN(Date.parse(d.targetDate))),studentCount:x=>x===''||(Number.isInteger(Number(x))&&Number(x)>=1&&Number(x)<=100)};
     for(const key of Object.keys(out))if(Object.prototype.hasOwnProperty.call(raw,key)){
         const v=raw[key];const ok=validators[key]?validators[key](v):typeof out[key]==='string'?str(v):typeof out[key]==='number'?num(v)&&v>=0&&v<=86400:typeof out[key]==='boolean'?typeof v==='boolean':false;
         if(!ok)throw Error('학급 데이터 항목을 확인해 주세요: '+key);out[key]=classClone(v);
     }
-    const enums={step:['input','main'],mode:['pick','lotto','wheel','team','seat','whiteboard','timer','calendar','youtube','record','qr','memo','img'],placementType:['number','name','gender'],seatType:['single','pair'],seatRowMode:['auto','custom'],seatTeacherRole:['담임','교과']};
+    const enums={step:['input','main'],mode:['attendance','checklist','pick','lotto','wheel','team','seat','whiteboard','timer','calendar','youtube','record','qr','memo','img'],placementType:['number','name','gender'],seatType:['single','pair'],seatRowMode:['auto','custom'],seatTeacherRole:['담임','교과']};
     for(const [key,allowed] of Object.entries(enums))if(!allowed.includes(out[key]))throw Error('지원하지 않는 설정입니다: '+key);
     for(const key of ['teamCount','teamColumns','seatColumns','seatRows'])if(!Number.isInteger(out[key])||out[key]<1||out[key]>100)throw Error('학급 배치 숫자가 올바르지 않습니다.');
     if(out.step==='main'&&!out.students.length)throw Error('학급 명단이 비어 있습니다.');
@@ -3467,12 +3658,12 @@ function loadClassLibrary(){
     try{
         const saved=localStorage.getItem(CLASSROOM_KEY);
         if(saved){const raw=JSON.parse(saved);if(raw.version!==1||!Array.isArray(raw.classes)||!raw.classes.length||raw.classes.length>30)throw Error();const classes=raw.classes.map(parseClassRecord);let index=raw.classes.findIndex(c=>c.id===raw.activeId);if(index<0)index=0;return {version:1,classes,activeId:classes[index].id};}
-        const old=loadSession();const first=classRecord('우리 반',validateClassData(old));return {version:1,classes:[first],activeId:first.id};
-    }catch(e){const first=classRecord('우리 반');return {version:1,classes:[first],activeId:first.id,loadError:'저장된 학급 정보를 읽지 못했습니다. 기존 저장 내용은 덮어쓰지 않았습니다. 백업을 불러오거나 백업 파일을 먼저 보관해 주세요.'};}
+        const old=loadSession();const first=classRecord('기본 학급',validateClassData(old));return {version:1,classes:[first],activeId:first.id};
+    }catch(e){const first=classRecord('기본 학급');return {version:1,classes:[first],activeId:first.id,loadError:'저장된 학급 정보를 읽지 못했습니다. 기존 저장 내용은 덮어쓰지 않았습니다. 백업을 불러오거나 백업 파일을 먼저 보관해 주세요.'};}
 }
 const classFingerprint=data=>{const copy={...data};for(const k of ['mode','isSoundOn','memoColor','memoFontSize','seatPresentMode','showClockInTimer'])delete copy[k];return JSON.stringify(copy);};
 function classChangeLabel(before,after){
-    const groups=[['메모',['memos']],['모둠',['teams','teamCount','teamColumns']],['좌석',['seats','seatFixed','seatPairSettings','seatGrid','savedSeatLayout','seatType']],['발표 기록',['pickHistory','isNoRepeat']],['학급 명단',['students','inputNames','maleInput','femaleInput','excludedInput']],['일정',['dDays']],['타이머 설정',['initialTime']]];
+    const groups=[['출결',['attendanceRecords']],['수업 체크리스트',['lessonTasks']],['메모',['memos']],['모둠',['teams','teamCount','teamColumns']],['좌석',['seats','seatFixed','seatPairSettings','seatGrid','savedSeatLayout','seatType']],['발표 기록',['pickHistory','isNoRepeat']],['학급 명단',['students','inputNames','maleInput','femaleInput','excludedInput']],['일정',['dDays']],['타이머 설정',['initialTime']]];
     return (groups.find(([,keys])=>keys.some(k=>JSON.stringify(before[k])!==JSON.stringify(after[k])))?.[0]||'학급 설정')+' 변경 전';
 }
 function useClassroomData(data){
@@ -3482,7 +3673,9 @@ function useClassroomData(data){
 function ClassroomShell(){
     const library=useRef(null);if(!library.current)library.current=loadClassLibrary();
     const active=()=>library.current.classes.find(c=>c.id===library.current.activeId);
-    const latest=useRef(classClone(active().data)),timer=useRef(null),[revision,setRevision]=useState(0),[epoch,setEpoch]=useState(0),[panel,setPanel]=useState(null),[name,setName]=useState(''),[notice,setNotice]=useState(''),[saveError,setSaveError]=useState(library.current.loadError||''),[pendingImport,setPendingImport]=useState(null),fileRef=useRef(null),dialogRef=useRef(null),focusName=useRef(false);
+    const latest=useRef(classClone(active().data)),timer=useRef(null),[revision,setRevision]=useState(0),[epoch,setEpoch]=useState(0),[panel,setPanel]=useState(null),[name,setName]=useState(''),[notice,setNotice]=useState(''),[saveError,setSaveError]=useState(library.current.loadError||''),[pendingImport,setPendingImport]=useState(null),[pendingDelete,setPendingDelete]=useState(null),[pendingHistoryClear,setPendingHistoryClear]=useState(null),fileRef=useRef(null),dialogRef=useRef(null),focusName=useRef(false),barRef=useRef(null);
+    React.useLayoutEffect(()=>{const measure=()=>document.documentElement.style.setProperty('--library-height',barRef.current.getBoundingClientRect().height+'px');const observer=new ResizeObserver(measure);observer.observe(barRef.current);measure();return()=>observer.disconnect();},[]);
+    useEffect(()=>{if(!notice)return;const timeout=setTimeout(()=>setNotice(''),5500);return()=>clearTimeout(timeout);},[notice]);
     const redraw=()=>setRevision(x=>x+1);
     const persist=(notify=true)=>{
         if(library.current.loadError)return false;
@@ -3500,37 +3693,110 @@ function ClassroomShell(){
     const actions=useRef(null);actions.current={commit,persist};
     const capture=React.useCallback(data=>{latest.current=classClone({...classDefaults,...data});clearTimeout(timer.current);timer.current=setTimeout(()=>actions.current.commit(),500);},[]);
     useEffect(()=>{const flush=()=>actions.current.commit(false);const hidden=()=>{if(document.visibilityState==='hidden')flush();};window.addEventListener('pagehide',flush);window.addEventListener('beforeunload',flush);document.addEventListener('visibilitychange',hidden);return()=>{clearTimeout(timer.current);window.removeEventListener('pagehide',flush);window.removeEventListener('beforeunload',flush);document.removeEventListener('visibilitychange',hidden);};},[]);
-    useEffect(()=>{if(!panel)return;const prior=document.activeElement,overflow=document.body.style.overflow;document.body.style.overflow='hidden';const nameInput=focusName.current?dialogRef.current?.querySelector('#class-name'):null;focusName.current=false;if(nameInput){nameInput.focus();nameInput.select();}else dialogRef.current?.focus();return()=>{document.body.style.overflow=overflow;if(prior?.isConnected)prior.focus();};},[panel]);
+    useEffect(()=>{if(!panel)return;const prior=document.activeElement,overflow=document.body.style.overflow;document.body.style.overflow='hidden';const nameInput=focusName.current?dialogRef.current?.querySelector('#class-name'):null;focusName.current=false;if(nameInput){nameInput.focus();nameInput.select();}else if(panel==='delete'||panel==='clearHistory')dialogRef.current?.querySelector('[data-confirm-cancel]')?.focus();else dialogRef.current?.focus();return()=>{document.body.style.overflow=overflow;if(prior?.isConnected)prior.focus();};},[panel]);
     const remount=()=>{latest.current=classClone(active().data);setEpoch(x=>x+1);redraw();};
-    const openPanel=which=>{commit();setPendingImport(null);setName(active().name);setPanel(which);};
-    const openNewClass=()=>{if(library.current.classes.length>=30)return setNotice('학급은 최대 30개까지 저장할 수 있어요');commit();setPendingImport(null);setName('');focusName.current=true;setPanel('classes');setNotice('새 학급 이름을 입력한 뒤 [새 학급 만들기]를 눌러 주세요.');};
+    const openPanel=which=>{commit();setPendingImport(null);setPendingDelete(null);setPendingHistoryClear(null);setName(which==='new'?'':active().name);focusName.current=which==='new';setPanel(which);};
+    const openNewClass=()=>{if(library.current.classes.length>=30)return setNotice('학급은 최대 30개까지 저장할 수 있어요');openPanel('new');setNotice('기존 학급과 별도로 사용할 학급 이름을 입력해 주세요.');};
     const undo=()=>{commit();const c=active(),h=c.past.pop();if(!h)return;c.future.push({at:Date.now(),label:'다시 실행',data:classClone(c.data)});c.future=c.future.slice(-20);c.data={...h.data,mode:c.data.mode};c.updated=Date.now();persist();remount();setNotice('이전 상태로 되돌렸어요');};
     const redo=()=>{commit();const c=active(),h=c.future.pop();if(!h)return;c.past.push({at:Date.now(),label:'다시 실행 전',data:classClone(c.data)});c.past=c.past.slice(-20);c.data={...h.data,mode:c.data.mode};c.updated=Date.now();persist();remount();setNotice('다시 실행했어요');};
     const switchClass=id=>{commit();library.current.activeId=id;persist();remount();setPanel(null);setNotice(active().name+'을 불러왔어요');};
-    const addClass=()=>{if(!name.trim())return setNotice('학급 이름을 입력해 주세요');if(library.current.classes.length>=30)return setNotice('학급은 최대 30개까지 저장할 수 있어요');commit();const c=classRecord(name.trim().slice(0,40));library.current.classes.push(c);library.current.activeId=c.id;persist();remount();setPanel(null);setNotice('새 학급을 만들었어요. 마지막 번호를 입력해 주세요.');};
-    const rename=()=>{if(!name.trim())return;active().name=name.trim().slice(0,40);persist();redraw();setNotice('학급 이름을 변경했어요');};
+    const addClass=()=>{if(!name.trim())return setNotice('학급 이름을 입력해 주세요');if(library.current.classes.some(c=>c.name===name.trim()))return setNotice('같은 이름의 학급이 있어요. 구별할 수 있는 이름을 입력해 주세요.');if(library.current.classes.length>=30)return setNotice('학급은 최대 30개까지 저장할 수 있어요');commit();const c=classRecord(name.trim().slice(0,40));library.current.classes.push(c);library.current.activeId=c.id;persist();remount();setPanel(null);setNotice('새 학급을 등록했어요. 이 학급의 마지막 번호를 입력해 주세요.');};
+    const rename=()=>{if(!name.trim())return;if(library.current.classes.some(c=>c.id!==active().id&&c.name===name.trim()))return setNotice('같은 이름의 학급이 있어요. 다른 이름을 입력해 주세요.');active().name=name.trim().slice(0,40);persist();redraw();setNotice('학급 이름을 변경했어요');};
+    const requestDelete=id=>{
+        if(library.current.loadError)return setNotice('저장된 학급을 읽지 못했습니다. 백업을 복구한 뒤 삭제해 주세요.');
+        if(!library.current.classes.some(item=>item.id===id))return;
+        commit();setPendingDelete(id);setNotice('');setPanel('delete');
+    };
+    const cancelDelete=()=>{setPendingDelete(null);setName(active().name);setPanel('classes');setNotice('학급 삭제를 취소했어요.');};
+    const deleteClass=()=>{
+        if(library.current.loadError)return;
+        const target=library.current.classes.find(item=>item.id===pendingDelete);
+        if(!target)return cancelDelete();
+        commit();
+        const previous=library.current,wasActive=target.id===previous.activeId;
+        const remaining=previous.classes.filter(item=>item.id!==target.id),wasLast=remaining.length===0;
+        if(wasLast)remaining.push(classRecord('기본 학급'));
+        const next={...previous,classes:remaining,activeId:wasActive?remaining[0].id:previous.activeId};
+        library.current=next;
+        // Only complete deletion after the updated library is stored successfully.
+        if(!persist()){
+            library.current=previous;
+            setNotice('삭제 내용을 저장하지 못해 학급을 유지했습니다. 저장 공간·권한을 확인한 뒤 다시 시도해 주세요.');
+            redraw();return;
+        }
+        if(wasActive)remount();else redraw();
+        setPendingDelete(null);setName(active().name);setPanel('classes');
+        setNotice('「'+target.name+'」 학급을 삭제했어요.'+(wasLast?' 마지막 학급이어서 비어 있는 기본 학급을 준비했어요.':wasActive?' 「'+active().name+'」 학급으로 전환했어요.':''));
+    };
+    const requestHistoryClear=()=>{
+        if(library.current.loadError)return setNotice('저장된 학급을 읽지 못했습니다. 백업을 복구한 뒤 기록을 비워 주세요.');
+        commit();const target=active();
+        if(!target.past.length&&!target.future.length)return setNotice('비울 복구 기록이 없습니다.');
+        setPendingHistoryClear(target.id);setNotice('');setPanel('clearHistory');
+    };
+    const cancelHistoryClear=()=>{setPendingHistoryClear(null);setPanel('history');setNotice('복구 기록 비우기를 취소했어요.');};
+    const clearHistory=()=>{
+        if(library.current.loadError)return;
+        commit();const previous=library.current,target=previous.classes.find(item=>item.id===pendingHistoryClear);
+        if(!target)return cancelHistoryClear();
+        library.current={...previous,classes:previous.classes.map(item=>item.id===target.id?{...item,past:[],future:[]}:item)};
+        if(!persist()){
+            library.current=previous;
+            setNotice('변경 내용을 저장하지 못해 복구 기록을 유지했습니다. 저장 공간·권한을 확인한 뒤 다시 시도해 주세요.');
+            redraw();return;
+        }
+        redraw();setPendingHistoryClear(null);setPanel('history');
+        setNotice('「'+target.name+'」의 복구 기록을 비웠어요. 현재 학급 내용은 그대로 유지됩니다.');
+    };
     const restore=index=>{commit();const c=active(),h=c.past[index];if(!h)return;const target=classClone(h.data);c.past.push({at:Date.now(),label:'기록 복구 전',data:classClone(c.data)});c.past=c.past.slice(-20);c.future=[];c.data={...target,mode:c.data.mode};c.updated=Date.now();persist();remount();setPanel(null);setNotice('기록을 복구했어요. 실행 취소로 복구 전 상태로 돌아갈 수 있어요.');};
     const download=()=>{commit();let payload=JSON.stringify(library.current,null,2);if(library.current.loadError){try{payload=localStorage.getItem(CLASSROOM_KEY)||payload;}catch(e){}}const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='송쌤과학_학급백업_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);setNotice('백업 파일을 저장했어요');};
     const readBackup=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;try{if(file.size>5*1024*1024)throw Error('백업 파일은 5MB 이하만 불러올 수 있습니다.');const raw=JSON.parse(await file.text());if(raw.version!==1||!Array.isArray(raw.classes)||!raw.classes.length||raw.classes.length>30)throw Error('송쌤과학 학급 백업 파일이 아닙니다.');const imported=raw.classes.map(parseClassRecord);if(imported.length+library.current.classes.length>30)throw Error('불러온 뒤 학급 수가 30개를 넘습니다.');setPendingImport(imported);setNotice('아래 학급 목록을 확인한 후 추가해 주세요.');}catch(err){setPendingImport(null);setNotice('불러오기 실패: '+(err.message||'파일을 확인해 주세요.'));}};
     const importBackup=()=>{if(!pendingImport)return;commit();for(const c of pendingImport){c.name=(c.name+' (불러옴)').slice(0,40);library.current.classes.push(c);}delete library.current.loadError;persist();redraw();setPendingImport(null);setNotice('백업 학급을 추가했어요. 기존 학급은 그대로 유지됩니다.');};
-    const c=active();
+    const c=active(),deleteTarget=library.current.classes.find(item=>item.id===pendingDelete),historyClearTarget=library.current.classes.find(item=>item.id===pendingHistoryClear);
     const ctx={boot:c.data,capture,name:c.name,openPanel};
     return <ClassContext.Provider value={ctx}>
-        <div className="library-bar"><button className="library-current" onClick={()=>openPanel('classes')}><Icon name="folder-open" size={17}/><strong>{c.name}</strong><Icon name="chevron-down" size={14}/></button><button className="library-new" title="새 학급 만들기" onClick={openNewClass}><Icon name="folder-plus" size={16}/><span>새 학급 만들기</span></button><span className="local-badge"><Icon name="hard-drive" size={13}/>이 기기에만 저장</span><span className="library-spacer"/><button title="명단·모둠·좌석·메모 등의 이전 상태로 되돌리기" disabled={!c.past.length} onClick={undo}><Icon name="undo-2" size={16}/><span>실행 취소</span></button><button title="취소한 변경 다시 실행" disabled={!c.future.length} onClick={redo}><Icon name="redo-2" size={16}/><span>다시 실행</span></button><button onClick={()=>openPanel('history')}><Icon name="history" size={16}/><span>복구 기록</span></button><button onClick={()=>openPanel('classes')} aria-label="학급 관리"><Icon name="settings-2" size={16}/></button></div>
+        <div className="library-bar" ref={barRef} aria-label="학급 관리 메뉴"><button className="library-current" aria-label={'학급 선택·관리: '+c.name} title="저장된 학급 선택 및 현재 학급 이름 변경" onClick={()=>openPanel('classes')}><Icon name="folder-open" size={17}/><span className="current-label">선택한 학급</span><strong>{c.name}</strong><Icon name="chevron-down" size={14}/></button><button className="library-new" title="기존 학급과 별도로 새 학급 등록" onClick={openNewClass}><Icon name="folder-plus" size={16}/><span>새 학급 등록</span></button><button className="local-badge" title="저장 방식과 백업 확인" onClick={()=>openPanel('backup')}><Icon name="hard-drive" size={13}/><span>저장·백업 안내</span></button><span className="library-spacer"/><button title="명단·모둠·좌석·출결·체크리스트·메모 등의 이전 상태로 되돌리기" disabled={!c.past.length} onClick={undo}><Icon name="undo-2" size={16}/><span>실행 취소</span></button><button title="취소한 변경 다시 실행" disabled={!c.future.length} onClick={redo}><Icon name="redo-2" size={16}/><span>다시 실행</span></button><button onClick={()=>openPanel('history')}><Icon name="history" size={16}/><span>복구 기록</span></button></div>
         {saveError&&<div className="library-error" role="alert">{saveError}<button onClick={download}>백업 파일 저장</button></div>}
         <App key={c.id+':'+epoch}/>
         <div className="library-status" role="status" aria-live="polite">{notice}</div>
-        {panel&&<div className="library-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setPanel(null);}}><section className="library-dialog" role="dialog" aria-modal="true" aria-labelledby="library-title" ref={dialogRef} tabIndex={-1} onKeyDown={e=>{if(e.key==='Escape'){setPanel(null);return;}if(e.key==='Tab'){const nodes=[...e.currentTarget.querySelectorAll('button:not(:disabled),input:not([type=hidden]),[tabindex="0"]')].filter(n=>n.getClientRects().length);const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===e.currentTarget)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>
-            <div className="library-dialog-title"><div><p>LOCAL CLASSROOM</p><h2 id="library-title">{panel==='classes'?'학급 보관함':'기록 복구'}</h2></div><button aria-label="학급 창 닫기" onClick={()=>setPanel(null)}><Icon name="x" size={21}/></button></div>
-            <div className="library-privacy"><Icon name="hard-drive" size={20}/><div><strong>학급 정보는 이 기기에만 저장됩니다.</strong><p>명단·모둠·좌석·메모·발표 기록·일정과 복구 기록은 외부 서버로 전송되지 않으며, 현재 사용하는 브라우저에 저장됩니다.</p><p>다른 기기나 브라우저에는 자동 공유되지 않습니다. 브라우저 데이터를 삭제하면 기록이 사라질 수 있으니 중요한 내용은 백업 파일로 보관해 주세요.</p></div></div>
-            <p className="library-scope">최근 변경 20개를 학급별로 보관합니다. 타이머는 학급 전환·복구 시 정지합니다. 판서는 자체 실행 취소·저장을 사용하며, 판서·사진·녹음·영상·돌림판은 이 학급 백업 및 복구 대상에 포함되지 않습니다.</p>
-            <div className="library-tabs"><button className={panel==='classes'?'selected':''} onClick={()=>setPanel('classes')}>학급 관리</button><button className={panel==='history'?'selected':''} onClick={()=>setPanel('history')}>복구 기록 · {c.past.length}</button></div>
-            {panel==='classes'?<>
-                <div className="library-form"><label htmlFor="class-name">학급 이름</label><div><input id="class-name" value={name} maxLength={40} placeholder="예: 1학년 3반" onChange={e=>setName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&name.trim())addClass();}}/><button onClick={rename} disabled={!name.trim()}>이름 변경</button><button className="primary" onClick={addClass} disabled={!name.trim()}>새 학급 만들기</button></div></div>
-                <div className="library-list">{library.current.classes.map(item=><div className={'library-row '+(item.id===c.id?'current':'')} key={item.id}><div><strong>{item.name}</strong><small>{item.data.students.length}명 · 메모 {item.data.memos.length}개 · {new Date(item.updated).toLocaleString('ko-KR')}</small></div>{item.id===c.id?<span>사용 중</span>:<button onClick={()=>switchClass(item.id)}>불러오기</button>}</div>)}</div>
-                <div className="library-backup"><div><strong>학급과 복구 기록을 파일로 보관</strong><p>다른 컴퓨터로 옮기거나 브라우저 저장 내용을 복구할 수 있어요.</p></div><div><button onClick={download}><Icon name="download" size={15}/>백업 파일 저장</button><button onClick={()=>fileRef.current.click()}><Icon name="upload" size={15}/>백업 불러오기</button><input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={readBackup}/></div></div>
+        {panel&&<div className="library-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setPanel(null);}}><section className="library-dialog" role="dialog" aria-modal="true" aria-labelledby="library-title" aria-describedby={panel==='delete'?'delete-class-description':panel==='clearHistory'?'clear-history-description':undefined} ref={dialogRef} tabIndex={-1} onKeyDown={e=>{if(e.key==='Escape'){if(panel==='delete')cancelDelete();else if(panel==='clearHistory')cancelHistoryClear();else setPanel(null);return;}if(e.key==='Tab'){const nodes=[...e.currentTarget.querySelectorAll('button:not(:disabled),input:not([type=hidden]),[tabindex="0"]')].filter(n=>n.getClientRects().length);const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&(document.activeElement===first||document.activeElement===e.currentTarget)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}>
+            <div className="library-dialog-title"><div><p>MY CLASSROOMS</p><h2 id="library-title">{({classes:'학급 선택·관리',new:'새 학급 등록',backup:'저장·백업 안내',history:'기록 복구',delete:'학급 삭제',clearHistory:'복구 기록 비우기'})[panel]}</h2></div><button aria-label="학급 창 닫기" onClick={()=>setPanel(null)}><Icon name="x" size={21}/></button></div>
+            {panel!=='delete'&&panel!=='clearHistory'&&<div className="library-tabs">{[['classes','학급 선택·관리'],['new','새 학급 등록'],['backup','저장·백업 안내'],['history','복구 기록 · '+c.past.length]].map(([id,label])=><button key={id} className={panel===id?'selected':''} onClick={()=>openPanel(id)}>{label}</button>)}</div>}
+            {panel==='classes'&&<>
+                <p className="library-new-intro">저장된 학급으로 전환하거나 이름을 변경하고, 더 이상 사용하지 않는 학급을 삭제할 수 있어요.</p>
+                <form className="library-form" onSubmit={e=>{e.preventDefault();rename();}}><label htmlFor="class-name">선택한 학급 이름 변경</label><div><input id="class-name" value={name} maxLength={40} placeholder="예: 2026학년도 1학년 3반" onChange={e=>setName(e.target.value)}/><button type="submit" disabled={!name.trim()||name.trim()===c.name}>이름 변경 저장</button></div></form>
+                <h3 className="library-list-title">저장된 학급 · {library.current.classes.length}개</h3>
+                <div className="library-list">{library.current.classes.map(item=><div className={'library-row '+(item.id===c.id?'current':'')} key={item.id}><div><strong>{item.name}</strong><small>{item.data.students.length}명 · 메모 {item.data.memos.length}개 · {new Date(item.updated).toLocaleString('ko-KR')}</small></div><div className="library-row-actions">{item.id===c.id?<span className="library-current-tag">현재 선택됨</span>:<button onClick={()=>switchClass(item.id)}>이 학급으로 전환</button>}<button className="library-delete-button" aria-label={item.name+' 학급 삭제'} disabled={!!library.current.loadError} onClick={()=>requestDelete(item.id)}><Icon name="trash-2" size={14}/>삭제</button></div></div>)}</div>
+                <button className="primary" onClick={openNewClass}><Icon name="folder-plus" size={16}/>새 학급 등록</button><p className="library-hint">새 학급 등록은 비어 있는 학급을 추가합니다. 기존 학급의 명단과 기록은 유지됩니다.</p>
+            </>}
+            {panel==='delete'&&deleteTarget&&<div className="library-delete-confirm">
+                <div className="library-delete-icon"><Icon name="trash-2" size={25}/></div>
+                <h3>「{deleteTarget.name}」 학급을 삭제할까요?</h3>
+                <p id="delete-class-description">이 학급의 명단, 모둠·좌석, 메모, 발표 기록, 일정, 출결, 체크리스트와 복구 기록이 함께 삭제됩니다. 학급 삭제는 상단 ‘실행 취소’로 되돌릴 수 없으며, 미리 저장한 백업 파일로 다시 불러올 수 있어요.</p>
+                <div className="library-delete-summary"><span>학생 {deleteTarget.data.students.length}명</span><span>메모 {deleteTarget.data.memos.length}개</span><span>출결 {deleteTarget.data.attendanceRecords.length}일</span><span>할 일 {deleteTarget.data.lessonTasks.length}개</span></div>
+                {library.current.classes.length===1?<p className="library-hint">마지막 학급을 삭제하면 비어 있는 ‘기본 학급’이 생성됩니다.</p>:deleteTarget.id===c.id?<p className="library-hint">현재 선택한 학급입니다. 삭제 후 남아 있는 첫 번째 학급으로 전환됩니다.</p>:null}
+                <div className="library-delete-backup"><button onClick={download}><Icon name="download" size={15}/>삭제 전 백업 파일 저장</button></div>
+                <div className="library-delete-actions"><button data-confirm-cancel onClick={cancelDelete}>취소</button><button className="library-delete-submit" onClick={deleteClass}>이 학급 삭제</button></div>
+            </div>}
+            {panel==='clearHistory'&&historyClearTarget&&<div className="library-delete-confirm">
+                <div className="library-delete-icon"><Icon name="history" size={25}/></div>
+                <h3>「{historyClearTarget.name}」의 복구 기록을 비울까요?</h3>
+                <p id="clear-history-description">이 학급의 실행 취소·다시 실행 기록을 모두 삭제합니다. 현재 명단, 모둠·좌석, 메모, 출결, 체크리스트 등은 그대로 유지됩니다. 비운 기록은 실행 취소로 되돌릴 수 없어요.</p>
+                <div className="library-delete-summary"><span>실행 취소 {historyClearTarget.past.length}개</span><span>다시 실행 {historyClearTarget.future.length}개</span></div>
+                <div className="library-delete-backup"><button onClick={download}><Icon name="download" size={15}/>비우기 전 백업 파일 저장</button></div>
+                <div className="library-delete-actions"><button data-confirm-cancel onClick={cancelHistoryClear}>취소</button><button className="library-delete-submit" onClick={clearHistory}>복구 기록 모두 비우기</button></div>
+            </div>}
+            {panel==='new'&&<>
+                <p className="library-new-intro">기존 학급과 별도로 관리할 학급을 추가해요. 등록 후 학생 마지막 번호를 입력하면 시작할 수 있어요.</p>
+                <form className="library-form" onSubmit={e=>{e.preventDefault();addClass();}}><label htmlFor="class-name">등록할 새 학급 이름</label><div><input id="class-name" value={name} maxLength={40} placeholder="예: 2026학년도 2학년 1반" onChange={e=>setName(e.target.value)}/><button type="submit" className="primary" disabled={!name.trim()||library.current.classes.length>=30}>새 학급 등록하기</button></div><p>명단·좌석·메모·출결·체크리스트가 비어 있는 학급으로 시작합니다. 최대 30개까지 등록할 수 있어요.</p></form>
+            </>}
+            {panel==='backup'&&<>
+                <div className="library-privacy"><Icon name="hard-drive" size={20}/><div><strong>학급 정보는 현재 브라우저에 자동 저장됩니다.</strong><p>변경 후 약 0.5초 뒤 저장합니다. 같은 브라우저에서 같은 주소의 도우미를 다시 열면 이어서 사용할 수 있어요.</p><p>HTML 파일 안에 기록되거나 OneDrive로 학급 데이터가 자동 동기화되는 방식은 아닙니다.</p></div></div>
+                <ul className="library-storage-info"><li><strong>학급별 저장:</strong> 학생 번호·입력한 이름·제외 번호, 모둠·좌석 설정, 메모, 발표 기록, 일정, 타이머 설정, 출결, 수업 체크리스트와 최근 변경 20개.</li><li><strong>별도 저장:</strong> 화이트보드 판서와 화면 설정은 이 브라우저에 따로 저장되며 학급별로 나뉘지 않습니다. 학급 백업에는 포함되지 않습니다.</li><li><strong>백업 제외:</strong> 사진·녹음·영상·돌림판의 내용, 실행 중인 타이머는 학급 백업 및 복구에 포함되지 않습니다. 타이머는 학급 전환·복구 시 정지합니다.</li><li><strong>다른 환경으로 이동:</strong> 다른 기기·브라우저·프로필에는 자동 공유되지 않습니다. HTML 파일의 위치나 접속 주소를 바꾸면 기존 기록이 보이지 않을 수 있어요. 이동 전에 백업 파일을 저장하세요.</li><li><strong>기록 보관:</strong> 브라우저 데이터를 삭제하거나 시크릿 창을 닫으면 기록이 사라질 수 있습니다. 백업 JSON에는 입력한 명단과 기록이 들어 있으므로 개인 보관용으로 관리해 주세요.</li></ul>
+                <div className="library-backup"><div><strong>모든 학급과 복구 기록을 파일로 보관</strong><p>백업을 불러오면 기존 학급을 유지한 채 별도 학급으로 추가합니다.</p></div><div><button onClick={download}><Icon name="download" size={15}/>백업 파일 저장</button><button onClick={()=>fileRef.current.click()}><Icon name="upload" size={15}/>백업 불러오기</button><input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={readBackup}/></div></div>
                 {pendingImport&&<div className="library-import"><strong>{pendingImport.length}개 학급을 추가합니다</strong><p>{pendingImport.map(x=>x.name).join(', ')}</p><p>기존 학급을 덮어쓰지 않고 별도 학급으로 추가합니다.</p><button className="primary" onClick={importBackup}>확인 후 추가</button><button onClick={()=>setPendingImport(null)}>취소</button></div>}
-            </>:<div className="library-list">{!c.past.length?<p className="library-empty">아직 복구 기록이 없습니다. 명단·좌석·메모 등을 변경하면 이전 상태를 자동으로 보관합니다.</p>:[...c.past].reverse().map((h,i)=><div className="library-row" key={i}><div><strong>{h.label}</strong><small>{new Date(h.at).toLocaleString('ko-KR')} · 메모 {h.data.memos.length}개 · 좌석 {h.data.seats.length}개</small></div><button onClick={()=>restore(c.past.length-1-i)}>이 상태로 복구</button></div>)}</div>}
+            </>}
+            {panel==='history'&&<><p className="library-hint">{c.name}의 최근 변경 20개를 보관합니다. 복구 후에도 실행 취소로 되돌릴 수 있어요.</p><div className="library-history-toolbar"><p>실행 취소 {c.past.length}개 · 다시 실행 {c.future.length}개</p><button className="library-delete-button" disabled={!!library.current.loadError||(!c.past.length&&!c.future.length)} onClick={requestHistoryClear}><Icon name="trash-2" size={14}/>이 학급의 복구 기록 비우기</button></div><p className="library-hint">복구 기록을 비워도 현재 학급 내용은 유지됩니다. 이후 변경한 내용부터 새 기록이 쌓입니다.</p><div className="library-list">{!c.past.length?<p className="library-empty">아직 복구 기록이 없습니다. 명단·좌석·메모·출결·체크리스트 등을 변경하면 이전 상태를 자동으로 보관합니다.</p>:[...c.past].reverse().map((h,i)=><div className="library-row" key={i}><div><strong>{h.label}</strong><small>{new Date(h.at).toLocaleString('ko-KR')} · 메모 {h.data.memos.length}개 · 좌석 {h.data.seats.length}개</small></div><button onClick={()=>restore(c.past.length-1-i)}>이 상태로 복구</button></div>)}</div></>}
             <p className="library-dialog-status" role="status">{notice}</p>
         </section></div>}
     </ClassContext.Provider>;
