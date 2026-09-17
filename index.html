@@ -636,9 +636,9 @@ body.dark-theme .library-delete-icon{background:#432c25;color:#f1b3a1}body.dark-
 <style id="classroom-social-links">
 .header-social-links{display:flex;align-items:center;gap:6px;flex-shrink:0;padding-left:8px;margin-left:2px;border-left:1px solid var(--border-soft)}
 .header-social-links .social-link{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border-soft);border-radius:9px;background:var(--bg-card);text-decoration:none;flex-shrink:0;transition:background .15s,border-color .15s,box-shadow .15s}
-.header-social-links .social-link:hover{background:var(--bg-input);border-color:var(--text-mute);box-shadow:0 2px 7px #173e3110}.header-social-links .social-link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.social-youtube{color:#e02b26}.instagram-mark{display:flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:6px;color:white;background:radial-gradient(circle at 28% 110%,#ffd777 0%,#f58529 25%,#dd2a7b 58%,#8134af 82%,#515bd4 100%)}
-body.dark-theme .social-youtube{color:#ff6961}
+.header-social-links .social-link:hover{background:var(--accent-soft);border-color:var(--accent);box-shadow:none}.header-social-links .social-link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.social-youtube{color:var(--accent)}.social-youtube .yt-play{fill:var(--bg-card)}
+.instagram-mark{display:flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:6px;color:var(--bg-card);background:var(--accent)}
 @media(max-width:640px){.header-social-links{gap:4px;margin-left:0;padding-left:4px}.header-social-links .social-link{width:32px;height:34px;border-radius:8px}}
 @media print{.header-social-links{display:none!important}}
 </style>
@@ -678,7 +678,7 @@ const Icon=({name,size=24,className=""})=>{
 // Public channel links listed on the 송쌤과학 blog.
 const SocialLinks=()=> <div className="header-social-links" role="group" aria-label="송쌤과학 소셜 채널">
     <a className="social-link social-youtube" href="https://www.youtube.com/@songsamscience" target="_blank" rel="noopener noreferrer" title="송쌤과학 유튜브 · 새 탭에서 열기" aria-label="송쌤과학 유튜브 (새 탭)">
-        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.58 7.19a2.88 2.88 0 0 0-2.03-2.04C17.76 4.67 12 4.67 12 4.67s-5.76 0-7.55.48a2.88 2.88 0 0 0-2.03 2.04A30.1 30.1 0 0 0 1.94 12a30.1 30.1 0 0 0 .48 4.81 2.88 2.88 0 0 0 2.03 2.04c1.79.48 7.55.48 7.55.48s5.76 0 7.55-.48a2.88 2.88 0 0 0 2.03-2.04 30.1 30.1 0 0 0 .48-4.81 30.1 30.1 0 0 0-.48-4.81Z"/><path fill="#fff" d="m10 15.18 5.2-3.18L10 8.82Z"/></svg>
+        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.58 7.19a2.88 2.88 0 0 0-2.03-2.04C17.76 4.67 12 4.67 12 4.67s-5.76 0-7.55.48a2.88 2.88 0 0 0-2.03 2.04A30.1 30.1 0 0 0 1.94 12a30.1 30.1 0 0 0 .48 4.81 2.88 2.88 0 0 0 2.03 2.04c1.79.48 7.55.48 7.55.48s5.76 0 7.55-.48a2.88 2.88 0 0 0 2.03-2.04 30.1 30.1 0 0 0 .48-4.81 30.1 30.1 0 0 0-.48-4.81Z"/><path className="yt-play" d="m10 15.18 5.2-3.18L10 8.82Z"/></svg>
     </a>
     <a className="social-link social-instagram" href="https://www.instagram.com/songsamscience/" target="_blank" rel="noopener noreferrer" title="송쌤과학 인스타그램 · 새 탭에서 열기" aria-label="송쌤과학 인스타그램 (새 탭)">
         <span className="instagram-mark"><svg aria-hidden="true" focusable="false" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.6" cy="6.4" r="1" fill="currentColor" stroke="none"/></svg></span>
