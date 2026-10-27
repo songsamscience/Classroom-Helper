@@ -642,6 +642,74 @@ body.dark-theme .library-delete-icon{background:#432c25;color:#f1b3a1}body.dark-
 @media(max-width:640px){.header-social-links{gap:4px;margin-left:0;padding-left:4px}.header-social-links .social-link{width:32px;height:34px;border-radius:8px}}
 @media print{.header-social-links{display:none!important}}
 </style>
+
+<style id="classroom-pinball">
+/* 핀볼 게임: 설정 패널 · 경기장 · 순위판 · 당첨 카드 */
+.pb-wrap{display:flex;flex-direction:column;gap:14px}
+.pb-panel{background:var(--bg-soft);border:1px solid var(--border-line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.pb-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.pb-label{font-size:11px;font-weight:700;color:var(--text-sub);min-width:40px}
+.pb-hint{font-size:11px;color:var(--text-sub);line-height:1.6}
+.pb-seg{display:inline-flex;flex-wrap:wrap;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:9px;padding:3px;gap:2px}
+.pb-seg button{padding:6px 11px;border-radius:7px;font-size:12px;font-weight:600;color:var(--text-sub);min-height:32px;line-height:1.2}
+.pb-seg button small{font-size:10px;opacity:.75;margin-left:4px;font-weight:500}
+.pb-seg button.on{background:#166b59;color:#fff}
+.pb-seg button:not(.on):not(:disabled):hover{background:var(--bg-soft);color:var(--text-main)}
+.pb-step{display:inline-flex;align-items:center;gap:2px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:9px;padding:3px}
+.pb-step button{width:30px;height:30px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:var(--text-sub)}
+.pb-step button:hover{background:var(--bg-soft)}
+.pb-step span{min-width:52px;text-align:center;font-size:12px;font-weight:700;color:var(--accent)}
+.pb-toggle{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;border:1px solid var(--border-soft);background:var(--bg-card);font-size:12px;font-weight:600;color:var(--text-sub);min-height:34px}
+.pb-toggle.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.pb-names{display:block;width:100%;height:78px;padding:10px 12px;font-size:13px;line-height:1.6;resize:vertical;border:1px solid var(--border-soft);border-radius:9px;outline:none}
+.pb-arena{display:flex;flex-direction:column;gap:10px}
+.pb-arena:fullscreen{background:var(--bg-main);padding:14px}
+.pb-arena:-webkit-full-screen{background:var(--bg-main);padding:14px}
+.pb-arena:fullscreen .pb-stage{flex:1;height:auto;min-height:0}
+.pb-arena:-webkit-full-screen .pb-stage{flex:1;height:auto;min-height:0}
+.pb-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pb-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 13px;border-radius:9px;border:1px solid var(--border-soft);background:var(--bg-card);color:var(--text-main);font-size:12px;font-weight:600;min-height:38px;white-space:nowrap}
+.pb-btn:not(:disabled):hover{background:var(--bg-soft)}
+.pb-btn.primary{background:#166b59;border-color:#166b59;color:#fff}
+.pb-btn.primary:not(:disabled):hover{background:#0f5546}
+.pb-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.pb-btn.sm{min-height:32px;padding:5px 10px;font-size:11px}
+.pb-status{margin-left:auto;font-size:11px;color:var(--text-sub);font-weight:600;font-variant-numeric:tabular-nums}
+.pb-stage{position:relative;height:clamp(440px,70vh,820px);border-radius:14px;overflow:hidden;background:#0d241b;border:1px solid #2c5244}
+.pb-stage>canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
+.pb-stage>canvas.pb-confetti{pointer-events:none;z-index:6;cursor:auto}
+.pb-rank{position:absolute;top:12px;right:12px;width:194px;max-height:calc(100% - 24px);display:flex;flex-direction:column;background:#0b1f17e0;border:1px solid #ffffff1f;border-radius:12px;color:#e8f1e3;z-index:3}
+.pb-rank-head{display:flex;justify-content:space-between;align-items:baseline;gap:6px;padding:10px 12px 8px;border-bottom:1px solid #ffffff14;font-size:12px;font-weight:700}
+.pb-rank-head span{font-size:11px;color:#b7cfc1;font-weight:600;font-variant-numeric:tabular-nums}
+.pb-rank ol{overflow:auto;padding:6px;margin:0;list-style:none;scrollbar-width:thin;scrollbar-color:#40634d transparent}
+.pb-rank li{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:7px;font-size:13px;font-weight:600}
+.pb-rank li b{width:22px;flex-shrink:0;text-align:right;font-size:11px;color:#9fb8a8;font-variant-numeric:tabular-nums}
+.pb-rank li i{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1.5px #ffffffd9}
+.pb-rank li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-rank li.win{background:#ffd166;color:#2a2410}
+.pb-rank li.win b{color:#5a4a1c}
+.pb-rank-empty{padding:10px 12px 12px;font-size:11px;color:#b7cfc1;line-height:1.7}
+.pb-go{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:15px 34px;border-radius:999px;background:#ffd166;color:#22301f;font-size:20px;font-weight:800;box-shadow:0 10px 30px #0007;z-index:4}
+.pb-go:hover{background:#ffdc8a}
+.pb-empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#0b1f17e6;color:#e8f1e3;border-radius:12px;padding:16px 20px;font-size:13px;font-weight:600;text-align:center;line-height:1.7;z-index:4;max-width:calc(100% - 32px)}
+.pb-winner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#06140f99;padding:16px;z-index:5}
+.pb-winner-card{background:var(--bg-card);color:var(--text-main);border-radius:18px;padding:24px 26px 20px;text-align:center;width:min(480px,100%);max-height:100%;overflow:auto;box-shadow:0 20px 60px #0009;animation:resultPop .5s cubic-bezier(.34,1.56,.64,1)}
+.pb-winner-card>p{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.pb-winner-names{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px;margin:10px 0 18px}
+.pb-winner-names span{display:inline-flex;align-items:center;gap:10px;font-size:clamp(28px,5vw,46px);font-weight:800;letter-spacing:-.04em;line-height:1.25;overflow-wrap:anywhere}
+.pb-winner-names i{width:.46em;height:.46em;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 2px var(--bg-card),0 0 0 3px var(--border-soft)}
+.pb-winner-names.many span{font-size:clamp(20px,3.4vw,30px)}
+.pb-winner-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.pb-history{display:flex;flex-wrap:wrap;gap:6px}
+.pb-history span{display:inline-flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border-soft);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--text-main)}
+.pb-history small{font-size:10px;color:var(--text-sub);font-weight:500}
+.pb-history b{font-size:10px;color:var(--text-sub);font-variant-numeric:tabular-nums}
+.pb-history i{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1px var(--border-soft)}
+.pb-history span.win{background:#ffd166;border-color:#e2b54a;color:#2a2410}
+.pb-history span.win b{color:#5a4a1c}
+@media(max-width:760px){.pb-rank{width:136px;top:8px;right:8px;max-height:46%}.pb-rank-head{padding:7px 9px 6px;font-size:11px}.pb-rank li{font-size:11px;gap:5px;padding:3px 4px}.pb-rank li b{width:17px;font-size:10px}.pb-rank li i{width:9px;height:9px}.pb-go{font-size:17px;padding:13px 26px}.pb-status{flex-basis:100%;margin-left:0;order:9}}
+@media(max-width:640px){.pb-panel{padding:12px}.pb-label{flex-basis:100%}.pb-stage{height:clamp(420px,66vh,640px)}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -1334,6 +1402,518 @@ function SpinWheel({playSound:ps,isSoundOn}){
 }
 
 const LOTTO_BALL_COLORS=['#E74C3C','#E67E22','#27AE60','#2980B9','#8E44AD','#D35400','#16A085','#2C3E50','#C0392B','#7D3C98'];
+
+// ===== 핀볼 게임 (구슬 레이스) =====
+// 구슬이 장애물 코스를 굴러 내려가고, 결승선을 통과한 순서로 당첨자를 정한다.
+// 물리는 직접 계산: 구슬(원) ↔ 벽(두께 있는 선분)·핀·범퍼·회전 막대, 구슬끼리 충돌
+const PB={W:400,R:9,G:980,VMAX:780,DT:1/240,CELL:80,MAX:100};
+const PB_COLORS=['#FF8A80','#FFD54F','#80D8FF','#B388FF','#FF80AB','#A7FFEB','#FFAB40','#EA80FC','#CCFF90','#8C9EFF','#FFF59D','#84FFFF','#FF9E80','#F48FB1','#B9F6CA','#FFE57F','#82B1FF','#E1BEE7','#FFCC80','#80CBC4'];
+const PB_COURSES=[
+    {id:'forest',name:'핀 숲',sub:'짧게',plan:['pins6','funnel','bumpers','pins4']},
+    {id:'windmill',name:'풍차 마을',sub:'보통',plan:['pins5','zigzag4','windmills','bumpers','split','pins3']},
+    {id:'adventure',name:'큰 바퀴 대모험',sub:'길게',plan:['pins6','windmills','zigzag4','bumpers','wheel','pins5','split','windmills','zigzag3','bumpers','wheel','pins4']}
+];
+const PB_RULES=[['first','첫 번째'],['last','마지막'],['nth','N번째'],['many','N명']];
+let pbFontCache='',pbNX=0,pbNY=0;
+const pbFont=()=>pbFontCache||(pbFontCache=getComputedStyle(document.body).fontFamily||'sans-serif');
+
+// 코스 만들기: 구간(핀밭·깔때기·지그재그·풍차·범퍼·큰 바퀴·갈림길)을 위에서 아래로 쌓는다
+function pbBuildCourse(courseId,count){
+    const plan=(PB_COURSES.find(c=>c.id===courseId)||PB_COURSES[0]).plan;
+    const {W,R}=PB,L=4,RT=W-4,MID=W/2,GAP=2*R+3;
+    const segs=[],pins=[],bumps=[],spins=[];
+    const seg=(x1,y1,x2,y2,w=3)=>segs.push({x1,y1,x2,y2,w});
+    const pin=(x,y,r=5)=>pins.push({x,y,r});
+    const bump=(x,y,r=16)=>bumps.push({x,y,r,hitT:-9});
+    const spin=(x,y,len,arms,speed)=>spins.push({x,y,len,arms,speed,w:4,a:Math.random()*Math.PI*2});
+    const cols=Math.floor((RT-L-10)/GAP);
+    const gateY=Math.max(96,40+Math.ceil(count/cols)*GAP);
+    let y=gateY+36;
+    const sec={
+        // 엇갈린 핀밭 (벽 쪽 작은 경사판: 벽을 타고 그대로 내려가는 것 방지)
+        pins:n=>{const gx=46,gy=42;for(let i=0;i<n;i++){const yy=y+18+i*gy,off=i%2?gx/2:0;for(let k=-5;k<=5;k++){const x=MID+off+k*gx;if(x>L+30&&x<RT-30)pin(x,yy);}if(i%2===0){seg(L,yy-8,L+20,yy+8,2);seg(RT,yy-8,RT-20,yy+8,2);}}y+=18+n*gy+12;},
+        funnel:()=>{seg(L,y,MID-36,y+120);seg(RT,y,MID+36,y+120);y+=146;},
+        // 지그재그 경사로 + 떨어지는 곳의 핀
+        zigzag:n=>{for(let i=0;i<n;i++){const yy=y+i*86;if(i%2===0){seg(L,yy,RT-96,yy+52);pin(RT-48,yy+58);}else{seg(RT,yy,L+96,yy+52);pin(L+48,yy+58);}}y+=n*86+40;},
+        // 마주 도는 풍차 두 개 + 큰 십자 풍차
+        windmills:()=>{spin(MID-90,y+80,66,2,2.4);spin(MID+90,y+80,66,2,-2.4);seg(L,y+150,L+60,y+190);seg(RT,y+150,RT-60,y+190);spin(MID,y+250,88,4,1.7);pin(L+40,y+262);pin(RT-40,y+262);y+=360;},
+        // 범퍼: 맞으면 세게 튕겨 나간다
+        bumpers:()=>{[[MID,40],[MID-72,100],[MID+72,100],[MID-144,160],[MID,160],[MID+144,160]].forEach(([x,dy])=>bump(x,y+dy));seg(L,y+60,L+30,y+90);seg(RT,y+60,RT-30,y+90);y+=212;},
+        // 깔때기 아래 천천히 도는 큰 바퀴
+        wheel:()=>{seg(L,y,MID-70,y+100);seg(RT,y,MID+70,y+100);spin(MID,y+230,118,4,1.25);pin(L+30,y+230,6);pin(RT-30,y+230,6);y+=380;},
+        // 지붕으로 좌우로 갈랐다가 다시 모으기
+        split:()=>{seg(MID,y,MID-90,y+70);seg(MID,y,MID+90,y+70);for(const d of [-1,1]){pin(MID+d*150,y+60);pin(MID+d*120,y+110);pin(MID+d*165,y+150);pin(MID+d*60,y+150);}seg(L,y+180,MID-60,y+250);seg(RT,y+180,MID+60,y+250);y+=280;}
+    };
+    plan.forEach(tok=>{const m=tok.match(/^([a-z]+)(\d*)$/);sec[m[1]](m[2]?Number(m[2]):0);});
+    // 결승: 좁은 목으로 한 줄씩 통과 · 막힘 방지 휘젓개
+    seg(L,y,MID-24,y+190);seg(RT,y,MID+24,y+190);
+    spin(MID,y+135,34,2,3.4);
+    seg(MID-24,y+190,MID-24,y+236);seg(MID+24,y+190,MID+24,y+236);
+    const finishY=y+228,trayY=finishY+64,height=trayY+Math.ceil(count/cols)*GAP+40;
+    // 세로 칸(CELL)별로 장애물을 나눠 담아 충돌 검사·그리기를 줄인다
+    const grid=[];
+    const add=(k,o,y0,y1)=>{const it={k,o,f:0};for(let c=Math.max(0,Math.floor((y0-R-2)/PB.CELL));c<=Math.floor((y1+R+2)/PB.CELL);c++)(grid[c]||(grid[c]=[])).push(it);};
+    segs.forEach(s=>add('s',s,Math.min(s.y1,s.y2)-s.w,Math.max(s.y1,s.y2)+s.w));
+    pins.forEach(p=>add('p',p,p.y-p.r,p.y+p.r));
+    bumps.forEach(b=>add('b',b,b.y-b.r,b.y+b.r));
+    return {segs,pins,bumps,spins,grid,cols,gateY,finishY,trayY,height};
+}
+
+function pbShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// 출발 칸에 구슬을 무작위 순서로 세운 새 경기
+function pbCreateWorld(courseId,entries){
+    const c=pbBuildCourse(courseId,entries.length),R=PB.R,GAP=2*R+3;
+    const marbles=entries.map((e,i)=>({id:i,key:e.key,text:e.text,label:e.label,inside:e.inside,color:PB_COLORS[i%PB_COLORS.length],x:0,y:0,vx:0,vy:0,done:false,rank:0,win:false,chkX:0,chkY:0,chkT:0}));
+    pbShuffle(marbles.map((_,i)=>i)).forEach((mi,s)=>{const row=Math.floor(s/c.cols),inRow=Math.min(c.cols,marbles.length-row*c.cols),m=marbles[mi];m.x=PB.W/2+(s%c.cols-(inRow-1)/2)*GAP;m.y=c.gateY-R-4-row*GAP;});
+    return {...c,marbles,act:[],finished:[],waves:[],t:0,acc:0,ts:1,open:false,running:false,decided:false,slow:false,dec:null,need:1,rule:'first',ruleText:'',nextSkill:2,frame:0,cam:{x:PB.W/2,y:0,z:1,look:null,manualUntil:0}};
+}
+
+// 구슬 m을 점(px,py)에서 minD 밖으로 밀어내고 튕긴다. (sx,sy)=닿은 면의 속도(회전 막대)
+// 닿지 않았으면 null, 닿았으면 부딪힌 속도(음수일수록 세게) · 법선은 pbNX,pbNY
+function pbPush(m,px,py,minD,e,fr,sx,sy){
+    let nx=m.x-px,ny=m.y-py;const d2=nx*nx+ny*ny;
+    if(d2>=minD*minD)return null;
+    const d=Math.sqrt(d2);if(d<1e-6){nx=0;ny=-1;}else{nx/=d;ny/=d;}
+    m.x=px+nx*minD;m.y=py+ny*minD;pbNX=nx;pbNY=ny;
+    const rvx=m.vx-sx,rvy=m.vy-sy,vn=rvx*nx+rvy*ny;
+    if(vn<0){const vt=rvy*nx-rvx*ny,nvn=vn<-40?-vn*e:0,nvt=vt*(1-fr);m.vx=sx+nx*nvn-ny*nvt;m.vy=sy+ny*nvn+nx*nvt;}
+    return vn;
+}
+function pbSeg(m,x1,y1,x2,y2,w,e,fr,sp){
+    const lim=PB.R+w;
+    if(m.x<Math.min(x1,x2)-lim||m.x>Math.max(x1,x2)+lim||m.y<Math.min(y1,y2)-lim||m.y>Math.max(y1,y2)+lim)return null;
+    const dx=x2-x1,dy=y2-y1,l2=dx*dx+dy*dy;
+    let t=l2?((m.x-x1)*dx+(m.y-y1)*dy)/l2:0;t=t<0?0:t>1?1:t;
+    const px=x1+dx*t,py=y1+dy*t;
+    return pbPush(m,px,py,lim,e,fr,sp?-sp.speed*(py-sp.y):0,sp?sp.speed*(px-sp.x):0);
+}
+
+function pbStep(w,dt,ctl){
+    const {R,G,VMAX,W}=PB,act=w.act,lo=4+R,hi=W-4-R,D=2*R,D2=D*D;
+    w.t+=dt;
+    for(const s of w.spins)s.a+=s.speed*dt;
+    for(const m of act){
+        m.vy+=G*dt;
+        const sp=m.vx*m.vx+m.vy*m.vy;if(sp>VMAX*VMAX){const k=VMAX/Math.sqrt(sp);m.vx*=k;m.vy*=k;}
+        m.x+=m.vx*dt;m.y+=m.vy*dt;
+    }
+    // 구슬끼리: y로 정렬해 가까운 것만 검사
+    act.sort((a,b)=>a.y-b.y);
+    for(let i=0;i<act.length;i++){const p=act[i];for(let j=i+1;j<act.length;j++){const q=act[j],dy=q.y-p.y;if(dy>=D)break;const dx=q.x-p.x,d2=dx*dx+dy*dy;if(d2>=D2||d2<1e-9)continue;const d=Math.sqrt(d2),nx=dx/d,ny=dy/d,ov=(D-d)/2;p.x-=nx*ov;p.y-=ny*ov;q.x+=nx*ov;q.y+=ny*ov;const vn=(q.vx-p.vx)*nx+(q.vy-p.vy)*ny;if(vn<0){const jn=-.78*vn;p.vx-=jn*nx;p.vy-=jn*ny;q.vx+=jn*nx;q.vy+=jn*ny;}}}
+    // 벽·핀·범퍼·회전 막대
+    let finished=false;
+    for(const m of act){
+        if(m.x<lo){m.x=lo;if(m.vx<0)m.vx*=-.4;}else if(m.x>hi){m.x=hi;if(m.vx>0)m.vx*=-.4;}
+        if(m.y<R){m.y=R;if(m.vy<0)m.vy=0;}
+        const cell=w.grid[Math.floor(m.y/PB.CELL)];
+        if(cell)for(const it of cell){const o=it.o;let vn;
+            if(it.k==='s'){vn=pbSeg(m,o.x1,o.y1,o.x2,o.y2,o.w,.32,.004,null);if(vn!==null&&vn<-170)ctl.hit('wall',m);}
+            else if(it.k==='p'){vn=pbPush(m,o.x,o.y,R+o.r,.5,.01,0,0);if(vn!==null&&vn<-140)ctl.hit('pin',m);}
+            else{vn=pbPush(m,o.x,o.y,R+o.r,.75,0,0,0);if(vn!==null&&vn<-10){const k=200+Math.random()*80;m.vx+=pbNX*k;m.vy+=pbNY*k;o.hitT=w.t;ctl.hit('bump',m);}}
+        }
+        for(const s of w.spins){const reach=s.len+s.w+R;if(Math.abs(m.y-s.y)>reach||Math.abs(m.x-s.x)>reach)continue;
+            for(let k=0;k<s.arms;k++){const a=s.a+k*Math.PI*2/s.arms,vn=pbSeg(m,s.x,s.y,s.x+Math.cos(a)*s.len,s.y+Math.sin(a)*s.len,s.w,.4,.02,s);if(vn!==null&&vn<-200)ctl.hit('spin',m);}}
+        if(!isFinite(m.x)||!isFinite(m.y)){m.x=W/2;m.y=w.gateY+20;m.vx=m.vy=0;}
+        if(m.y>w.finishY){m.done=true;m.rank=w.finished.length+1;w.finished.push(m);finished=true;ctl.finish(w,m);}
+    }
+    if(finished)w.act=act.filter(m=>!m.done);
+}
+
+// 당첨을 가르는 구슬: 이 구슬이 들어오는 순간 당첨이 정해진다 (카메라가 따라감)
+function pbDecider(w){
+    if(!w.act.length)return null;
+    const s=w.act.slice().sort((a,b)=>b.y-a.y);
+    return s[Math.max(0,Math.min(s.length-1,w.need-w.finished.length-1))];
+}
+
+function pbTick(w,real,ctl){
+    if(!w.running){for(const s of w.spins)s.a+=s.speed*real*.6;w.slow=false;w.dec=null;return;}
+    const d=w.dec=w.decided?null:pbDecider(w);
+    // 결승 직전 접전이면 슬로모션
+    w.slow=!!d&&d.y>w.finishY-150&&w.act.some(m=>m!==d&&Math.abs(m.y-d.y)<100);
+    w.ts+=((w.slow?.32:ctl.fast?2.2:1)-w.ts)*Math.min(1,real*5);
+    w.acc+=real*w.ts;let n=0;
+    while(w.acc>=PB.DT&&n<48){pbStep(w,PB.DT,ctl);w.acc-=PB.DT;n++;}
+    if(n>=48)w.acc=0;
+    // 오래 멈춘 구슬은 살짝 튕겨 준다
+    for(const m of w.act){if(w.t-m.chkT>1.3){if(Math.hypot(m.x-m.chkX,m.y-m.chkY)<6){m.vx+=(Math.random()-.5)*320;m.vy-=180+Math.random()*140;}m.chkX=m.x;m.chkY=m.y;m.chkT=w.t;}}
+    // 충격파 스킬: 무작위 구슬이 주변 구슬을 밀어낸다 (결승 근처에서는 쓰지 않음)
+    if(ctl.skill&&w.t>=w.nextSkill){
+        w.nextSkill=w.t+1.4+Math.random()*2.2;
+        const pool=w.act.filter(m=>m.y>w.gateY+40&&m.y<w.finishY-260);
+        if(pool.length>1){
+            const c=pool[Math.floor(Math.random()*pool.length)];w.waves.push({x:c.x,y:c.y,t0:w.t});
+            for(const m of w.act){if(m===c)continue;const dx=m.x-c.x,dy=m.y-c.y,dd=Math.hypot(dx,dy);if(dd<80&&dd>.01){const f=(1-dd/80)*340+60;m.vx+=dx/dd*f;m.vy+=dy/dd*f;}}
+            ctl.hit('wave',c);
+        }
+    }
+    if(w.waves.length)w.waves=w.waves.filter(v=>w.t-v.t0<.5);
+    if(!w.act.length){w.running=false;w.slow=false;w.dec=null;ctl.done(w);}
+}
+
+// 화면 배치: 넓으면 왼쪽 미니맵 · 오른쪽 순위판 자리를 비워 둔다
+function pbView(cw,ch,dpr){
+    const wide=cw>=760,left=wide?86:0,right=wide?220:0,area=cw-left-right;
+    return {cw,ch,dpr,wide,left,right,s:Math.min((area-20)/PB.W,ch/420),cx:left+area/2,cy:ch/2};
+}
+
+function pbCamera(w,v,real){
+    const cam=w.cam;let ty,tx=PB.W/2,tz=1;
+    if(cam.look!==null&&performance.now()<cam.manualUntil)ty=cam.look;
+    else{
+        cam.look=null;
+        if(!w.open)ty=0;
+        else{
+            const t=w.dec||(w.act.length?w.act.reduce((a,b)=>b.y>a.y?b:a):null);
+            if(t){ty=t.y+v.ch/(v.s*cam.z)*.12;tx=t.x;}else ty=w.trayY;
+            if(w.slow)tz=1.55;
+        }
+    }
+    cam.z+=(tz-cam.z)*Math.min(1,real*2.5);
+    const S=v.s*cam.z,halfH=v.ch/2/S,halfW=(v.cw-v.left-v.right)/2/S;
+    ty=w.height<2*halfH?w.height/2:Math.max(halfH-24,Math.min(w.height-halfH+24,ty));
+    tx=PB.W+24<2*halfW?PB.W/2:Math.max(halfW-12,Math.min(PB.W-halfW+12,tx));
+    const k=Math.min(1,real*(cam.look!==null?12:4.2));
+    cam.y+=(ty-cam.y)*k;cam.x+=(tx-cam.x)*k;
+}
+
+// 미니맵 바탕은 코스·화면 크기가 바뀔 때만 다시 그린다
+function pbMinimap(w,v){
+    if(!v||!v.wide)return null;
+    const k=Math.min((v.left-28)/PB.W,(v.ch-28)/w.height),mw=PB.W*k,mh=w.height*k;
+    const img=document.createElement('canvas');img.width=Math.ceil(mw*v.dpr);img.height=Math.ceil(mh*v.dpr);
+    const g=img.getContext('2d');g.scale(v.dpr*k,v.dpr*k);
+    g.fillStyle='#173d30';g.fillRect(0,0,PB.W,w.height);
+    g.lineCap='round';g.strokeStyle='#cfe8bd';g.lineWidth=Math.max(6,1.3/k);
+    g.beginPath();for(const s of w.segs){g.moveTo(s.x1,s.y1);g.lineTo(s.x2,s.y2);}g.stroke();
+    g.fillStyle='#cfe8bd';for(const p of w.pins){g.beginPath();g.arc(p.x,p.y,Math.max(p.r,.9/k),0,Math.PI*2);g.fill();}
+    g.fillStyle='#ffd166';for(const b of w.bumps){g.beginPath();g.arc(b.x,b.y,b.r,0,Math.PI*2);g.fill();}
+    g.strokeStyle='#ffb38a';g.lineWidth=Math.max(5,1/k);for(const s of w.spins){g.beginPath();g.arc(s.x,s.y,s.len,0,Math.PI*2);g.stroke();}
+    g.fillStyle='#ffffff';g.fillRect(PB.W/2-24,w.finishY-6,48,12);
+    return {img,k,w:mw,h:mh,x:(v.left-mw)/2,y:14};
+}
+
+function pbDraw(ctx,w,v,mm){
+    const R=PB.R,GAP=2*R+3,cam=w.cam,S=v.s*cam.z,F=pbFont(),TAU=Math.PI*2;
+    w.frame++;
+    ctx.setTransform(v.dpr,0,0,v.dpr,0,0);
+    ctx.fillStyle='#0d241b';ctx.fillRect(0,0,v.cw,v.ch);
+    const top=cam.y-v.cy/S,bot=cam.y+(v.ch-v.cy)/S,y0=Math.max(0,top),y1=Math.min(w.height,bot);
+    ctx.save();
+    ctx.translate(v.cx-cam.x*S,v.cy-cam.y*S);ctx.scale(S,S);
+    ctx.fillStyle='#173d30';ctx.fillRect(0,y0,PB.W,y1-y0);
+    ctx.fillStyle='rgba(255,255,255,.022)';for(let yy=Math.floor(y0/240)*240;yy<y1;yy+=240)ctx.fillRect(0,yy,PB.W,120);
+    // 화면에 보이는 장애물만 그린다
+    const segs=[],pins=[],bumps=[];
+    for(let c=Math.max(0,Math.floor((top-30)/PB.CELL));c<=Math.floor((bot+30)/PB.CELL);c++){const cell=w.grid[c];if(!cell)continue;for(const it of cell){if(it.f===w.frame)continue;it.f=w.frame;(it.k==='s'?segs:it.k==='p'?pins:bumps).push(it.o);}}
+    ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(2,y0);ctx.lineTo(2,y1);ctx.moveTo(PB.W-2,y0);ctx.lineTo(PB.W-2,y1);
+    for(const s of segs){ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);}
+    ctx.strokeStyle='rgba(190,230,165,.15)';ctx.lineWidth=13;ctx.stroke();
+    ctx.strokeStyle='#cfe8bd';ctx.lineWidth=6;ctx.stroke();
+    ctx.fillStyle='#eef7e6';ctx.beginPath();for(const p of pins){ctx.moveTo(p.x+p.r,p.y);ctx.arc(p.x,p.y,p.r,0,TAU);}ctx.fill();
+    for(const b of bumps){const f=Math.max(0,1-(w.t-b.hitT)/.3);ctx.beginPath();ctx.arc(b.x,b.y,b.r+f*3,0,TAU);ctx.fillStyle=f>0?`rgba(255,214,120,${.3+f*.55})`:'rgba(255,209,102,.18)';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#ffd166';ctx.stroke();ctx.beginPath();ctx.arc(b.x,b.y,b.r*.42,0,TAU);ctx.fillStyle='#ffd166';ctx.fill();}
+    for(const s of w.spins){if(s.y+s.len<top-20||s.y-s.len>bot+20)continue;ctx.beginPath();for(let k=0;k<s.arms;k++){const a=s.a+k*TAU/s.arms;ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+Math.cos(a)*s.len,s.y+Math.sin(a)*s.len);}ctx.strokeStyle='rgba(255,170,130,.2)';ctx.lineWidth=s.w*2+8;ctx.stroke();ctx.strokeStyle='#ffb38a';ctx.lineWidth=s.w*2;ctx.stroke();ctx.beginPath();ctx.arc(s.x,s.y,5,0,TAU);ctx.fillStyle='#fff3e8';ctx.fill();}
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    // 출발 문 (시작하면 열림)
+    if(!w.open){ctx.setLineDash([9,7]);ctx.beginPath();ctx.moveTo(8,w.gateY);ctx.lineTo(PB.W-8,w.gateY);ctx.strokeStyle='#ffd166';ctx.lineWidth=4;ctx.stroke();ctx.setLineDash([]);}
+    // 결승선 · 도착 칸
+    const fy=w.finishY;for(let i=0;i<7;i++)for(let j=0;j<2;j++){ctx.fillStyle=(i+j)%2?'#0d241b':'#ffffff';ctx.fillRect(PB.W/2-21+i*6,fy-6+j*6,6,6);}
+    ctx.font=`800 15px ${F}`;ctx.fillStyle='#ffd166';ctx.textAlign='left';ctx.fillText('도착',PB.W/2+34,fy);ctx.textAlign='center';
+    const tc=Math.max(1,Math.min(w.cols,w.marbles.length)),tw=tc*GAP+16,tt=w.trayY-R-9;
+    ctx.beginPath();if(ctx.roundRect)ctx.roundRect(PB.W/2-tw/2,tt,tw,w.height-24-tt,10);else ctx.rect(PB.W/2-tw/2,tt,tw,w.height-24-tt);
+    ctx.strokeStyle='rgba(207,232,189,.35)';ctx.lineWidth=2;ctx.stroke();
+    ctx.font=`700 11px ${F}`;ctx.fillStyle='rgba(207,232,189,.75)';ctx.fillText('도착 순서',PB.W/2,tt-12);
+    // 구슬 (도착한 구슬은 도착 칸에 순서대로)
+    const labels=[];
+    for(const m of w.marbles){
+        let x=m.x,y=m.y;
+        if(m.done){const i=m.rank-1;x=PB.W/2+(i%tc-(tc-1)/2)*GAP;y=w.trayY+Math.floor(i/tc)*GAP;}
+        if(y<top-30||y>bot+30)continue;
+        if(m.win){ctx.beginPath();ctx.arc(x,y,R+4.5+Math.sin(w.frame*.18)*1.5,0,TAU);ctx.strokeStyle='#ffd166';ctx.lineWidth=3;ctx.stroke();}
+        ctx.beginPath();ctx.arc(x,y,R,0,TAU);ctx.fillStyle=m.color;ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke();
+        if(m.inside||m.done){const t=m.inside?m.label:String(m.rank);ctx.fillStyle='#13261f';ctx.font=`800 ${t.length>2?8:10}px ${F}`;ctx.fillText(t,x,y+.6);}
+        else{ctx.beginPath();ctx.arc(x-R*.35,y-R*.38,R*.3,0,TAU);ctx.fillStyle='rgba(255,255,255,.5)';ctx.fill();labels.push([m,x,y]);}
+    }
+    if(labels.length){ctx.font=`700 10px ${F}`;ctx.lineWidth=3.2;ctx.strokeStyle='rgba(13,36,27,.92)';ctx.fillStyle='#ffffff';for(const [m,x,y] of labels){const t=m.label.length>6?m.label.slice(0,6)+'…':m.label;ctx.strokeText(t,x,y+R+8);ctx.fillText(t,x,y+R+8);}}
+    // 당첨을 가르는 구슬 표시
+    const d=w.dec;if(d&&!d.done){ctx.beginPath();ctx.moveTo(d.x,d.y-R-5);ctx.lineTo(d.x-6,d.y-R-14);ctx.lineTo(d.x+6,d.y-R-14);ctx.closePath();ctx.fillStyle='#ffd166';ctx.fill();}
+    for(const wv of w.waves){const a=(w.t-wv.t0)/.5;ctx.beginPath();ctx.arc(wv.x,wv.y,12+a*70,0,TAU);ctx.strokeStyle=`rgba(255,214,102,${(1-a)*.9})`;ctx.lineWidth=3*(1-a)+1;ctx.stroke();}
+    ctx.restore();
+    if(w.slow){const fs=Math.round(Math.max(18,Math.min(30,v.cw/22)));ctx.font=`800 ${fs}px ${F}`;ctx.textAlign='center';ctx.textBaseline='top';ctx.lineWidth=5;ctx.strokeStyle='rgba(13,36,27,.85)';ctx.strokeText('두근두근…',v.cx,16);ctx.fillStyle='#ffd166';ctx.fillText('두근두근…',v.cx,16);}
+    // 미니맵 + 지금 보이는 범위
+    if(mm){
+        ctx.fillStyle='rgba(8,24,17,.75)';ctx.beginPath();if(ctx.roundRect)ctx.roundRect(mm.x-6,mm.y-6,mm.w+12,mm.h+12,8);else ctx.rect(mm.x-6,mm.y-6,mm.w+12,mm.h+12);ctx.fill();
+        ctx.drawImage(mm.img,mm.x,mm.y,mm.w,mm.h);
+        for(const m of w.marbles){if(m.done)continue;ctx.fillStyle=m.color;ctx.fillRect(mm.x+m.x*mm.k-1.5,mm.y+m.y*mm.k-1.5,3,3);}
+        ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.2;ctx.strokeRect(mm.x+.5,mm.y+y0*mm.k,mm.w-1,Math.max(2,(y1-y0)*mm.k));
+    }
+}
+
+function PinballGame({students,excludedNums,excludedInput,setExcludedInput,teamNames,playSound:ps,isSoundOn}){
+    const [source,setSource]=useState('number');      // number: 학급 번호 · name: 이름 입력
+    const [namesInput,setNamesInput]=useState('');
+    const [courseId,setCourseId]=useState('windmill');
+    const [rule,setRule]=useState('first');
+    const [ruleN,setRuleN]=useState(2);
+    const [skillOn,setSkillOn]=useState(true);
+    const [noRepeat,setNoRepeat]=useState(false);
+    const [used,setUsed]=useState([]);                 // 당첨자 제외로 빠진 항목
+    const [phase,setPhase]=useState('ready');          // ready · running · over
+    const [fast,setFast]=useState(false);
+    const [ranking,setRanking]=useState([]);
+    const [result,setResult]=useState(null);
+    const [showWin,setShowWin]=useState(false);
+    const [history,setHistory]=useState([]);
+    const [shuffleKey,setShuffleKey]=useState(0);
+    const [wide,setWide]=useState(true);
+    const [isFull,setIsFull]=useState(false);
+    const arenaRef=useRef(null),stageRef=useRef(null),canvasRef=useRef(null),confettiRef=useRef(null);
+    const worldRef=useRef(null),viewRef=useRef(null),mmRef=useRef(null),ctlRef=useRef({}),audioRef=useRef(null),sfxAtRef=useRef({}),burstRef=useRef(null),autoStartRef=useRef(false),dragRef=useRef(null),timersRef=useRef([]);
+
+    // 구슬 목록: 번호(제외 번호 반영) 또는 이름 ('이름*3' → 구슬 3개)
+    const entries=useMemo(()=>{
+        if(source==='number')return students.filter(n=>!excludedNums.includes(n)&&!(noRepeat&&used.includes(String(n)))).map(n=>({key:String(n),label:String(n),text:`${n}번`,inside:true}));
+        const out=[];
+        namesInput.split(/[\n,\t]+/).map(s=>s.trim()).filter(Boolean).forEach(tok=>{
+            const m=tok.match(/^(.*?)\s*[*×]\s*(\d+)$/),name=(m?m[1]:tok).trim().slice(0,20);
+            if(!name||(noRepeat&&used.includes(name)))return;
+            const k=m?Math.min(10,Math.max(1,Number(m[2]))):1;
+            for(let i=0;i<k;i++)out.push({key:name,label:name,text:name,inside:false});
+        });
+        return out.slice(0,PB.MAX);
+    },[source,namesInput,students,excludedNums,noRepeat,used]);
+    const entriesRef=useRef(entries);entriesRef.current=entries;
+    const count=entries.length;
+    const nMin=rule==='many'?2:1,nMax=Math.max(nMin,rule==='many'?count-1:count),nVal=Math.min(nMax,Math.max(nMin,ruleN));
+    const ruleText=rule==='first'?'첫 번째 도착':rule==='last'?'마지막 도착':rule==='nth'?`${nVal}번째 도착`:`먼저 도착한 ${nVal}명`;
+    const course=PB_COURSES.find(c=>c.id===courseId)||PB_COURSES[0];
+    const busy=phase==='running';
+
+    const getCtx=()=>{if(!audioRef.current)audioRef.current=new(window.AudioContext||window.webkitAudioContext)();if(audioRef.current.state==='suspended')audioRef.current.resume();return audioRef.current;};
+    // 효과음: 종류별로 최소 간격을 두어 시끄럽지 않게
+    const sfx=type=>{
+        if(!isSoundOn)return;
+        const now=performance.now(),gap={pin:55,wall:90,bump:90,spin:90,wave:200,goal:60}[type]||0;
+        if(now-(sfxAtRef.current[type]||0)<gap)return;sfxAtRef.current[type]=now;
+        const ctx=getCtx(),t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
+        const env=(vol,dur)=>{g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.start(t);o.stop(t+dur+.02);};
+        if(type==='pin'){o.type='triangle';o.frequency.setValueAtTime(950+Math.random()*450,t);env(.028,.05);}
+        else if(type==='wall'){o.type='sine';o.frequency.setValueAtTime(320+Math.random()*80,t);env(.03,.06);}
+        else if(type==='spin'){o.type='square';o.frequency.setValueAtTime(220,t);env(.018,.05);}
+        else if(type==='bump'){o.type='sine';o.frequency.setValueAtTime(380,t);o.frequency.exponentialRampToValueAtTime(820,t+.12);env(.07,.16);}
+        else if(type==='wave'){o.type='sawtooth';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(45,t+.28);env(.05,.3);}
+        else if(type==='goal'){o.type='sine';o.frequency.setValueAtTime(1046.5,t);o.frequency.setValueAtTime(1568,t+.06);env(.05,.18);}
+        else{o.type='triangle';o.frequency.setValueAtTime(523.25,t);o.frequency.setValueAtTime(659.25,t+.09);o.frequency.setValueAtTime(783.99,t+.18);env(.06,.32);}
+    };
+    const fanfare=()=>{if(!isSoundOn)return;const ctx=getCtx(),t=ctx.currentTime;[523.25,659.25,783.99,1046.5,1318.5,1046.5].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type=i<4?'sine':'triangle';o.frequency.setValueAtTime(f,t+i*.12);g.gain.setValueAtTime(0,t+i*.12);g.gain.linearRampToValueAtTime(.1,t+i*.12+.04);g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.6);o.start(t+i*.12);o.stop(t+i*.12+.6);});};
+
+    const rankOf=w=>w.finished.map(x=>({id:x.id,text:x.text,color:x.color,rank:x.rank,win:x.win}));
+    // 물리 계산 중에 불리는 함수들 (ctlRef로 늘 최신 값을 본다)
+    const hit=(type,m)=>{
+        const w=worldRef.current,v=viewRef.current;if(!isSoundOn||!w||!v)return;
+        if(Math.abs(m.y-w.cam.y)>v.ch/2/(v.s*w.cam.z)+20)return;   // 화면 밖 소리는 생략
+        sfx(type);
+    };
+    const onFinish=(w,m)=>{
+        sfx('goal');
+        if(!w.decided&&w.finished.length>=w.need){
+            w.decided=true;
+            const ws=w.rule==='last'?w.marbles.filter(x=>!x.done).slice(0,1):w.rule==='many'?w.finished.slice(0,w.need):[w.finished[w.need-1]];
+            ws.forEach(x=>{x.win=true;});
+            const list=ws.map(x=>({id:x.id,key:x.key,text:x.text,color:x.color}));
+            setResult({list,ruleText:w.ruleText});
+            setHistory(prev=>[{id:Date.now(),names:list.map(x=>x.text).join(', '),rule:w.ruleText,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})},...prev].slice(0,30));
+            if(ctlRef.current.noRepeat)setUsed(prev=>[...new Set([...prev,...list.map(x=>x.key)])]);
+            timersRef.current.push(setTimeout(()=>{
+                setShowWin(true);fanfare();
+                if(burstRef.current)burstRef.current({particleCount:160,spread:85,origin:{y:.55},colors:['#FFD166','#FF8A80','#80D8FF','#B9F6CA','#EA80FC'],disableForReducedMotion:true});
+            },w.rule==='last'?400:650));
+        }
+        setRanking(rankOf(w));
+    };
+    const onDone=w=>{setRanking(rankOf(w));setPhase('over');};
+    ctlRef.current={fast,skill:skillOn,noRepeat,hit,finish:onFinish,done:onDone};
+
+    const buildWorld=()=>{
+        const w=pbCreateWorld(courseId,entriesRef.current),v=viewRef.current;
+        if(v)w.cam.y=v.ch/2/v.s-24;
+        worldRef.current=w;mmRef.current=pbMinimap(w,v);
+        setRanking([]);setResult(null);setShowWin(false);
+        return w;
+    };
+    const startRace=()=>{
+        const w=worldRef.current;if(!w||w.open||w.marbles.length<2)return;
+        const n=w.marbles.length;
+        w.rule=rule;w.need=rule==='first'?1:rule==='last'?n-1:Math.min(nVal,n);w.ruleText=ruleText;
+        w.open=true;w.running=true;w.nextSkill=1.2+Math.random()*1.5;
+        w.marbles.forEach(m=>{m.vx=(Math.random()-.5)*60;m.vy=Math.random()*30;m.chkX=m.x;m.chkY=m.y;m.chkT=0;});
+        w.act=w.marbles.slice();
+        setPhase('running');sfx('start');
+    };
+    const restart=()=>{autoStartRef.current=true;setPhase('ready');setShuffleKey(k=>k+1);};
+    const restartWithout=()=>{if(result)setUsed(prev=>[...new Set([...prev,...result.list.map(x=>x.key)])]);setNoRepeat(true);restart();};
+    const reset=()=>{ps('click');setPhase('ready');setShuffleKey(k=>k+1);};
+
+    // 경기장 크기 (전체 화면·창 크기 변화 포함)
+    useEffect(()=>{
+        const stage=stageRef.current,cv=canvasRef.current;if(!stage||!cv)return;
+        const apply=()=>{
+            const r=stage.getBoundingClientRect();if(r.width<10||r.height<10)return;
+            const dpr=Math.min(2,window.devicePixelRatio||1);
+            cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+            const v=pbView(r.width,r.height,dpr);viewRef.current=v;setWide(v.wide);
+            if(worldRef.current)mmRef.current=pbMinimap(worldRef.current,v);
+        };
+        apply();const ro=new ResizeObserver(apply);ro.observe(stage);
+        return()=>ro.disconnect();
+    },[]);
+    // 준비 상태에서 구슬·코스가 바뀌면 출발 칸을 새로 세운다
+    useEffect(()=>{
+        if(phase!=='ready')return;
+        buildWorld();
+        if(autoStartRef.current){autoStartRef.current=false;startRace();}
+    },[entries,courseId,shuffleKey,phase]);
+    useEffect(()=>{
+        let raf,last=performance.now();
+        const loop=now=>{
+            const real=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
+            const w=worldRef.current,v=viewRef.current,cv=canvasRef.current;
+            if(w&&v&&cv){pbTick(w,real,ctlRef.current);pbCamera(w,v,real);pbDraw(cv.getContext('2d'),w,v,mmRef.current);}
+            raf=requestAnimationFrame(loop);
+        };
+        raf=requestAnimationFrame(loop);
+        return()=>{cancelAnimationFrame(raf);timersRef.current.forEach(clearTimeout);};
+    },[]);
+    // 꽃가루는 경기장 안 캔버스에 (전체 화면에서도 보이도록)
+    useEffect(()=>{
+        if(window.confetti&&window.confetti.create&&confettiRef.current)burstRef.current=window.confetti.create(confettiRef.current,{resize:true});
+        return()=>{if(burstRef.current&&burstRef.current.reset)burstRef.current.reset();};
+    },[]);
+    useEffect(()=>{
+        const f=()=>setIsFull(!!(document.fullscreenElement||document.webkitFullscreenElement));
+        document.addEventListener('fullscreenchange',f);document.addEventListener('webkitfullscreenchange',f);
+        return()=>{document.removeEventListener('fullscreenchange',f);document.removeEventListener('webkitfullscreenchange',f);};
+    },[]);
+    useEffect(()=>{
+        if(!showWin)return;
+        const f=e=>{if(e.key==='Escape')setShowWin(false);};
+        window.addEventListener('keydown',f);return()=>window.removeEventListener('keydown',f);
+    },[showWin]);
+
+    const toggleFull=()=>{
+        ps('click');const el=arenaRef.current;if(!el)return;
+        if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+        else{const req=el.requestFullscreen||el.webkitRequestFullscreen;if(req){const p=req.call(el);if(p&&p.catch)p.catch(()=>{});}}
+    };
+    // 미니맵을 누르거나 마우스로 끌면 잠시 원하는 곳을 볼 수 있다
+    const look=y=>{const w=worldRef.current;if(!w)return;w.cam.look=y;w.cam.manualUntil=performance.now()+3500;};
+    const onPointerDown=e=>{
+        const w=worldRef.current,mm=mmRef.current;if(!w)return;
+        const r=e.currentTarget.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+        if(mm&&px>=mm.x-8&&px<=mm.x+mm.w+8&&py>=mm.y-8&&py<=mm.y+mm.h+8){dragRef.current={mm:true};look((py-mm.y)/mm.k);}
+        else if(e.pointerType==='mouse')dragRef.current={mm:false,py,y:w.cam.y};
+        else return;
+        try{e.currentTarget.setPointerCapture(e.pointerId);}catch(_){}
+    };
+    const onPointerMove=e=>{
+        const d=dragRef.current,w=worldRef.current,v=viewRef.current,mm=mmRef.current;if(!d||!w||!v)return;
+        const py=e.clientY-e.currentTarget.getBoundingClientRect().top;
+        if(d.mm){if(mm)look((py-mm.y)/mm.k);}
+        else if(Math.abs(py-d.py)>3)look(d.y-(py-d.py)/(v.s*w.cam.z));
+    };
+    const onPointerUp=()=>{dragRef.current=null;};
+
+    const total=worldRef.current&&phase!=='ready'?worldRef.current.marbles.length:count;
+    const shownRule=phase!=='ready'&&worldRef.current&&worldRef.current.ruleText?worldRef.current.ruleText:ruleText;
+    const status=phase==='ready'?`구슬 ${count}개 · ${course.name} · ${ruleText}`:phase==='running'?`${ranking.length} / ${total} 도착 · ${shownRule}`:`경기 끝 · ${shownRule}`;
+    const usedText=used.map(k=>/^\d+$/.test(k)?k+'번':k).join(', ');
+
+    return(<div className="pb-wrap">
+        <div className="pb-panel">
+            <div className="pb-row">
+                <span className="pb-label">참가</span>
+                <div className="pb-seg">{[['number','번호'],['name','이름']].map(([k,t])=><button key={k} disabled={busy} className={source===k?'on':''} onClick={()=>{ps('click');setSource(k);}}>{t}</button>)}</div>
+                <span className="pb-hint">구슬 {count}개{count>=PB.MAX?' (최대 100개)':''}</span>
+            </div>
+            {source==='number'?<ExcludeBar excludedInput={excludedInput} setExcludedInput={setExcludedInput} excludedNums={excludedNums} totalCount={students.length} accentColor="#166B59" playSound={ps}/>
+            :<div className="space-y-1.5">
+                <textarea className="pb-names" value={namesInput} onChange={e=>setNamesInput(e.target.value)} placeholder={'이름을 쉼표나 줄바꿈으로 구분해 입력하세요\n예: 민준, 서연, 하준*2  (*2는 구슬 2개)'}/>
+                <div className="pb-row" style={{justifyContent:'space-between'}}>
+                    <span className="pb-hint">이름 뒤에 *숫자를 붙이면 그 이름의 구슬이 여러 개 생겨요 (최대 10개)</span>
+                    {teamNames&&teamNames.trim()&&<button className="pb-btn sm" disabled={busy} onClick={()=>{ps('click');setNamesInput(teamNames);}}><Icon name="users" size={13}/> 모둠 만들기 이름 불러오기</button>}
+                </div>
+            </div>}
+            <div className="pb-row">
+                <span className="pb-label">코스</span>
+                <div className="pb-seg">{PB_COURSES.map(c=><button key={c.id} disabled={busy} className={courseId===c.id?'on':''} onClick={()=>{ps('click');setCourseId(c.id);}}>{c.name}<small>{c.sub}</small></button>)}</div>
+            </div>
+            <div className="pb-row">
+                <span className="pb-label">당첨</span>
+                <div className="pb-seg">{PB_RULES.map(([k,t])=><button key={k} disabled={busy} className={rule===k?'on':''} onClick={()=>{ps('click');setRule(k);}}>{t}</button>)}</div>
+                {(rule==='nth'||rule==='many')&&<div className="pb-step">
+                    <button disabled={busy||nVal<=nMin} onClick={()=>{ps('click');setRuleN(nVal-1);}} aria-label="줄이기"><Icon name="minus" size={14}/></button>
+                    <span>{rule==='nth'?`${nVal}번째`:`${nVal}명`}</span>
+                    <button disabled={busy||nVal>=nMax} onClick={()=>{ps('click');setRuleN(nVal+1);}} aria-label="늘리기"><Icon name="plus" size={14}/></button>
+                </div>}
+                <span className="pb-hint">{ruleText}{rule==='many'?'이 모두 당첨':'이 당첨'}</span>
+            </div>
+            <div className="pb-row">
+                <span className="pb-label">옵션</span>
+                <button className={'pb-toggle '+(skillOn?'on':'')} onClick={()=>{ps('click');setSkillOn(!skillOn);}} title="경기 중 무작위 구슬이 충격파로 주변 구슬을 밀어냅니다"><Icon name="zap" size={14}/> 충격파 스킬 {skillOn?'ON':'OFF'}</button>
+                <button className={'pb-toggle '+(noRepeat?'on':'')} disabled={busy} onClick={()=>{ps('click');setNoRepeat(!noRepeat);}} title="한 번 당첨된 사람은 다음 판부터 빠집니다"><Icon name="user-check" size={14}/> 당첨자 제외 {noRepeat?'ON':'OFF'}</button>
+                {used.length>0&&<button className="pb-toggle" disabled={busy} onClick={()=>{ps('click');setUsed([]);}} title={'제외됨: '+usedText}><Icon name="rotate-ccw" size={14}/> 제외 초기화 ({used.length})</button>}
+            </div>
+        </div>
+
+        <div className="pb-arena" ref={arenaRef}>
+            <div className="pb-bar">
+                {phase==='running'?<>
+                    <button className={'pb-btn '+(fast?'on':'')} onClick={()=>{ps('click');setFast(!fast);}}><Icon name="fast-forward" size={15}/> 빠르게 {fast?'ON':'OFF'}</button>
+                    <button className="pb-btn" onClick={reset}><Icon name="rotate-ccw" size={15}/> 처음으로</button>
+                </>:<>
+                    <button className="pb-btn primary" disabled={count<2} onClick={()=>{ps('click');phase==='ready'?startRace():restart();}}><Icon name="play" size={15}/> {phase==='ready'?'시작':'다시 하기'}</button>
+                    <button className="pb-btn" disabled={phase!=='ready'||count<2} onClick={()=>{ps('click');setShuffleKey(k=>k+1);}}><Icon name="shuffle" size={15}/> 섞기</button>
+                    {phase==='over'&&<button className="pb-btn" onClick={reset}><Icon name="rotate-ccw" size={15}/> 처음으로</button>}
+                </>}
+                <span className="pb-status">{status}</span>
+                <button className="pb-btn" onClick={toggleFull} title={isFull?'전체 화면 끝내기':'경기장을 전체 화면으로 보기'}><Icon name={isFull?'minimize':'maximize'} size={15}/> {isFull?'작게':'전체 화면'}</button>
+            </div>
+            <div className="pb-stage" ref={stageRef}>
+                <canvas ref={canvasRef} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} aria-label="핀볼 경기장"/>
+                {wide&&<div className="pb-rank">
+                    <div className="pb-rank-head">도착 순위<span>{phase==='ready'?`구슬 ${count}개`:`${ranking.length} / ${total}`}</span></div>
+                    {ranking.length?<ol>{ranking.map(r=><li key={r.id} className={r.win?'win':''}><b>{r.rank}</b><i style={{background:r.color}}/><span>{r.text}</span>{r.win&&<Icon name="trophy" size={13}/>}</li>)}</ol>
+                    :<p className="pb-rank-empty">{phase==='ready'?'시작하면 결승선을 통과한 순서대로 여기에 표시돼요.':'아직 도착한 구슬이 없어요.'}</p>}
+                </div>}
+                {phase==='ready'&&count>=2&&<button className="pb-go" onClick={()=>{ps('click');startRace();}}><Icon name="play" size={22}/> 시작</button>}
+                {phase==='ready'&&count<2&&<div className="pb-empty">구슬이 2개 이상 있어야 시작할 수 있어요.<br/>{source==='name'?'위 칸에 이름을 입력해 주세요.':'제외 번호나 당첨자 제외를 확인해 주세요.'}</div>}
+                {showWin&&result&&<div className="pb-winner" onClick={()=>setShowWin(false)}>
+                    <div className="pb-winner-card" role="dialog" aria-label="당첨 결과" onClick={e=>e.stopPropagation()}>
+                        <p>{result.ruleText} · 당첨</p>
+                        <div className={'pb-winner-names'+(result.list.length>2?' many':'')}>{result.list.map(x=><span key={x.id}><i style={{background:x.color}}/>{x.text}</span>)}</div>
+                        <div className="pb-winner-actions">
+                            <button className="pb-btn primary" onClick={()=>{ps('click');restart();}}><Icon name="rotate-ccw" size={15}/> {noRepeat?'다음 판 (당첨자 제외)':'다시 하기'}</button>
+                            {!noRepeat&&<button className="pb-btn" onClick={()=>{ps('click');restartWithout();}}><Icon name="user-minus" size={15}/> 당첨자 빼고 다시</button>}
+                            <button className="pb-btn" onClick={()=>{ps('click');setShowWin(false);}}>닫기</button>
+                        </div>
+                    </div>
+                </div>}
+                <canvas className="pb-confetti" ref={confettiRef}/>
+            </div>
+            {!wide&&phase!=='ready'&&<div className="pb-panel">
+                <div className="pb-row" style={{justifyContent:'space-between'}}><span className="pb-label">도착 순위</span><span className="pb-hint">{ranking.length} / {total}</span></div>
+                {ranking.length>0&&<div className="pb-history">{ranking.map(r=><span key={r.id} className={r.win?'win':''}><b>{r.rank}</b><i style={{background:r.color}}/>{r.text}</span>)}</div>}
+            </div>}
+        </div>
+
+        {history.length>0&&<div className="pb-panel">
+            <div className="pb-row" style={{justifyContent:'space-between'}}><span className="pb-label">당첨 기록</span><button className="pb-btn sm" onClick={()=>{ps('click');setHistory([]);}}>기록 지우기</button></div>
+            <div className="pb-history">{history.map(h=><span key={h.id}>{h.names}<small>{h.rule} · {h.time}</small></span>)}</div>
+        </div>}
+    </div>);
+}
 
 function LottoPicker({students,excludedNums,playSound:ps,isSoundOn}){
     const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
@@ -3396,7 +3976,7 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
 
     if(step==='input') return(
         <div className="intro-bg p-4">
-            <section className="welcome-story"><div className="welcome-brand"><span className="brand-mark"><Icon name="flask-conical" size={24}/></span>송쌤과학 <span>CLASSROOM</span></div><div className="welcome-copy"><p className="eyebrow">선생님의 수업에, 여유를 더하다</p><h2>수업에 필요한 도구,<br/>한 곳에서 가볍게.</h2><p className="welcome-description">발표자를 뽑고, 모둠을 만들고, 생각을 기록하세요.<br/>작은 준비는 도우미에게 맡기고 수업에 집중하세요.</p><div className="welcome-preview"><div className="preview-label"><span className="live-dot"/> 오늘의 교실 <span>READY TO START</span></div><div className="preview-desks">{['01','02','03','04','05','06','07','08'].map((n,i)=><span key={n} className={i===2?'chosen':''}>{i===2?<Icon name="sparkles" size={23}/>:n}</span>)}</div><div className="preview-bottom"><span>함께 배우는 시간을 위한</span><strong>15가지 수업 도구 <span>↗</span></strong></div></div></div><div className="welcome-foot">준비는 간결하게. 수업은 풍성하게.</div></section>
+            <section className="welcome-story"><div className="welcome-brand"><span className="brand-mark"><Icon name="flask-conical" size={24}/></span>송쌤과학 <span>CLASSROOM</span></div><div className="welcome-copy"><p className="eyebrow">선생님의 수업에, 여유를 더하다</p><h2>수업에 필요한 도구,<br/>한 곳에서 가볍게.</h2><p className="welcome-description">발표자를 뽑고, 모둠을 만들고, 생각을 기록하세요.<br/>작은 준비는 도우미에게 맡기고 수업에 집중하세요.</p><div className="welcome-preview"><div className="preview-label"><span className="live-dot"/> 오늘의 교실 <span>READY TO START</span></div><div className="preview-desks">{['01','02','03','04','05','06','07','08'].map((n,i)=><span key={n} className={i===2?'chosen':''}>{i===2?<Icon name="sparkles" size={23}/>:n}</span>)}</div><div className="preview-bottom"><span>함께 배우는 시간을 위한</span><strong>16가지 수업 도구 <span>↗</span></strong></div></div></div><div className="welcome-foot">준비는 간결하게. 수업은 풍성하게.</div></section>
             <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
                 <div className="hidden"/>
                 <div className="setup-icon"><Icon name="sprout" size={36} className="text-[#FFB7B2]"/></div>
@@ -3518,9 +4098,9 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
             <div className="header-actions"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/><button className="utility-btn" onClick={()=>setIsDarkMode(!isDarkMode)} aria-label={isDarkMode?'밝은 화면으로 전환':'어두운 화면으로 전환'} title="테마 전환"><Icon name={isDarkMode?'sun':'moon'} size={18}/></button><button className="utility-btn" onClick={()=>setShowSettings(true)} aria-label="화면 설정" title="화면 설정"><Icon name="settings-2" size={18}/></button></div>
         </header>
         <nav className="tool-rail" aria-label="수업 도구">
-            <div className="rail-heading">수업 도구 <span>15</span></div>
+            <div className="rail-heading">수업 도구 <span>16</span></div>
             {[
-                {title:'참여와 모둠',items:[['pick','발표자 뽑기','trophy'],['lotto','로또 추첨','dices'],['wheel','돌림판','circle-dot'],['team','모둠 만들기','users'],['seat','좌석 배치','armchair']]},
+                {title:'참여와 모둠',items:[['pick','발표자 뽑기','trophy'],['lotto','로또 추첨','dices'],['wheel','돌림판','circle-dot'],['pinball','핀볼 게임','gamepad-2'],['team','모둠 만들기','users'],['seat','좌석 배치','armchair']]},
                 {title:'학급 운영',items:[['attendance','출결 확인','clipboard-check'],['checklist','수업 체크리스트','list-checks']]},
                 {title:'수업 진행',items:[['whiteboard','화이트보드','palette'],['timer','타이머','timer'],['calendar','달력','calendar']]},
                 {title:'자료와 기록',items:[['youtube','영상 재생','youtube'],['record','녹음','mic'],['qr','QR 코드','qr-code'],['memo','메모','sticky-note'],['img','사진 보기','image']]}
@@ -3532,7 +4112,7 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
         {showMiniTimer&&<div className={`fixed top-[68px] sm:top-[76px] left-2 z-50 mini-float ${isTimerRunning?'mini-pulse':''}`} onClick={()=>{playSound('click');setMode('timer');}}><div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shadow-lg border-2 cursor-pointer active:scale-95 ${isTimerRunning?'bg-white border-[#FFB7B2]':'bg-white/90 border-gray-200'}`}><svg viewBox="0 0 32 32" className="w-6 h-6 -rotate-90"><circle cx="16" cy="16" r="13" stroke="#F0F0F0" strokeWidth="2.5" fill="none"/><circle cx="16" cy="16" r="13" stroke={isTimerRunning?"#FFDAC1":"#D1D5DB"} strokeWidth="2.5" fill="none" strokeDasharray={2*Math.PI*13} strokeDashoffset={(2*Math.PI*13)-(timeLeft/(initialTime||1))*(2*Math.PI*13)} strokeLinecap="round"/></svg><span className={`text-sm font-black tabular-nums ${isTimerRunning?'text-[#5D5D5D]':'text-gray-400'}`}>{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span></div></div>}
 
         <main data-tool={mode} className="workspace flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
-            <div className="workspace-context"><span><span className="context-class"><Icon name="school" size={14}/>{classContext.name}</span><span className="context-slash">/</span> {({attendance:'출결 확인',checklist:'수업 체크리스트',pick:'발표자 뽑기',lotto:'로또 추첨',wheel:'돌림판',team:'모둠 만들기',seat:'좌석 배치',whiteboard:'화이트보드',timer:'타이머',calendar:'달력',youtube:'영상 재생',record:'녹음',qr:'QR 코드',memo:'메모',img:'사진 보기'})[mode]}</span><span className="participation"><span className="live-dot"/>{activeStudents.length}명 참여</span></div>
+            <div className="workspace-context"><span><span className="context-class"><Icon name="school" size={14}/>{classContext.name}</span><span className="context-slash">/</span> {({attendance:'출결 확인',checklist:'수업 체크리스트',pick:'발표자 뽑기',lotto:'로또 추첨',wheel:'돌림판',pinball:'핀볼 게임',team:'모둠 만들기',seat:'좌석 배치',whiteboard:'화이트보드',timer:'타이머',calendar:'달력',youtube:'영상 재생',record:'녹음',qr:'QR 코드',memo:'메모',img:'사진 보기'})[mode]}</span><span className="participation"><span className="live-dot"/>{activeStudents.length}명 참여</span></div>
 
             {mode==='attendance'&&<AttendanceTool students={students} records={attendanceRecords} setRecords={setAttendanceRecords} excludedInput={excludedInput} setExcludedInput={setExcludedInput}/>}
             {mode==='checklist'&&<LessonChecklist items={lessonTasks} setItems={setLessonTasks}/>}
@@ -3636,6 +4216,10 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
             </div>}
 
             {mode==='wheel'&&<div className="card-enter w-full"><SpinWheel playSound={playSound} isSoundOn={isSoundOn}/></div>}
+            {mode==='pinball'&&<div className="card-enter w-full">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1"><div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">핀볼 게임</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">구슬이 장애물을 지나 결승선에 도착한 순서로 당첨자를 뽑아요</p></div></div>
+                <PinballGame students={students} excludedNums={excludedNums} excludedInput={excludedInput} setExcludedInput={setExcludedInput} teamNames={inputNames} playSound={playSound} isSoundOn={isSoundOn}/>
+            </div>}
 
             {mode==='timer'&&<div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
                 {showClockInTimer&&<div className="mb-5 bg-white rounded-2xl p-5 sm:p-6 soft-shadow border-2 border-[#C7CEEA] w-full max-w-sm text-center card-enter"><LiveClock size="md"/></div>}
@@ -3798,7 +4382,7 @@ function validateClassData(raw){
         const v=raw[key];const ok=validators[key]?validators[key](v):typeof out[key]==='string'?str(v):typeof out[key]==='number'?num(v)&&v>=0&&v<=86400:typeof out[key]==='boolean'?typeof v==='boolean':false;
         if(!ok)throw Error('학급 데이터 항목을 확인해 주세요: '+key);out[key]=classClone(v);
     }
-    const enums={step:['input','main'],mode:['attendance','checklist','pick','lotto','wheel','team','seat','whiteboard','timer','calendar','youtube','record','qr','memo','img'],placementType:['number','name','gender'],seatType:['single','pair'],seatRowMode:['auto','custom'],seatTeacherRole:['담임','교과']};
+    const enums={step:['input','main'],mode:['attendance','checklist','pick','lotto','wheel','pinball','team','seat','whiteboard','timer','calendar','youtube','record','qr','memo','img'],placementType:['number','name','gender'],seatType:['single','pair'],seatRowMode:['auto','custom'],seatTeacherRole:['담임','교과']};
     for(const [key,allowed] of Object.entries(enums))if(!allowed.includes(out[key]))throw Error('지원하지 않는 설정입니다: '+key);
     for(const key of ['teamCount','teamColumns','seatColumns','seatRows'])if(!Number.isInteger(out[key])||out[key]<1||out[key]>100)throw Error('학급 배치 숫자가 올바르지 않습니다.');
     if(out.step==='main'&&!out.students.length)throw Error('학급 명단이 비어 있습니다.');
@@ -3949,7 +4533,7 @@ function ClassroomShell(){
             </>}
             {panel==='backup'&&<>
                 <div className="library-privacy"><Icon name="hard-drive" size={20}/><div><strong>학급 정보는 현재 브라우저에 자동 저장됩니다.</strong><p>변경 후 약 0.5초 뒤 저장합니다. 같은 브라우저에서 같은 주소의 도우미를 다시 열면 이어서 사용할 수 있어요.</p><p>HTML 파일 안에 기록되거나 OneDrive로 학급 데이터가 자동 동기화되는 방식은 아닙니다.</p></div></div>
-                <ul className="library-storage-info"><li><strong>학급별 저장:</strong> 학생 번호·입력한 이름·제외 번호, 모둠·좌석 설정, 메모, 발표 기록, 일정, 타이머 설정, 출결, 수업 체크리스트와 최근 변경 20개.</li><li><strong>별도 저장:</strong> 화이트보드 판서와 화면 설정은 이 브라우저에 따로 저장되며 학급별로 나뉘지 않습니다. 학급 백업에는 포함되지 않습니다.</li><li><strong>백업 제외:</strong> 사진·녹음·영상·돌림판의 내용, 실행 중인 타이머는 학급 백업 및 복구에 포함되지 않습니다. 타이머는 학급 전환·복구 시 정지합니다.</li><li><strong>다른 환경으로 이동:</strong> 다른 기기·브라우저·프로필에는 자동 공유되지 않습니다. HTML 파일의 위치나 접속 주소를 바꾸면 기존 기록이 보이지 않을 수 있어요. 이동 전에 백업 파일을 저장하세요.</li><li><strong>기록 보관:</strong> 브라우저 데이터를 삭제하거나 시크릿 창을 닫으면 기록이 사라질 수 있습니다. 백업 JSON에는 입력한 명단과 기록이 들어 있으므로 개인 보관용으로 관리해 주세요.</li></ul>
+                <ul className="library-storage-info"><li><strong>학급별 저장:</strong> 학생 번호·입력한 이름·제외 번호, 모둠·좌석 설정, 메모, 발표 기록, 일정, 타이머 설정, 출결, 수업 체크리스트와 최근 변경 20개.</li><li><strong>별도 저장:</strong> 화이트보드 판서와 화면 설정은 이 브라우저에 따로 저장되며 학급별로 나뉘지 않습니다. 학급 백업에는 포함되지 않습니다.</li><li><strong>백업 제외:</strong> 사진·녹음·영상·돌림판·핀볼 게임의 내용, 실행 중인 타이머는 학급 백업 및 복구에 포함되지 않습니다. 타이머는 학급 전환·복구 시 정지합니다.</li><li><strong>다른 환경으로 이동:</strong> 다른 기기·브라우저·프로필에는 자동 공유되지 않습니다. HTML 파일의 위치나 접속 주소를 바꾸면 기존 기록이 보이지 않을 수 있어요. 이동 전에 백업 파일을 저장하세요.</li><li><strong>기록 보관:</strong> 브라우저 데이터를 삭제하거나 시크릿 창을 닫으면 기록이 사라질 수 있습니다. 백업 JSON에는 입력한 명단과 기록이 들어 있으므로 개인 보관용으로 관리해 주세요.</li></ul>
                 <div className="library-backup"><div><strong>모든 학급과 복구 기록을 파일로 보관</strong><p>백업을 불러오면 기존 학급을 유지한 채 별도 학급으로 추가합니다.</p></div><div><button onClick={download}><Icon name="download" size={15}/>백업 파일 저장</button><button onClick={()=>fileRef.current.click()}><Icon name="upload" size={15}/>백업 불러오기</button><input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={readBackup}/></div></div>
                 {pendingImport&&<div className="library-import"><strong>{pendingImport.length}개 학급을 추가합니다</strong><p>{pendingImport.map(x=>x.name).join(', ')}</p><p>기존 학급을 덮어쓰지 않고 별도 학급으로 추가합니다.</p><button className="primary" onClick={importBackup}>확인 후 추가</button><button onClick={()=>setPendingImport(null)}>취소</button></div>}
             </>}
