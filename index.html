@@ -1407,6 +1407,10 @@ const LOTTO_BALL_COLORS=['#E74C3C','#E67E22','#27AE60','#2980B9','#8E44AD','#D35
 // 구슬이 장애물 코스를 굴러 내려가고, 결승선을 통과한 순서로 당첨자를 정한다.
 // 물리는 직접 계산: 구슬(원) ↔ 벽(두께 있는 선분)·핀·범퍼·회전 막대, 구슬끼리 충돌
 const PB={W:400,R:9,G:980,VMAX:780,DT:1/240,CELL:80,MAX:100};
+// 충격파: 충전(예고) 시간 · 다음 발사까지 간격 · 범위 · 힘 · 쓸 수 있는 구간(출발 문 아래 TOP ~ 결승 위 SAFE)
+const PB_SKILL={CHARGE:.7,MIN:1.2,RANGE:2.2,RAD:80,F:340,F0:60,TOP:40,SAFE:260};
+// 역전 알림: 이만큼 확실히 앞서야 인정 · 출발 직후 뭉친 구간 무시 · 알림 최소 간격(초) · 표시 길이(프레임)
+const PB_FLIP={LEAD:14,START:120,GAP:1,FRAMES:60};
 const PB_COLORS=['#FF8A80','#FFD54F','#80D8FF','#B388FF','#FF80AB','#A7FFEB','#FFAB40','#EA80FC','#CCFF90','#8C9EFF','#FFF59D','#84FFFF','#FF9E80','#F48FB1','#B9F6CA','#FFE57F','#82B1FF','#E1BEE7','#FFCC80','#80CBC4'];
 const PB_COURSES=[
     {id:'forest',name:'핀 숲',sub:'짧게',plan:['pins6','funnel','bumpers','pins4']},
@@ -1466,7 +1470,7 @@ function pbCreateWorld(courseId,entries){
     const c=pbBuildCourse(courseId,entries.length),R=PB.R,GAP=2*R+3;
     const marbles=entries.map((e,i)=>({id:i,key:e.key,text:e.text,label:e.label,inside:e.inside,color:PB_COLORS[i%PB_COLORS.length],x:0,y:0,vx:0,vy:0,done:false,rank:0,win:false,chkX:0,chkY:0,chkT:0}));
     pbShuffle(marbles.map((_,i)=>i)).forEach((mi,s)=>{const row=Math.floor(s/c.cols),inRow=Math.min(c.cols,marbles.length-row*c.cols),m=marbles[mi];m.x=PB.W/2+(s%c.cols-(inRow-1)/2)*GAP;m.y=c.gateY-R-4-row*GAP;});
-    return {...c,marbles,act:[],finished:[],waves:[],t:0,acc:0,ts:1,open:false,running:false,decided:false,slow:false,dec:null,need:1,rule:'first',ruleText:'',nextSkill:2,frame:0,cam:{x:PB.W/2,y:0,z:1,look:null,manualUntil:0}};
+    return {...c,marbles,act:[],finished:[],waves:[],t:0,acc:0,ts:1,open:false,running:false,decided:false,slow:false,dec:null,need:1,rule:'first',ruleText:'',nextSkill:2,charge:null,lastLead:null,flipT:-9,flash:null,frame:0,cam:{x:PB.W/2,y:0,z:1,look:null,manualUntil:0}};
 }
 
 // 구슬 m을 점(px,py)에서 minD 밖으로 밀어내고 튕긴다. (sx,sy)=닿은 면의 속도(회전 막대)
@@ -1538,18 +1542,50 @@ function pbTick(w,real,ctl){
     if(n>=48)w.acc=0;
     // 오래 멈춘 구슬은 살짝 튕겨 준다
     for(const m of w.act){if(w.t-m.chkT>1.3){if(Math.hypot(m.x-m.chkX,m.y-m.chkY)<6){m.vx+=(Math.random()-.5)*320;m.vy-=180+Math.random()*140;}m.chkX=m.x;m.chkY=m.y;m.chkT=w.t;}}
-    // 충격파 스킬: 무작위 구슬이 주변 구슬을 밀어낸다 (결승 근처에서는 쓰지 않음)
-    if(ctl.skill&&w.t>=w.nextSkill){
-        w.nextSkill=w.t+1.4+Math.random()*2.2;
-        const pool=w.act.filter(m=>m.y>w.gateY+40&&m.y<w.finishY-260);
-        if(pool.length>1){
-            const c=pool[Math.floor(Math.random()*pool.length)];w.waves.push({x:c.x,y:c.y,t0:w.t});
-            for(const m of w.act){if(m===c)continue;const dx=m.x-c.x,dy=m.y-c.y,dd=Math.hypot(dx,dy);if(dd<80&&dd>.01){const f=(1-dd/80)*340+60;m.vx+=dx/dd*f;m.vy+=dy/dd*f;}}
-            ctl.hit('wave',c);
+    if(!w.decided)pbFlip(w,ctl);
+    // 충격파 스킬: 무작위 구슬 하나가 충전(예고)한 뒤 주변 구슬을 밀어낸다 (결승 근처에서는 쓰지 않음)
+    const K=PB_SKILL;
+    if(ctl.skill){
+        if(!w.charge&&!w.slow&&w.t>=w.nextSkill){
+            // 충전 중에도 굴러 내려가므로 금지 구간보다 넉넉히 위에 있는 구슬만 고른다
+            const pool=w.act.filter(m=>m.y>w.gateY+K.TOP&&m.y<w.finishY-K.SAFE-120);
+            // 화면에 보이는 구슬을 먼저 고른다 (연출이 화면 밖에서 낭비되지 않게)
+            const half=ctl.view?ctl.view.ch/2/(ctl.view.s*w.cam.z)+20:1e9;
+            const vis=pool.filter(m=>Math.abs(m.y-w.cam.y)<half),src=vis.length>1?vis:pool;
+            if(src.length>1){const c=src[Math.floor(Math.random()*src.length)];w.charge={m:c,t0:w.t,dur:K.CHARGE*(ctl.fast?1.8:1)};ctl.hit('charge',c);}
+            else w.nextSkill=w.t+.6;
         }
-    }
+        const ch=w.charge;
+        if(ch){
+            const c=ch.m;
+            if(c.done||c.y>=w.finishY-K.SAFE){w.charge=null;w.nextSkill=w.t+.5;}   // 충전 중 금지 구간에 들어가면 취소
+            else if(w.t-ch.t0>=ch.dur){
+                w.waves.push({x:c.x,y:c.y,t0:w.t});
+                for(const m of w.act){if(m===c)continue;const dx=m.x-c.x,dy=m.y-c.y,dd=Math.hypot(dx,dy);if(dd<K.RAD&&dd>.01){const f=(1-dd/K.RAD)*K.F+K.F0;m.vx+=dx/dd*f;m.vy+=dy/dd*f;}}
+                ctl.hit('wave',c);
+                w.charge=null;w.nextSkill=w.t+K.MIN+Math.random()*K.RANGE;
+            }
+        }
+    }else w.charge=null;
     if(w.waves.length)w.waves=w.waves.filter(v=>w.t-v.t0<.5);
-    if(!w.act.length){w.running=false;w.slow=false;w.dec=null;ctl.done(w);}
+    if(!w.act.length){w.running=false;w.slow=false;w.dec=null;w.charge=null;ctl.done(w);}
+}
+
+// 역전 알림: 당첨 자리의 구슬(마지막 규칙은 꼴찌 구슬)이 바뀌면 크게 알린다. 물리에는 영향 없음
+function pbFlip(w,ctl){
+    if(!w.act.length)return;
+    const last=w.rule==='last';
+    const d=last?w.act.reduce((a,b)=>b.y<a.y?b:a):pbDecider(w),o=w.lastLead;
+    if(!o||o.done){w.lastLead=d;return;}
+    if(o===d)return;
+    const ahead=last?o.y-d.y:d.y-o.y;
+    if(ahead<=-PB_FLIP.LEAD){w.lastLead=d;return;}   // 옛 구슬이 다른 자리로 빠져나간 경우: 조용히 바꿈
+    if(ahead<PB_FLIP.LEAD)return;                     // 나란히 떨리는 정도는 무시
+    w.lastLead=d;
+    if(d.y>w.gateY+PB_FLIP.START&&w.t-w.flipT>=PB_FLIP.GAP){
+        const m=last?o:d,name=m.text.length>8?m.text.slice(0,8)+'…':m.text;
+        w.flipT=w.t;w.flash={text:`${last?'꼴찌 탈출!':'역전!'} ${name}`,f0:w.frame,m};ctl.hit('flip',m);
+    }
 }
 
 // 화면 배치: 넓으면 왼쪽 미니맵 · 오른쪽 순위판 자리를 비워 둔다
@@ -1625,6 +1661,9 @@ function pbDraw(ctx,w,v,mm){
     ctx.beginPath();if(ctx.roundRect)ctx.roundRect(PB.W/2-tw/2,tt,tw,w.height-24-tt,10);else ctx.rect(PB.W/2-tw/2,tt,tw,w.height-24-tt);
     ctx.strokeStyle='rgba(207,232,189,.35)';ctx.lineWidth=2;ctx.stroke();
     ctx.font=`700 11px ${F}`;ctx.fillStyle='rgba(207,232,189,.75)';ctx.fillText('도착 순서',PB.W/2,tt-12);
+    // 충격파 충전 중인 구슬: 뒤쪽 노란 빛
+    const ch=w.charge&&!w.charge.m.done?w.charge:null,cp=ch?Math.min(1,(w.t-ch.t0)/ch.dur):0;
+    if(ch){ctx.beginPath();ctx.arc(ch.m.x,ch.m.y,R+5+cp*3,0,TAU);ctx.fillStyle=`rgba(255,214,102,${.18+.3*cp})`;ctx.fill();}
     // 구슬 (도착한 구슬은 도착 칸에 순서대로)
     const labels=[];
     for(const m of w.marbles){
@@ -1637,16 +1676,38 @@ function pbDraw(ctx,w,v,mm){
         else{ctx.beginPath();ctx.arc(x-R*.35,y-R*.38,R*.3,0,TAU);ctx.fillStyle='rgba(255,255,255,.5)';ctx.fill();labels.push([m,x,y]);}
     }
     if(labels.length){ctx.font=`700 10px ${F}`;ctx.lineWidth=3.2;ctx.strokeStyle='rgba(13,36,27,.92)';ctx.fillStyle='#ffffff';for(const [m,x,y] of labels){const t=m.label.length>6?m.label.slice(0,6)+'…':m.label;ctx.strokeText(t,x,y+R+8);ctx.fillText(t,x,y+R+8);}}
+    // 충격파 예고: 범위 점선 원이 구슬 쪽으로 모이고, 둘레 게이지가 다 차면 발사
+    if(ch){
+        const c=ch.m;
+        ctx.setLineDash([6,6]);ctx.beginPath();ctx.arc(c.x,c.y,R+(PB_SKILL.RAD-R)*(1-cp),0,TAU);ctx.strokeStyle=`rgba(255,214,102,${.25+.5*cp})`;ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
+        ctx.beginPath();ctx.arc(c.x,c.y,R+5,-Math.PI/2,-Math.PI/2+TAU*cp);ctx.strokeStyle='#ffd166';ctx.lineWidth=3.5;ctx.stroke();
+    }
     // 당첨을 가르는 구슬 표시
     const d=w.dec;if(d&&!d.done){ctx.beginPath();ctx.moveTo(d.x,d.y-R-5);ctx.lineTo(d.x-6,d.y-R-14);ctx.lineTo(d.x+6,d.y-R-14);ctx.closePath();ctx.fillStyle='#ffd166';ctx.fill();}
     for(const wv of w.waves){const a=(w.t-wv.t0)/.5;ctx.beginPath();ctx.arc(wv.x,wv.y,12+a*70,0,TAU);ctx.strokeStyle=`rgba(255,214,102,${(1-a)*.9})`;ctx.lineWidth=3*(1-a)+1;ctx.stroke();}
+    // 역전한 구슬에 퍼지는 주황 링
+    const fl=w.flash;
+    if(fl&&!fl.m.done){const a=(w.frame-fl.f0)/(PB_FLIP.FRAMES*.55);if(a<1){ctx.beginPath();ctx.arc(fl.m.x,fl.m.y,R+3+a*30,0,TAU);ctx.strokeStyle=`rgba(255,179,138,${1-a})`;ctx.lineWidth=3;ctx.stroke();}}
     ctx.restore();
-    if(w.slow){const fs=Math.round(Math.max(18,Math.min(30,v.cw/22)));ctx.font=`800 ${fs}px ${F}`;ctx.textAlign='center';ctx.textBaseline='top';ctx.lineWidth=5;ctx.strokeStyle='rgba(13,36,27,.85)';ctx.strokeText('두근두근…',v.cx,16);ctx.fillStyle='#ffd166';ctx.fillText('두근두근…',v.cx,16);}
+    const slowFs=Math.round(Math.max(18,Math.min(30,v.cw/22)));
+    if(w.slow){ctx.font=`800 ${slowFs}px ${F}`;ctx.textAlign='center';ctx.textBaseline='top';ctx.lineWidth=5;ctx.strokeStyle='rgba(13,36,27,.85)';ctx.strokeText('두근두근…',v.cx,16);ctx.fillStyle='#ffd166';ctx.fillText('두근두근…',v.cx,16);}
+    // 역전 알림 글자: 처음엔 크게 튀어나오고 끝에서 사라진다 (프레임 기준이라 슬로모션·빠르게에서도 길이 같음)
+    if(fl){
+        const a=(w.frame-fl.f0)/PB_FLIP.FRAMES;
+        if(a>=1)w.flash=null;
+        else{
+            const fs=Math.round(Math.max(22,Math.min(40,v.cw/16))),sc=a<.25?1.3-a/.25*.3:1,ty=16+(w.slow?slowFs+12:0)+fs/2;
+            ctx.save();ctx.globalAlpha=a>.7?(1-a)/.3:1;ctx.translate(v.cx,ty);ctx.scale(sc,sc);
+            ctx.font=`900 ${fs}px ${F}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=6;ctx.strokeStyle='rgba(13,36,27,.85)';ctx.strokeText(fl.text,0,0);ctx.fillStyle='#ffb38a';ctx.fillText(fl.text,0,0);
+            ctx.restore();
+        }
+    }
     // 미니맵 + 지금 보이는 범위
     if(mm){
         ctx.fillStyle='rgba(8,24,17,.75)';ctx.beginPath();if(ctx.roundRect)ctx.roundRect(mm.x-6,mm.y-6,mm.w+12,mm.h+12,8);else ctx.rect(mm.x-6,mm.y-6,mm.w+12,mm.h+12);ctx.fill();
         ctx.drawImage(mm.img,mm.x,mm.y,mm.w,mm.h);
         for(const m of w.marbles){if(m.done)continue;ctx.fillStyle=m.color;ctx.fillRect(mm.x+m.x*mm.k-1.5,mm.y+m.y*mm.k-1.5,3,3);}
+        if(ch){ctx.beginPath();ctx.arc(mm.x+ch.m.x*mm.k,mm.y+ch.m.y*mm.k,4.5,0,TAU);ctx.strokeStyle='#ffd166';ctx.lineWidth=1.5;ctx.stroke();}
         ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.2;ctx.strokeRect(mm.x+.5,mm.y+y0*mm.k,mm.w-1,Math.max(2,(y1-y0)*mm.k));
     }
 }
@@ -1695,7 +1756,7 @@ function PinballGame({students,excludedNums,excludedInput,setExcludedInput,teamN
     // 효과음: 종류별로 최소 간격을 두어 시끄럽지 않게
     const sfx=type=>{
         if(!isSoundOn)return;
-        const now=performance.now(),gap={pin:55,wall:90,bump:90,spin:90,wave:200,goal:60}[type]||0;
+        const now=performance.now(),gap={pin:55,wall:90,bump:90,spin:90,wave:200,goal:60,charge:500,flip:600}[type]||0;
         if(now-(sfxAtRef.current[type]||0)<gap)return;sfxAtRef.current[type]=now;
         const ctx=getCtx(),t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
         const env=(vol,dur)=>{g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.start(t);o.stop(t+dur+.02);};
@@ -1705,6 +1766,8 @@ function PinballGame({students,excludedNums,excludedInput,setExcludedInput,teamN
         else if(type==='bump'){o.type='sine';o.frequency.setValueAtTime(380,t);o.frequency.exponentialRampToValueAtTime(820,t+.12);env(.07,.16);}
         else if(type==='wave'){o.type='sawtooth';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(45,t+.28);env(.05,.3);}
         else if(type==='goal'){o.type='sine';o.frequency.setValueAtTime(1046.5,t);o.frequency.setValueAtTime(1568,t+.06);env(.05,.18);}
+        else if(type==='charge'){o.type='sine';o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(900,t+.6);env(.03,.6);}
+        else if(type==='flip'){o.type='triangle';o.frequency.setValueAtTime(660,t);o.frequency.setValueAtTime(990,t+.07);env(.06,.22);}
         else{o.type='triangle';o.frequency.setValueAtTime(523.25,t);o.frequency.setValueAtTime(659.25,t+.09);o.frequency.setValueAtTime(783.99,t+.18);env(.06,.32);}
     };
     const fanfare=()=>{if(!isSoundOn)return;const ctx=getCtx(),t=ctx.currentTime;[523.25,659.25,783.99,1046.5,1318.5,1046.5].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type=i<4?'sine':'triangle';o.frequency.setValueAtTime(f,t+i*.12);g.gain.setValueAtTime(0,t+i*.12);g.gain.linearRampToValueAtTime(.1,t+i*.12+.04);g.gain.exponentialRampToValueAtTime(.001,t+i*.12+.6);o.start(t+i*.12);o.stop(t+i*.12+.6);});};
@@ -1780,7 +1843,7 @@ function PinballGame({students,excludedNums,excludedInput,setExcludedInput,teamN
         const loop=now=>{
             const real=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
             const w=worldRef.current,v=viewRef.current,cv=canvasRef.current;
-            if(w&&v&&cv){pbTick(w,real,ctlRef.current);pbCamera(w,v,real);pbDraw(cv.getContext('2d'),w,v,mmRef.current);}
+            if(w&&v&&cv){const c=ctlRef.current;c.view=v;pbTick(w,real,c);pbCamera(w,v,real);pbDraw(cv.getContext('2d'),w,v,mmRef.current);}
             raf=requestAnimationFrame(loop);
         };
         raf=requestAnimationFrame(loop);
@@ -1861,7 +1924,7 @@ function PinballGame({students,excludedNums,excludedInput,setExcludedInput,teamN
             </div>
             <div className="pb-row">
                 <span className="pb-label">옵션</span>
-                <button className={'pb-toggle '+(skillOn?'on':'')} onClick={()=>{ps('click');setSkillOn(!skillOn);}} title="경기 중 무작위 구슬이 충격파로 주변 구슬을 밀어냅니다"><Icon name="zap" size={14}/> 충격파 스킬 {skillOn?'ON':'OFF'}</button>
+                <button className={'pb-toggle '+(skillOn?'on':'')} onClick={()=>{ps('click');setSkillOn(!skillOn);}} title="경기 중 무작위 구슬 하나가 노랗게 충전(약 0.7초)한 뒤 충격파로 주변 구슬을 밀어냅니다"><Icon name="zap" size={14}/> 충격파 스킬 {skillOn?'ON':'OFF'}</button>
                 <button className={'pb-toggle '+(noRepeat?'on':'')} disabled={busy} onClick={()=>{ps('click');setNoRepeat(!noRepeat);}} title="한 번 당첨된 사람은 다음 판부터 빠집니다"><Icon name="user-check" size={14}/> 당첨자 제외 {noRepeat?'ON':'OFF'}</button>
                 {used.length>0&&<button className="pb-toggle" disabled={busy} onClick={()=>{ps('click');setUsed([]);}} title={'제외됨: '+usedText}><Icon name="rotate-ccw" size={14}/> 제외 초기화 ({used.length})</button>}
             </div>
