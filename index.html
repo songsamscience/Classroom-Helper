@@ -837,6 +837,17 @@ body.dark-theme .yts-error{color:#ffb4a8;background:#3a2422;border-color:#5b3430
 .ld-top-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ld-top-btn.run{border-color:var(--pc);box-shadow:0 0 0 2px var(--pc)}
 .ld-top-btn.done{background:var(--bg-soft);border-color:var(--pc)}
+/* 위 칸 맞바꾸기: 점선 칸 → 고른 칸은 초록 테두리, 자리가 바뀐 칸은 살짝 튄다 */
+.ld-top-btn.swap{border-style:dashed;cursor:pointer}
+@media(hover:hover){.ld-top-btn.swap:hover{border-color:var(--accent);background:var(--accent-soft)}}
+.ld-top-btn.sel{border-style:solid;border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent)}
+.ld-top.swapped0>*{animation:ldSwapA .45s ease-out}
+.ld-top.swapped1>*{animation:ldSwapB .45s ease-out}
+@keyframes ldSwapA{0%{transform:translateY(-6px) scale(.92);opacity:.35}60%{transform:translateY(1px) scale(1.04);opacity:1}100%{transform:none}}
+@keyframes ldSwapB{0%{transform:translateY(-6px) scale(.92);opacity:.35}60%{transform:translateY(1px) scale(1.04);opacity:1}100%{transform:none}}
+.ld-swap-note{position:absolute;left:0;right:0;top:12px;margin:0 auto;width:fit-content;max-width:calc(100% - 24px);z-index:2;display:flex;align-items:center;gap:7px;min-height:36px;padding:4px 6px 4px 13px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700;box-shadow:0 6px 18px #00000040;white-space:nowrap}
+.ld-swap-note>span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ld-swap-note button{padding:4px 10px;border-radius:999px;background:var(--bg-card);color:var(--text-main);font-size:12px;font-weight:600;border:1px solid var(--border-soft)}
 .ld-board{grid-column:1/-1;position:relative;background:#10291f;border:1px solid #2c5244;border-radius:14px;overflow:hidden}
 .ld-board>svg{position:absolute;inset:0;display:block}
 .ld-board>canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
@@ -869,7 +880,7 @@ body.dark-theme .yts-error{color:#ffb4a8;background:#3a2422;border-color:#5b3430
 .ld-rung{stroke-dasharray:1;stroke-dashoffset:1;animation:ldDraw .32s ease-out forwards}
 @keyframes ldDraw{to{stroke-dashoffset:0}}
 @keyframes ldPop{from{opacity:0;transform:translateY(4px) scale(.96)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.ld-flash,.ld-who{animation:none}.ld-rung{animation:none;stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.ld-flash,.ld-who,.ld-top>*{animation:none!important}.ld-rung{animation:none;stroke-dashoffset:0}}
 @media(max-width:640px){.ld-go{font-size:16px;padding:12px 22px}.ld-cols{grid-template-columns:repeat(var(--n),minmax(min(var(--cw),50px),1fr));width:max(100%,calc(var(--n) * min(var(--cw),50px)))}.ld-in{font-size:12px}}
 </style>
 </head>
@@ -2355,6 +2366,9 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
     const [isFull,setIsFull]=useState(false);
     const [copied,setCopied]=useState(false);
     const [askRedraw,setAskRedraw]=useState(false);
+    const [swapMode,setSwapMode]=useState(false);        // 눌러서 맞바꾸기
+    const [swapSel,setSwapSel]=useState(null);           // 먼저 고른 칸
+    const [swapAnim,setSwapAnim]=useState({cols:[],k:0});// 방금 자리가 바뀐 칸 (튀는 효과)
     const arenaRef=useRef(null),boardRef=useRef(null),confRef=useRef(null),confFnRef=useRef(null),animRef=useRef({items:{},raf:0}),finishRef=useRef(null);
     const psRef=useRef(ps);psRef.current=ps;
     const play=phase==='play';
@@ -2367,6 +2381,7 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
     const doneCols=play&&ladder?[...Array(n).keys()].filter(c=>prog[c]>=1):[];
     const allDone=play&&doneCols.length===n;
     const showRungs=play&&(!hide||revealed||allDone);
+    const canArrange=!play||!Object.keys(prog).length;   // 아무도 타기 전까지는 위 칸 자리를 바꿀 수 있다
 
     useEffect(()=>{
         const el=boardRef.current;if(!el)return;
@@ -2405,19 +2420,36 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
         return true;
     };
     const onKey=(which,i)=>e=>{if(e.key!=='Enter'||e.nativeEvent.isComposing)return;e.preventDefault();const nx=e.currentTarget.closest('.ld-cols').querySelector(`[data-${which}="${i+1}"]`);if(nx)nx.focus();};
-    const fillNumbers=()=>{const nums=students.filter(x=>!excludedNums.includes(x)).slice(0,LD.MAX);if(nums.length<LD.MIN)return;ps('click');setTops(a=>{const b=a.slice();nums.forEach((x,k)=>{b[k]=`${x}번`;});return b;});setN(nums.length);};
+    const fillNumbers=()=>{const nums=students.filter(x=>!excludedNums.includes(x)).slice(0,LD.MAX);if(nums.length<LD.MIN)return;ps('click');setTops(a=>{const b=a.slice();nums.forEach((x,k)=>{b[k]=`${x}번`;});return b;});setN(nums.length);setSwapSel(null);};
     const teamList=(teamNames||'').split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
-    const fillTeam=()=>{if(teamList.length<LD.MIN)return;ps('click');const l=teamList.slice(0,LD.MAX);setTops(a=>{const b=a.slice();l.forEach((x,k)=>{b[k]=x.slice(0,20);});return b;});setN(l.length);};
-    const clearRow=which=>{ps('click');(which==='top'?setTops:setBots)(Array(LD.MAX).fill(''));};
-    const changeN=v=>{const m=Math.min(LD.MAX,Math.max(LD.MIN,v));if(m===n)return;ps('click');setN(m);setWinCount(w=>Math.min(w,m-1));};
+    const fillTeam=()=>{if(teamList.length<LD.MIN)return;ps('click');const l=teamList.slice(0,LD.MAX);setTops(a=>{const b=a.slice();l.forEach((x,k)=>{b[k]=x.slice(0,20);});return b;});setN(l.length);setSwapSel(null);};
+    const clearRow=which=>{ps('click');(which==='top'?setTops:setBots)(Array(LD.MAX).fill(''));if(which==='top')setSwapSel(null);};
+    const changeN=v=>{const m=Math.min(LD.MAX,Math.max(LD.MIN,v));if(m===n)return;ps('click');setN(m);setWinCount(w=>Math.min(w,m-1));setSwapSel(null);};
+    // 위 칸 자리 섞기·맞바꾸기 (빈칸은 보이는 이름 '3번'을 그대로 옮긴다)
+    const bump=cols=>setSwapAnim(a=>({cols,k:a.k+1}));
+    const shuffleTops=()=>{
+        if(!canArrange)return;ps('click');
+        const cur=[...Array(n).keys()].map(nameOf);let nx=cur;
+        for(let t=0;t<6&&nx.every((v,i)=>v===cur[i]);t++)nx=ldShuffle(cur.slice());
+        setTops(a=>{const b=a.slice();nx.forEach((v,i)=>{b[i]=v;});return b;});
+        setSwapSel(null);bump([...Array(n).keys()]);
+    };
+    const pickSwap=c=>{
+        if(swapSel===null){ps('click');setSwapSel(c);return;}
+        if(swapSel===c){ps('click');setSwapSel(null);return;}
+        const a=swapSel,va=nameOf(a),vb=nameOf(c);
+        setTops(t=>{const b=t.slice();b[a]=vb;b[c]=va;return b;});
+        ps('tick');setSwapSel(null);bump([a,c]);
+    };
+    const toggleSwap=()=>{if(!canArrange&&!swapMode)return;ps('click');setSwapMode(v=>!v);setSwapSel(null);};
 
     // 게임 진행
-    const start=()=>{stopAnims();ps('click');setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash(null);setPhase('play');};
+    const start=()=>{stopAnims();ps('click');setSwapMode(false);setSwapSel(null);setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash(null);setPhase('play');};
     const redraw=()=>{
         if(Object.keys(prog).length&&!askRedraw){ps('click');setAskRedraw(true);return;}
         stopAnims();ps('click');setAskRedraw(false);setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash({redraw:true});
     };
-    const edit=()=>{stopAnims();ps('click');setAskRedraw(false);setPhase('setup');setLadder(null);setProg({});setRevealed(false);setFlash(null);};
+    const edit=()=>{stopAnims();ps('click');setAskRedraw(false);setSwapMode(false);setSwapSel(null);setPhase('setup');setLadder(null);setProg({});setRevealed(false);setFlash(null);};
     const finish=(c,bulk)=>{
         if(!ladder)return;const j=ladder.paths[c].end;
         setFlash({c,j});
@@ -2442,6 +2474,7 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
         const cw=size.w/n,now=performance.now();let added=0;
         cols.forEach(c=>{if(animRef.current.items[c]||prog[c]>=1)return;const g=ldGeom(ladder.paths[c].pts,cw,size.h);animRef.current.items[c]={t0:now,dur:Math.min(3600,Math.max(1300,g.len/.42)),last:0,ticks:g.ticks,bulk};added++;});
         if(!added)return;
+        setSwapMode(false);setSwapSel(null);
         if(!bulk)ps('click');
         setProg(p=>{const q={...p};cols.forEach(c=>{if(!(q[c]>0))q[c]=0.0001;});return q;});
         if(!animRef.current.raf)animRef.current.raf=requestAnimationFrame(loop);
@@ -2478,7 +2511,9 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
                 <button className="pb-btn sm" disabled={play||students.filter(x=>!excludedNums.includes(x)).length<LD.MIN} onClick={fillNumbers}><Icon name="hash" size={13}/> 학급 번호로 채우기{excludedNums.length?` (제외 ${excludedNums.length}명 빼고)`:''}</button>
                 {teamList.length>=LD.MIN&&<button className="pb-btn sm" disabled={play} onClick={fillTeam}><Icon name="users" size={13}/> 모둠 만들기 이름 불러오기</button>}
                 <button className="pb-btn sm" disabled={play} onClick={()=>clearRow('top')}><Icon name="eraser" size={13}/> 위 칸 비우기</button>
-                <span className="pb-hint">칸에 이름이나 번호를 적어요. 비워 두면 1번, 2번… 여러 이름을 복사해 한 칸에 붙여 넣으면 차례로 채워져요</span>
+                <button className="pb-btn sm" disabled={!canArrange} onClick={shuffleTops} title="위 칸 이름의 자리를 무작위로 바꿔요"><Icon name="shuffle" size={13}/> 위 칸 자리 섞기</button>
+                <button className={'pb-btn sm'+(swapMode?' on':'')} disabled={!canArrange&&!swapMode} aria-pressed={swapMode} onClick={toggleSwap} title="두 칸을 차례로 눌러 자리를 맞바꿔요"><Icon name="arrow-left-right" size={13}/> 눌러서 맞바꾸기 {swapMode?'ON':'OFF'}</button>
+                <span className="pb-hint">{swapMode?'바꿀 두 칸을 차례로 누르면 서로 자리가 바뀌어요 (같은 칸을 다시 누르면 취소)':'칸에 이름이나 번호를 적어요. 비워 두면 1번, 2번… 여러 이름을 복사해 한 칸에 붙여 넣으면 차례로 채워져요. 사다리를 타기 전까지 자리를 섞거나 맞바꿀 수 있어요'}</span>
             </div>
             <div className="pb-row">
                 <span className="pb-label">아래 칸</span>
@@ -2509,9 +2544,9 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
             </div>
             <div className="ld-scroll">
                 <div className="ld-cols" style={{'--n':n,'--cw':colMin+'px'}}>
-                    {[...Array(n).keys()].map(c=><div key={'t'+c} className="ld-top" style={{'--pc':color(c)}}>
-                        {play?<button className={'ld-top-btn'+(prog[c]>=1?' done':prog[c]>0?' run':'')} onClick={()=>trace([c],false)} title={nameOf(c)+(prog[c]>=1?' → '+prizeOf(ladder.paths[c].end):' · 눌러서 사다리 타기')}>
-                            <i/><span className="nm" style={ldFit(nameOf(c),cw-14,13,9)}>{nameOf(c)}</span>{prog[c]>=1&&<span className="rs" style={ldFit(prizeOf(ladder.paths[c].end),cw-14,12)}>{prizeOf(ladder.paths[c].end)}</span>}
+                    {[...Array(n).keys()].map(c=><div key={'t'+c} className={'ld-top'+(swapAnim.cols.includes(c)?' swapped'+(swapAnim.k%2):'')} style={{'--pc':color(c)}}>
+                        {play||swapMode?<button className={'ld-top-btn'+(swapMode?' swap':'')+(swapSel===c?' sel':'')+(prog[c]>=1?' done':prog[c]>0?' run':'')} onClick={()=>swapMode?pickSwap(c):trace([c],false)} aria-pressed={swapMode?swapSel===c:undefined} title={swapMode?(swapSel===null?nameOf(c)+' · 눌러서 고르기':swapSel===c?'다시 누르면 고르기 취소':nameOf(swapSel)+'와(과) 자리 바꾸기'):nameOf(c)+(prog[c]>=1?' → '+prizeOf(ladder.paths[c].end):' · 눌러서 사다리 타기')}>
+                            <i/><span className="nm" style={ldFit(nameOf(c),cw-14,13,9)}>{nameOf(c)}</span>{play&&prog[c]>=1&&<span className="rs" style={ldFit(prizeOf(ladder.paths[c].end),cw-14,12)}>{prizeOf(ladder.paths[c].end)}</span>}
                         </button>:<><i/><input size={1} className="ld-in" data-top={c} value={tops[c]} maxLength={20} placeholder={`${c+1}번`} aria-label={`위 ${c+1}번째 칸 이름`} onChange={e=>setAt('top',c,e.target.value)} onKeyDown={onKey('top',c)} onPaste={e=>{if(spread('top',c,e.clipboardData.getData('text')))e.preventDefault();}}/></>}
                     </div>)}
                     <div className="ld-board" ref={boardRef} style={{height:boardH}}>
@@ -2528,7 +2563,8 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
                         </svg>}
                         {!play&&<button className="ld-go" onClick={start}><Icon name="play" size={20}/> 사다리 타기 시작</button>}
                         {play&&flash&&<div className="ld-flash" key={flash.redraw?'re'+ladder.id:flash.all?'all':flash.c+'-'+doneCols.length} style={{'--pc':flash.all||flash.redraw?'#ffd166':color(flash.c)}}>{flash.redraw?<span>{showRungs?'사다리를 새로 그렸어요':'사다리를 새로 그렸어요 · 가로줄은 숨겨져 있어요'}</span>:flash.all?<span>모두 공개했어요</span>:<><i/><span className="nm">{nameOf(flash.c)}</span><span className="ar">→</span><b>{prizeOf(flash.j)}</b></>}</div>}
-                        {play&&!flash&&!Object.keys(prog).length&&<div className="ld-flash hint">위의 이름을 누르면 사다리를 타요</div>}
+                        {play&&!flash&&!swapMode&&!Object.keys(prog).length&&<div className="ld-flash hint">위의 이름을 누르면 사다리를 타요</div>}
+                        {swapMode&&<div className="ld-swap-note"><Icon name="arrow-left-right" size={14}/><span>{swapSel===null?'맞바꿀 칸을 차례로 누르세요':`${nameOf(swapSel)}와(과) 바꿀 칸을 누르세요`}</span><button onClick={toggleSwap}>끝내기</button></div>}
                         <canvas ref={confRef}/>
                     </div>
                     {[...Array(n).keys()].map(j=><div key={'b'+j} className="ld-bot">
