@@ -813,6 +813,62 @@ body.dark-theme .yts-error{color:#ffb4a8;background:#3a2422;border-color:#5b3430
 .ss-open{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;background:#fff;color:var(--c);border-radius:999px;padding:7px 12px 7px 15px;flex-shrink:0;transition:gap .15s}
 @media(max-width:520px){.ss-banner{grid-template-columns:48px minmax(0,1fr);gap:4px 12px;padding:16px 16px 14px}.ss-icon{width:48px;height:48px;border-radius:12px}.ss-icon img{width:34px;height:34px}.ss-name{font-size:17px}}
 </style>
+<style id="classroom-ladder">
+/* 사다리 게임: 위 칸 · 사다리 판 · 아래 칸 · 결과 (설정 패널과 버튼은 핀볼의 pb- 스타일을 같이 씀) */
+.ld-arena{display:flex;flex-direction:column;gap:10px}
+.ld-arena:fullscreen{background:var(--bg-main);padding:14px;overflow:auto}
+.ld-arena:-webkit-full-screen{background:var(--bg-main);padding:14px;overflow:auto}
+.ld-arena:fullscreen .ld-scroll{flex:1;min-height:0;display:flex}
+.ld-arena:-webkit-full-screen .ld-scroll{flex:1;min-height:0;display:flex}
+.ld-arena:fullscreen .ld-cols{grid-template-rows:auto minmax(220px,1fr) auto}
+.ld-arena:-webkit-full-screen .ld-cols{grid-template-rows:auto minmax(220px,1fr) auto}
+.ld-arena:fullscreen .ld-board{height:auto!important}
+.ld-arena:-webkit-full-screen .ld-board{height:auto!important}
+.ld-scroll{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding-bottom:4px}
+.ld-cols{display:grid;grid-template-columns:repeat(var(--n),minmax(var(--cw),1fr));width:max(100%,calc(var(--n) * var(--cw)))}
+.ld-top{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 3px 8px;min-width:0}
+.ld-top>i,.ld-top-btn>i{width:11px;height:11px;border-radius:50%;flex-shrink:0;background:var(--pc);box-shadow:0 0 0 1.5px var(--bg-card),0 0 0 2.5px var(--border-soft)}
+.ld-in{display:block;width:100%;min-width:0;text-align:center;font-size:13px;font-weight:600;padding:8px 3px;border:1px solid var(--border-soft);border-radius:8px;outline:none}
+.ld-in:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2px var(--accent-soft)}
+.ld-top-btn{width:100%;min-width:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 3px;border-radius:9px;border:1px solid var(--border-soft);background:var(--bg-card);color:var(--text-main);font-size:13px;font-weight:700;transition:background .15s,border-color .15s}
+.ld-top-btn .nm,.ld-top-btn .rs{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-top-btn .rs{font-size:12px;color:var(--text-sub);font-weight:600}
+@media(hover:hover){.ld-top-btn:hover{border-color:var(--pc);background:var(--bg-soft)}}
+.ld-top-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ld-top-btn.run{border-color:var(--pc);box-shadow:0 0 0 2px var(--pc)}
+.ld-top-btn.done{background:var(--bg-soft);border-color:var(--pc)}
+.ld-board{grid-column:1/-1;position:relative;background:#10291f;border:1px solid #2c5244;border-radius:14px;overflow:hidden}
+.ld-board>svg{position:absolute;inset:0;display:block}
+.ld-board>canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.ld-go{position:absolute;left:50%;top:50%;transform:translate(-50%,-10%);z-index:2;display:flex;align-items:center;gap:10px;padding:14px 30px;border-radius:999px;background:#ffd166;color:#22301f;font-size:18px;font-weight:800;box-shadow:0 10px 30px #00000059;white-space:nowrap}
+.ld-go:hover{background:#ffdc8a}
+.ld-flash{position:absolute;left:0;right:0;top:12px;margin:0 auto;width:fit-content;max-width:calc(100% - 24px);z-index:2;display:flex;align-items:center;gap:10px;padding:8px 18px;border-radius:999px;background:#0b1f17eb;border:1px solid #ffffff2b;color:#f1f7f2;font-size:clamp(17px,2.3vw,26px);font-weight:800;white-space:nowrap;pointer-events:none;animation:ldPop .3s ease-out}
+.ld-flash i{width:.55em;height:.55em;border-radius:50%;flex-shrink:0;background:var(--pc)}
+.ld-flash .nm{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ld-flash .ar{color:#9fb8a8;font-weight:600}
+.ld-flash b{color:#ffd166;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ld-flash.hint{font-size:13px;font-weight:600;color:#cfe3d8;padding:7px 14px;background:#0b1f17cc}
+.ld-bot{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 3px 0;min-width:0}
+.ld-prize{display:block;width:100%;text-align:center;font-size:13px;font-weight:700;padding:8px 3px;border-radius:8px;background:var(--bg-card);color:var(--text-main);border:1px solid var(--border-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-prize.gold{background:#ffd166;border-color:#e2b54a;color:#2a2410}
+.ld-prize.miss{color:var(--text-sub);font-weight:600}
+.ld-who{display:inline-flex;align-items:center;max-width:100%;padding:4px 8px;border-radius:999px;background:var(--pc);color:#1d2620;font-size:12px;font-weight:700;animation:ldPop .3s ease-out}
+.ld-who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-results{background:var(--bg-card);border:1px solid var(--border-line);border-radius:12px;padding:12px 14px 14px}
+.ld-results-head{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:13px;font-weight:700;color:var(--text-main)}
+.ld-results-head .pb-btn{margin-left:auto}
+.ld-results ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;list-style:none;margin:0;padding:0}
+.ld-results li{display:flex;align-items:center;gap:7px;min-width:0;padding:7px 10px;border-radius:8px;background:var(--bg-soft);font-size:13px;font-weight:600;color:var(--text-main)}
+.ld-results li i{width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--pc)}
+.ld-results li .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ld-results li .ar{color:var(--text-mute)}
+.ld-results li b{margin-left:auto;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%}
+.ld-results li.gold{background:#ffd166;color:#2a2410}
+.ld-results li.gold .ar{color:#5a4a1c}
+@keyframes ldPop{from{opacity:0;transform:translateY(4px) scale(.96)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.ld-flash,.ld-who{animation:none}}
+@media(max-width:640px){.ld-go{font-size:16px;padding:12px 22px}.ld-cols{grid-template-columns:repeat(var(--n),minmax(min(var(--cw),50px),1fr));width:max(100%,calc(var(--n) * min(var(--cw),50px)))}.ld-in,.ld-prize,.ld-top-btn{font-size:12px}}
+</style>
 </head>
 <body>
 <div id="root"></div>
@@ -2245,6 +2301,238 @@ function PinballGame({students,excludedNums,excludedInput,setExcludedInput,teamN
         {history.length>0&&<div className="pb-panel">
             <div className="pb-row" style={{justifyContent:'space-between'}}><span className="pb-label">당첨 기록</span><button className="pb-btn sm" onClick={()=>{ps('click');setHistory([]);}}>기록 지우기</button></div>
             <div className="pb-history">{history.map(h=><span key={h.id}>{h.names}<small>{h.rule} · {h.time}</small></span>)}</div>
+        </div>}
+    </div>);
+}
+
+// 사다리 게임: 위 칸(이름·번호) → 아래 칸(등수 자동 · 직접 입력 · 당첨/꽝)
+// 결과 순서를 먼저 고르게 섞고 그 결과가 나오도록 사다리를 만든다 → 어느 칸에 서도 결과 확률이 같다
+const LD={MIN:2,MAX:40,PAD:18};
+const ldShuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const ldBuild=n=>{
+    const target=ldShuffle([...Array(n).keys()]);           // target[출발 칸] = 도착 칸
+    const rows=[];
+    // 1) 꾸밈용 무작위 가로줄 (같은 높이에서 이웃한 가로줄은 만들지 않음, 모든 칸 사이에 최소 1개)
+    for(let l=0;l<(n<=3?5:4);l++){const r=[];for(let g=0;g<n-1;g++)if(!r.includes(g-1)&&Math.random()<.42)r.push(g);rows.push(r);}
+    for(let g=0;g<n-1;g++){if(rows.some(r=>r.includes(g)))continue;const free=rows.filter(r=>!r.includes(g-1)&&!r.includes(g+1));if(free.length)free[Math.floor(Math.random()*free.length)].push(g);else rows.push([g]);}
+    // 2) 홀짝 자리바꿈으로 목표 결과에 맞춘다
+    const at=[...Array(n).keys()];                          // at[칸] = 지금 그 칸에 있는 사람
+    rows.forEach(r=>r.forEach(g=>{[at[g],at[g+1]]=[at[g+1],at[g]];}));
+    for(let k=0;k<2*n+2&&at.some((t,p)=>target[t]!==p);k++){const r=[];for(let g=k%2;g<n-1;g+=2)if(target[at[g]]>target[at[g+1]]){r.push(g);[at[g],at[g+1]]=[at[g+1],at[g]];}if(r.length)rows.push(r);}
+    const L=rows.length,rungs=[];
+    rows.forEach((r,k)=>r.forEach(g=>rungs.push({g,k,y:(k+.5+(Math.random()-.5)*.56)/L})));
+    const paths=[...Array(n).keys()].map(c=>{
+        let p=c;const pts=[[c,0]];
+        for(let k=0;k<L;k++){const rg=rungs.find(o=>o.k===k&&(o.g===p-1||o.g===p));if(!rg)continue;const np=rg.g===p?p+1:p-1;pts.push([p,rg.y],[np,rg.y]);p=np;}
+        pts.push([p,1]);return{pts,end:p};
+    });
+    return{n,levels:L,rungs,paths};
+};
+// 칸 좌표(열, 0~1) → 화면 좌표. 양 끝은 판 가장자리, 가로줄은 위아래 여백 안쪽
+const ldPx=([c,y],cw,H)=>[(c+.5)*cw,y<=0?0:y>=1?H:LD.PAD+y*(H-2*LD.PAD)];
+const ldGeom=(pts,cw,H)=>{const P=pts.map(p=>ldPx(p,cw,H));let len=0;const seg=[],ticks=[];for(let i=1;i<P.length;i++){const[x0,y0]=P[i-1],[x1,y1]=P[i],d=Math.hypot(x1-x0,y1-y0);if(y0===y1&&x0!==x1)ticks.push(len);seg.push({x0,y0,x1,y1,d,s:len});len+=d;}return{P,len,seg,ticks:ticks.map(t=>t/(len||1)),d:'M'+P.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')};};
+const ldAt=(g,f)=>{const t=f*g.len;for(let i=0;i<g.seg.length;i++){const s=g.seg[i];if(t<=s.s+s.d||i===g.seg.length-1){const u=s.d?Math.min(1,Math.max(0,(t-s.s)/s.d)):0;return[s.x0+(s.x1-s.x0)*u,s.y0+(s.y1-s.y0)*u];}}return[0,0];};
+
+function LadderGame({students,excludedNums,teamNames,playSound:ps}){
+    const [n,setN]=useState(6);
+    const [tops,setTops]=useState(()=>Array(LD.MAX).fill(''));
+    const [bots,setBots]=useState(()=>Array(LD.MAX).fill(''));
+    const [botMode,setBotMode]=useState('rank');         // rank: 등수 자동 · custom: 직접 입력 · win: 당첨/꽝
+    const [winCount,setWinCount]=useState(1);
+    const [winSeed,setWinSeed]=useState(()=>Math.random());
+    const [hide,setHide]=useState(true);
+    const [phase,setPhase]=useState('setup');            // setup · play
+    const [ladder,setLadder]=useState(null);
+    const [prog,setProg]=useState({});                   // 열 → 0~1 (1이면 도착)
+    const [revealed,setRevealed]=useState(false);
+    const [flash,setFlash]=useState(null);
+    const [size,setSize]=useState({w:0,h:0});
+    const [isFull,setIsFull]=useState(false);
+    const [copied,setCopied]=useState(false);
+    const arenaRef=useRef(null),boardRef=useRef(null),confRef=useRef(null),confFnRef=useRef(null),animRef=useRef({items:{},raf:0}),finishRef=useRef(null);
+    const psRef=useRef(ps);psRef.current=ps;
+    const play=phase==='play';
+
+    const nameOf=c=>(tops[c]||'').trim()||`${c+1}번`;
+    const winSlots=useMemo(()=>{let s=Math.floor(winSeed*2147483646)+1;const rnd=()=>(s=s*16807%2147483647)/2147483647;const a=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,Math.min(winCount,n-1));},[n,winCount,winSeed]);
+    const prizeOf=j=>botMode==='rank'?`${j+1}등`:botMode==='win'?(winSlots.includes(j)?'당첨':'꽝'):((bots[j]||'').trim()||'(빈칸)');
+    const isGold=j=>botMode==='rank'?j===0:botMode==='win'?winSlots.includes(j):false;
+    const color=c=>PB_COLORS[c%PB_COLORS.length];
+    const doneCols=play&&ladder?[...Array(n).keys()].filter(c=>prog[c]>=1):[];
+    const allDone=play&&doneCols.length===n;
+    const showRungs=play&&(!hide||revealed||allDone);
+
+    useEffect(()=>{
+        const el=boardRef.current;if(!el)return;
+        const ro=new ResizeObserver(()=>setSize({w:el.clientWidth,h:el.clientHeight}));ro.observe(el);
+        return()=>ro.disconnect();
+    },[]);
+    useEffect(()=>{
+        const f=()=>setIsFull(!!(document.fullscreenElement||document.webkitFullscreenElement));
+        document.addEventListener('fullscreenchange',f);document.addEventListener('webkitfullscreenchange',f);
+        return()=>{document.removeEventListener('fullscreenchange',f);document.removeEventListener('webkitfullscreenchange',f);};
+    },[]);
+    // '모두 공개했어요'는 잠깐만 보여 주고 사다리를 가리지 않게 치운다
+    useEffect(()=>{if(!flash||!flash.all)return;const t=setTimeout(()=>setFlash(f=>f&&f.all?null:f),2500);return()=>clearTimeout(t);},[flash]);
+    useEffect(()=>()=>{cancelAnimationFrame(animRef.current.raf);if(confFnRef.current&&confFnRef.current.reset)confFnRef.current.reset();},[]);
+
+    const stopAnims=()=>{cancelAnimationFrame(animRef.current.raf);animRef.current={items:{},raf:0};};
+    const toggleFull=()=>{
+        ps('click');const el=arenaRef.current;if(!el)return;
+        if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+        else{const req=el.requestFullscreen||el.webkitRequestFullscreen;if(req){const p=req.call(el);if(p&&p.catch)p.catch(()=>{});}}
+    };
+    const burst=j=>{
+        if(!window.confetti||!confRef.current)return;
+        if(!confFnRef.current)confFnRef.current=window.confetti.create(confRef.current,{resize:true});
+        confFnRef.current({particleCount:70,spread:60,startVelocity:32,origin:{x:(j+.5)/n,y:.92},colors:['#ffd166','#80d8ff','#ff8a80','#ccff90','#ffffff'],disableForReducedMotion:true});
+    };
+
+    // 위·아래 칸 채우기
+    const setAt=(which,i,v)=>(which==='top'?setTops:setBots)(a=>{const b=a.slice();b[i]=v;return b;});
+    const spread=(which,i,text)=>{
+        const parts=text.split(/\r?\n|\t|,/).map(s=>s.trim()).filter(Boolean);
+        if(parts.length<2)return false;
+        (which==='top'?setTops:setBots)(a=>{const b=a.slice();parts.slice(0,LD.MAX-i).forEach((p,k)=>{b[i+k]=p.slice(0,which==='top'?20:30);});return b;});
+        setN(v=>Math.min(LD.MAX,Math.max(v,i+parts.length)));
+        return true;
+    };
+    const onKey=(which,i)=>e=>{if(e.key!=='Enter'||e.nativeEvent.isComposing)return;e.preventDefault();const nx=e.currentTarget.closest('.ld-cols').querySelector(`[data-${which}="${i+1}"]`);if(nx)nx.focus();};
+    const fillNumbers=()=>{const nums=students.filter(x=>!excludedNums.includes(x)).slice(0,LD.MAX);if(nums.length<LD.MIN)return;ps('click');setTops(a=>{const b=a.slice();nums.forEach((x,k)=>{b[k]=`${x}번`;});return b;});setN(nums.length);};
+    const teamList=(teamNames||'').split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+    const fillTeam=()=>{if(teamList.length<LD.MIN)return;ps('click');const l=teamList.slice(0,LD.MAX);setTops(a=>{const b=a.slice();l.forEach((x,k)=>{b[k]=x.slice(0,20);});return b;});setN(l.length);};
+    const clearRow=which=>{ps('click');(which==='top'?setTops:setBots)(Array(LD.MAX).fill(''));};
+    const changeN=v=>{const m=Math.min(LD.MAX,Math.max(LD.MIN,v));if(m===n)return;ps('click');setN(m);setWinCount(w=>Math.min(w,m-1));};
+
+    // 게임 진행
+    const start=()=>{stopAnims();ps('click');setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash(null);setPhase('play');};
+    const reshuffle=()=>{stopAnims();ps('click');setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash(null);};
+    const edit=()=>{stopAnims();ps('click');setPhase('setup');setLadder(null);setProg({});setRevealed(false);setFlash(null);};
+    const finish=(c,bulk)=>{
+        if(!ladder)return;const j=ladder.paths[c].end;
+        setFlash({c,j});
+        if(!bulk){if(isGold(j)){ps('win');burst(j);}else ps('click');}
+    };
+    finishRef.current=finish;
+    const loop=t=>{
+        const A=animRef.current,upd={},fin=[];let bulkDone=false;
+        Object.keys(A.items).forEach(k=>{
+            const it=A.items[k],f=Math.min(1,(t-it.t0)/it.dur);
+            if(!it.bulk&&it.ticks.some(x=>x>it.last&&x<=f))psRef.current('tick');
+            it.last=f;upd[k]=f;
+            if(f>=1){fin.push([+k,it.bulk]);delete A.items[k];if(it.bulk&&!Object.values(A.items).some(o=>o.bulk))bulkDone=true;}
+        });
+        setProg(p=>({...p,...upd}));
+        fin.forEach(([c,b])=>finishRef.current(c,b));
+        if(bulkDone){psRef.current('win');setFlash({all:true});}
+        A.raf=Object.keys(A.items).length?requestAnimationFrame(loop):0;
+    };
+    const trace=(cols,bulk)=>{
+        if(!ladder||!size.w)return;
+        const cw=size.w/n,now=performance.now();let added=0;
+        cols.forEach(c=>{if(animRef.current.items[c]||prog[c]>=1)return;const g=ldGeom(ladder.paths[c].pts,cw,size.h);animRef.current.items[c]={t0:now,dur:Math.min(3600,Math.max(1300,g.len/.42)),last:0,ticks:g.ticks,bulk};added++;});
+        if(!added)return;
+        if(!bulk)ps('click');
+        setProg(p=>{const q={...p};cols.forEach(c=>{if(!(q[c]>0))q[c]=0.0001;});return q;});
+        if(!animRef.current.raf)animRef.current.raf=requestAnimationFrame(loop);
+    };
+    const nextCol=play?[...Array(n).keys()].find(c=>!(prog[c]>0)):undefined;
+
+    // 결과
+    const results=ladder?doneCols.map(c=>({c,j:ladder.paths[c].end})).sort((a,b)=>botMode==='rank'?a.j-b.j:botMode==='win'?(isGold(b.j)-isGold(a.j))||a.c-b.c:a.c-b.c):[];
+    const copyResults=()=>{
+        const text=results.map(r=>`${nameOf(r.c)} → ${prizeOf(r.j)}`).join('\n');
+        const ok=()=>{setCopied(true);setTimeout(()=>setCopied(false),1600);};
+        const fallback=()=>{const t=document.createElement('textarea');t.value=text;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy');ok();}catch(e){}t.remove();};
+        ps('click');
+        if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(text).then(ok,fallback);else fallback();
+    };
+
+    // 그리기
+    const cw=size.w&&n?size.w/n:0,H=size.h;
+    const lv=ladder?ladder.levels:8;
+    const boardH=Math.round(Math.min(560,Math.max(play?280:240,lv*17+2*LD.PAD)));
+    const colMin=n<=10?76:n<=16?60:n<=24?50:44;
+    const whoAt={};doneCols.forEach(c=>{whoAt[ladder.paths[c].end]=c;});
+    const flashC=flash&&!flash.all?flash.c:null;
+
+    return(<div className="pb-wrap">
+        <div className="pb-panel">
+            <div className="pb-row">
+                <span className="pb-label">인원</span>
+                <div className="pb-step"><button disabled={play||n<=LD.MIN} onClick={()=>changeN(n-1)} aria-label="한 명 줄이기"><Icon name="minus" size={14}/></button><span>{n}명</span><button disabled={play||n>=LD.MAX} onClick={()=>changeN(n+1)} aria-label="한 명 늘리기"><Icon name="plus" size={14}/></button></div>
+                <span className="pb-hint">2~40명 · 칸 수만큼 사다리가 생겨요</span>
+            </div>
+            <div className="pb-row">
+                <span className="pb-label">위 칸</span>
+                <button className="pb-btn sm" disabled={play||students.filter(x=>!excludedNums.includes(x)).length<LD.MIN} onClick={fillNumbers}><Icon name="hash" size={13}/> 학급 번호로 채우기{excludedNums.length?` (제외 ${excludedNums.length}명 빼고)`:''}</button>
+                {teamList.length>=LD.MIN&&<button className="pb-btn sm" disabled={play} onClick={fillTeam}><Icon name="users" size={13}/> 모둠 만들기 이름 불러오기</button>}
+                <button className="pb-btn sm" disabled={play} onClick={()=>clearRow('top')}><Icon name="eraser" size={13}/> 위 칸 비우기</button>
+                <span className="pb-hint">칸에 이름이나 번호를 적어요. 비워 두면 1번, 2번… 여러 이름을 복사해 한 칸에 붙여 넣으면 차례로 채워져요</span>
+            </div>
+            <div className="pb-row">
+                <span className="pb-label">아래 칸</span>
+                <div className="pb-seg">{[['rank','등수 자동'],['custom','직접 입력'],['win','당첨·꽝']].map(([k,t])=><button key={k} disabled={play} className={botMode===k?'on':''} onClick={()=>{ps('click');setBotMode(k);}}>{t}</button>)}</div>
+                {botMode==='win'&&<div className="pb-step"><button disabled={play||winCount<=1} onClick={()=>{ps('click');setWinCount(w=>w-1);}} aria-label="당첨 줄이기"><Icon name="minus" size={14}/></button><span>당첨 {Math.min(winCount,n-1)}</span><button disabled={play||winCount>=n-1} onClick={()=>{ps('click');setWinCount(w=>w+1);}} aria-label="당첨 늘리기"><Icon name="plus" size={14}/></button></div>}
+                {botMode==='win'&&<button className="pb-btn sm" disabled={play} onClick={()=>{ps('click');setWinSeed(Math.random());}}><Icon name="shuffle" size={13}/> 당첨 자리 섞기</button>}
+                {botMode==='custom'&&<button className="pb-btn sm" disabled={play} onClick={()=>clearRow('bot')}><Icon name="eraser" size={13}/> 아래 칸 비우기</button>}
+                <span className="pb-hint">{botMode==='rank'?'왼쪽부터 1등, 2등… 자동으로 들어가요':botMode==='custom'?'칸마다 할 일이나 역할을 직접 적어요 (예: 발표, 청소, 통과)':'당첨 개수만큼 당첨, 나머지는 꽝이에요'}</span>
+            </div>
+            <div className="pb-row">
+                <span className="pb-label">가리기</span>
+                <button className={'pb-toggle'+(hide?' on':'')} disabled={play} aria-pressed={hide} onClick={()=>{ps('click');setHide(v=>!v);}}><Icon name={hide?'eye-off':'eye'} size={13}/> 사다리 가리기 {hide?'ON':'OFF'}</button>
+                <span className="pb-hint">{hide?'결과를 확인하기 전까지 가로줄을 숨겨요':'처음부터 가로줄이 모두 보여요'}</span>
+            </div>
+        </div>
+
+        <div className="ld-arena" ref={arenaRef}>
+            <div className="pb-bar">
+                {!play?<button className="pb-btn primary" onClick={start}><Icon name="play" size={15}/> 사다리 타기 시작</button>:<>
+                    <button className="pb-btn primary" disabled={nextCol===undefined} onClick={()=>trace([nextCol],false)}><Icon name="arrow-down" size={15}/> {nextCol!==undefined?`다음: ${nameOf(nextCol)}`:allDone?'모두 확인했어요':'타는 중…'}</button>
+                    <button className="pb-btn" disabled={nextCol===undefined} onClick={()=>trace([...Array(n).keys()],true)}><Icon name="list-checks" size={15}/> 모두 공개</button>
+                    {hide&&!allDone&&<button className="pb-btn" onClick={()=>{ps('click');setRevealed(v=>!v);}}><Icon name={revealed?'eye-off':'eye'} size={15}/> {revealed?'다시 가리기':'가림 걷기'}</button>}
+                    <button className="pb-btn" onClick={reshuffle}><Icon name="shuffle" size={15}/> 다시 섞기</button>
+                    <button className="pb-btn" onClick={edit}><Icon name="pencil" size={15}/> 고치기</button>
+                </>}
+                <span className="pb-status">{play?`${doneCols.length} / ${n}명 확인`:`${n}칸`}</span>
+                <button className="pb-btn" onClick={toggleFull} title={isFull?'전체 화면 끝내기':'전체 화면'}><Icon name={isFull?'minimize-2':'maximize-2'} size={15}/></button>
+            </div>
+            <div className="ld-scroll">
+                <div className="ld-cols" style={{'--n':n,'--cw':colMin+'px'}}>
+                    {[...Array(n).keys()].map(c=><div key={'t'+c} className="ld-top" style={{'--pc':color(c)}}>
+                        {play?<button className={'ld-top-btn'+(prog[c]>=1?' done':prog[c]>0?' run':'')} onClick={()=>trace([c],false)} title={nameOf(c)+(prog[c]>=1?' → '+prizeOf(ladder.paths[c].end):' · 눌러서 사다리 타기')}>
+                            <i/><span className="nm">{nameOf(c)}</span>{prog[c]>=1&&<span className="rs">→ {prizeOf(ladder.paths[c].end)}</span>}
+                        </button>:<><i/><input size={1} className="ld-in" data-top={c} value={tops[c]} maxLength={20} placeholder={`${c+1}번`} aria-label={`위 ${c+1}번째 칸 이름`} onChange={e=>setAt('top',c,e.target.value)} onKeyDown={onKey('top',c)} onPaste={e=>{if(spread('top',c,e.clipboardData.getData('text')))e.preventDefault();}}/></>}
+                    </div>)}
+                    <div className="ld-board" ref={boardRef} style={{height:boardH}}>
+                        {cw>0&&<svg width={size.w} height={H} aria-hidden="true">
+                            <defs><pattern id="ldHatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#10291f"/><rect width="5" height="14" fill="#16352a"/></pattern></defs>
+                            {!showRungs&&<rect x="0" y={LD.PAD-6} width={size.w} height={Math.max(0,H-2*LD.PAD+12)} fill="url(#ldHatch)"/>}
+                            {[...Array(n).keys()].map(c=><line key={'v'+c} x1={(c+.5)*cw} x2={(c+.5)*cw} y1="0" y2={H} stroke="#d9ece2" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round"/>)}
+                            {showRungs&&ladder.rungs.map((r,i)=>{const y=ldPx([0,r.y],cw,H)[1];return<line key={'r'+i} x1={(r.g+.5)*cw} x2={(r.g+1.5)*cw} y1={y} y2={y} stroke="#d9ece2" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round"/>;})}
+                            {play&&ladder&&[...Array(n).keys()].filter(c=>prog[c]>0).map(c=>{const g=ldGeom(ladder.paths[c].pts,cw,H),f=Math.min(1,prog[c]),[mx,my]=ldAt(g,f);return<g key={'p'+c}>
+                                <path d={g.d} fill="none" stroke={color(c)} strokeWidth={flashC===c||f<1?7:5.5} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={`${g.len} ${g.len}`} strokeDashoffset={g.len*(1-f)} opacity={f<1||flashC===c||allDone?1:.85}/>
+                                {f<1&&<circle cx={mx} cy={my} r="10" fill={color(c)} stroke="#10291f" strokeWidth="3"/>}
+                            </g>;})}
+                            {!play&&<text x={size.w/2} y={H/2+(H>200?-34:-22)} textAnchor="middle" fill="#cfe3d8" fillOpacity=".5" fontSize="15" fontWeight="600">{hide?'가로줄은 시작하면 숨겨진 채로 만들어져요':'시작하면 가로줄이 만들어져요'}</text>}
+                        </svg>}
+                        {!play&&<button className="ld-go" onClick={start}><Icon name="play" size={20}/> 사다리 타기 시작</button>}
+                        {play&&flash&&<div className="ld-flash" key={flash.all?'all':flash.c+'-'+doneCols.length} style={{'--pc':flash.all?'#ffd166':color(flash.c)}}>{flash.all?<span>모두 공개했어요</span>:<><i/><span className="nm">{nameOf(flash.c)}</span><span className="ar">→</span><b>{prizeOf(flash.j)}</b></>}</div>}
+                        {play&&!flash&&!Object.keys(prog).length&&<div className="ld-flash hint">위의 이름을 누르면 사다리를 타요</div>}
+                        <canvas ref={confRef}/>
+                    </div>
+                    {[...Array(n).keys()].map(j=><div key={'b'+j} className="ld-bot">
+                        {!play&&botMode==='custom'?<input size={1} className="ld-in" data-bot={j} value={bots[j]} maxLength={30} placeholder="내용" aria-label={`아래 ${j+1}번째 칸 내용`} onChange={e=>setAt('bot',j,e.target.value)} onKeyDown={onKey('bot',j)} onPaste={e=>{if(spread('bot',j,e.clipboardData.getData('text')))e.preventDefault();}}/>
+                        :<span className={'ld-prize'+(isGold(j)?' gold':'')+(botMode==='win'&&!isGold(j)?' miss':'')+(botMode==='custom'&&!(bots[j]||'').trim()?' miss':'')} title={prizeOf(j)}>{botMode==='custom'&&!(bots[j]||'').trim()?'—':prizeOf(j)}</span>}
+                        {whoAt[j]!==undefined&&<span className="ld-who" style={{'--pc':color(whoAt[j])}} title={nameOf(whoAt[j])}><span>{nameOf(whoAt[j])}</span></span>}
+                    </div>)}
+                </div>
+            </div>
+        </div>
+
+        {results.length>0&&<div className="ld-results">
+            <div className="ld-results-head"><Icon name="list-ordered" size={15}/><span>결과 {results.length}/{n}</span><button className="pb-btn sm" onClick={copyResults}><Icon name={copied?'check':'copy'} size={13}/> {copied?'복사했어요':'결과 복사'}</button></div>
+            <ol>{results.map(r=><li key={r.c} className={isGold(r.j)?'gold':''} style={{'--pc':color(r.c)}}><i/><span className="nm">{nameOf(r.c)}</span><span className="ar">→</span><b title={prizeOf(r.j)}>{prizeOf(r.j)}</b></li>)}</ol>
         </div>}
     </div>);
 }
@@ -4310,7 +4598,7 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
 
     if(step==='input') return(
         <div className="intro-bg p-4">
-            <section className="welcome-story"><div className="welcome-brand"><span className="brand-mark"><Icon name="flask-conical" size={24}/></span>송쌤과학 <span>CLASSROOM</span></div><div className="welcome-copy"><p className="eyebrow">선생님의 수업에, 여유를 더하다</p><h2>수업에 필요한 도구,<br/>한 곳에서 가볍게.</h2><p className="welcome-description">발표자를 뽑고, 모둠을 만들고, 생각을 기록하세요.<br/>작은 준비는 도우미에게 맡기고 수업에 집중하세요.</p><div className="welcome-preview"><div className="preview-label"><span className="live-dot"/> 오늘의 교실 <span>READY TO START</span></div><div className="preview-desks">{['01','02','03','04','05','06','07','08'].map((n,i)=><span key={n} className={i===2?'chosen':''}>{i===2?<Icon name="sparkles" size={23}/>:n}</span>)}</div><div className="preview-bottom"><span>함께 배우는 시간을 위한</span><strong>16가지 수업 도구 <span>↗</span></strong></div></div></div><div className="welcome-foot">준비는 간결하게. 수업은 풍성하게.</div></section>
+            <section className="welcome-story"><div className="welcome-brand"><span className="brand-mark"><Icon name="flask-conical" size={24}/></span>송쌤과학 <span>CLASSROOM</span></div><div className="welcome-copy"><p className="eyebrow">선생님의 수업에, 여유를 더하다</p><h2>수업에 필요한 도구,<br/>한 곳에서 가볍게.</h2><p className="welcome-description">발표자를 뽑고, 모둠을 만들고, 생각을 기록하세요.<br/>작은 준비는 도우미에게 맡기고 수업에 집중하세요.</p><div className="welcome-preview"><div className="preview-label"><span className="live-dot"/> 오늘의 교실 <span>READY TO START</span></div><div className="preview-desks">{['01','02','03','04','05','06','07','08'].map((n,i)=><span key={n} className={i===2?'chosen':''}>{i===2?<Icon name="sparkles" size={23}/>:n}</span>)}</div><div className="preview-bottom"><span>함께 배우는 시간을 위한</span><strong>17가지 수업 도구 <span>↗</span></strong></div></div></div><div className="welcome-foot">준비는 간결하게. 수업은 풍성하게.</div></section>
             <div className="intro-card p-6 sm:p-10 rounded-[2rem] shadow-2xl w-full max-w-md text-center relative overflow-hidden">
                 <div className="hidden"/>
                 <div className="setup-icon"><Icon name="sprout" size={36} className="text-[#FFB7B2]"/></div>
@@ -4432,9 +4720,9 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
             <div className="header-actions"><SoundToggle isSoundOn={isSoundOn} setIsSoundOn={setIsSoundOn} playSound={playSound}/><button className="utility-btn" onClick={()=>setIsDarkMode(!isDarkMode)} aria-label={isDarkMode?'밝은 화면으로 전환':'어두운 화면으로 전환'} title="테마 전환"><Icon name={isDarkMode?'sun':'moon'} size={18}/></button><button className="utility-btn" onClick={()=>setShowSettings(true)} aria-label="화면 설정" title="화면 설정"><Icon name="settings-2" size={18}/></button></div>
         </header>
         <nav className="tool-rail" aria-label="수업 도구">
-            <div className="rail-heading">수업 도구 <span>16</span></div>
+            <div className="rail-heading">수업 도구 <span>17</span></div>
             {[
-                {title:'참여와 모둠',items:[['pick','발표자 뽑기','trophy'],['lotto','로또 추첨','dices'],['wheel','돌림판','circle-dot'],['pinball','핀볼 게임','gamepad-2'],['team','모둠 만들기','users'],['seat','좌석 배치','armchair']]},
+                {title:'참여와 모둠',items:[['pick','발표자 뽑기','trophy'],['lotto','로또 추첨','dices'],['wheel','돌림판','circle-dot'],['pinball','핀볼 게임','gamepad-2'],['ladder','사다리 게임','route'],['team','모둠 만들기','users'],['seat','좌석 배치','armchair']]},
                 {title:'학급 운영',items:[['attendance','출결 확인','clipboard-check'],['checklist','수업 체크리스트','list-checks']]},
                 {title:'수업 진행',items:[['whiteboard','화이트보드','palette'],['timer','타이머','timer'],['calendar','달력','calendar']]},
                 {title:'자료와 기록',items:[['youtube','영상 재생','youtube'],['record','녹음','mic'],['qr','QR 코드','qr-code'],['memo','메모','sticky-note'],['img','사진 보기','image']]},
@@ -4447,7 +4735,7 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
         {showMiniTimer&&<div className={`fixed top-[68px] sm:top-[76px] left-2 z-50 mini-float ${isTimerRunning?'mini-pulse':''}`} onClick={()=>{playSound('click');setMode('timer');}}><div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl shadow-lg border-2 cursor-pointer active:scale-95 ${isTimerRunning?'bg-white border-[#FFB7B2]':'bg-white/90 border-gray-200'}`}><svg viewBox="0 0 32 32" className="w-6 h-6 -rotate-90"><circle cx="16" cy="16" r="13" stroke="#F0F0F0" strokeWidth="2.5" fill="none"/><circle cx="16" cy="16" r="13" stroke={isTimerRunning?"#FFDAC1":"#D1D5DB"} strokeWidth="2.5" fill="none" strokeDasharray={2*Math.PI*13} strokeDashoffset={(2*Math.PI*13)-(timeLeft/(initialTime||1))*(2*Math.PI*13)} strokeLinecap="round"/></svg><span className={`text-sm font-black tabular-nums ${isTimerRunning?'text-[#5D5D5D]':'text-gray-400'}`}>{Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</span></div></div>}
 
         <main data-tool={mode} className="workspace flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-3 sm:py-5 pb-6 flex flex-col">
-            <div className="workspace-context"><span><span className="context-class"><Icon name="school" size={14}/>{classContext.name}</span><span className="context-slash">/</span> {({attendance:'출결 확인',checklist:'수업 체크리스트',pick:'발표자 뽑기',lotto:'로또 추첨',wheel:'돌림판',pinball:'핀볼 게임',team:'모둠 만들기',seat:'좌석 배치',whiteboard:'화이트보드',timer:'타이머',calendar:'달력',youtube:'영상 재생',record:'녹음',qr:'QR 코드',memo:'메모',img:'사진 보기',sites:'사이트 모음'})[mode]}</span><span className="participation"><span className="live-dot"/>{activeStudents.length}명 참여</span></div>
+            <div className="workspace-context"><span><span className="context-class"><Icon name="school" size={14}/>{classContext.name}</span><span className="context-slash">/</span> {({attendance:'출결 확인',checklist:'수업 체크리스트',pick:'발표자 뽑기',lotto:'로또 추첨',wheel:'돌림판',pinball:'핀볼 게임',ladder:'사다리 게임',team:'모둠 만들기',seat:'좌석 배치',whiteboard:'화이트보드',timer:'타이머',calendar:'달력',youtube:'영상 재생',record:'녹음',qr:'QR 코드',memo:'메모',img:'사진 보기',sites:'사이트 모음'})[mode]}</span><span className="participation"><span className="live-dot"/>{activeStudents.length}명 참여</span></div>
 
             {mode==='attendance'&&<AttendanceTool students={students} records={attendanceRecords} setRecords={setAttendanceRecords} excludedInput={excludedInput} setExcludedInput={setExcludedInput}/>}
             {mode==='checklist'&&<LessonChecklist items={lessonTasks} setItems={setLessonTasks}/>}
@@ -4554,6 +4842,11 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
             {mode==='pinball'&&<div className="card-enter w-full">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1"><div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">핀볼 게임</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">구슬이 장애물을 지나 결승선에 도착한 순서로 당첨자를 뽑아요</p></div></div>
                 <PinballGame students={students} excludedNums={excludedNums} excludedInput={excludedInput} setExcludedInput={setExcludedInput} teamNames={inputNames} playSound={playSound} isSoundOn={isSoundOn}/>
+            </div>}
+
+            {mode==='ladder'&&<div className="card-enter w-full">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-3 px-1"><div><h2 className="text-xl sm:text-3xl font-black text-[#4A4A4A]">사다리 게임</h2><p className="text-[10px] sm:text-sm text-gray-400 font-bold">위에 이름·번호, 아래에 등수나 할 일을 적고 사다리를 타요</p></div></div>
+                <LadderGame students={students} excludedNums={excludedNums} teamNames={inputNames} playSound={playSound}/>
             </div>}
 
             {mode==='timer'&&<div className="card-enter flex flex-col items-center justify-center py-4 sm:py-8 w-full">
@@ -4718,7 +5011,7 @@ function validateClassData(raw){
         const v=raw[key];const ok=validators[key]?validators[key](v):typeof out[key]==='string'?str(v):typeof out[key]==='number'?num(v)&&v>=0&&v<=86400:typeof out[key]==='boolean'?typeof v==='boolean':false;
         if(!ok)throw Error('학급 데이터 항목을 확인해 주세요: '+key);out[key]=classClone(v);
     }
-    const enums={step:['input','main'],mode:['attendance','checklist','pick','lotto','wheel','pinball','team','seat','whiteboard','timer','calendar','youtube','record','qr','memo','img','sites'],placementType:['number','name','gender'],seatType:['single','pair'],seatRowMode:['auto','custom'],seatTeacherRole:['담임','교과']};
+    const enums={step:['input','main'],mode:['attendance','checklist','pick','lotto','wheel','pinball','ladder','team','seat','whiteboard','timer','calendar','youtube','record','qr','memo','img','sites'],placementType:['number','name','gender'],seatType:['single','pair'],seatRowMode:['auto','custom'],seatTeacherRole:['담임','교과']};
     for(const [key,allowed] of Object.entries(enums))if(!allowed.includes(out[key]))throw Error('지원하지 않는 설정입니다: '+key);
     for(const key of ['teamCount','teamColumns','seatColumns','seatRows'])if(!Number.isInteger(out[key])||out[key]<1||out[key]>100)throw Error('학급 배치 숫자가 올바르지 않습니다.');
     if(out.step==='main'&&!out.students.length)throw Error('학급 명단이 비어 있습니다.');
@@ -4869,7 +5162,7 @@ function ClassroomShell(){
             </>}
             {panel==='backup'&&<>
                 <div className="library-privacy"><Icon name="hard-drive" size={20}/><div><strong>학급 정보는 현재 브라우저에 자동 저장됩니다.</strong><p>변경 후 약 0.5초 뒤 저장합니다. 같은 브라우저에서 같은 주소의 도우미를 다시 열면 이어서 사용할 수 있어요.</p><p>HTML 파일 안에 기록되거나 OneDrive로 학급 데이터가 자동 동기화되는 방식은 아닙니다.</p></div></div>
-                <ul className="library-storage-info"><li><strong>학급별 저장:</strong> 학생 번호·입력한 이름·제외 번호, 모둠·좌석 설정, 메모, 발표 기록, 일정, 타이머 설정, 출결, 수업 체크리스트와 최근 변경 20개.</li><li><strong>별도 저장:</strong> 화이트보드 판서, 화면 설정, 유튜브 검색 설정(API 키)은 이 브라우저에 따로 저장되며 학급별로 나뉘지 않습니다. 학급 백업에는 포함되지 않습니다.</li><li><strong>백업 제외:</strong> 사진·녹음·영상·돌림판·핀볼 게임의 내용, 실행 중인 타이머는 학급 백업 및 복구에 포함되지 않습니다. 타이머는 학급 전환·복구 시 정지합니다.</li><li><strong>다른 환경으로 이동:</strong> 다른 기기·브라우저·프로필에는 자동 공유되지 않습니다. HTML 파일의 위치나 접속 주소를 바꾸면 기존 기록이 보이지 않을 수 있어요. 이동 전에 백업 파일을 저장하세요.</li><li><strong>기록 보관:</strong> 브라우저 데이터를 삭제하거나 시크릿 창을 닫으면 기록이 사라질 수 있습니다. 백업 JSON에는 입력한 명단과 기록이 들어 있으므로 개인 보관용으로 관리해 주세요.</li></ul>
+                <ul className="library-storage-info"><li><strong>학급별 저장:</strong> 학생 번호·입력한 이름·제외 번호, 모둠·좌석 설정, 메모, 발표 기록, 일정, 타이머 설정, 출결, 수업 체크리스트와 최근 변경 20개.</li><li><strong>별도 저장:</strong> 화이트보드 판서, 화면 설정, 유튜브 검색 설정(API 키)은 이 브라우저에 따로 저장되며 학급별로 나뉘지 않습니다. 학급 백업에는 포함되지 않습니다.</li><li><strong>백업 제외:</strong> 사진·녹음·영상·돌림판·핀볼 게임·사다리 게임의 내용, 실행 중인 타이머는 학급 백업 및 복구에 포함되지 않습니다. 타이머는 학급 전환·복구 시 정지합니다.</li><li><strong>다른 환경으로 이동:</strong> 다른 기기·브라우저·프로필에는 자동 공유되지 않습니다. HTML 파일의 위치나 접속 주소를 바꾸면 기존 기록이 보이지 않을 수 있어요. 이동 전에 백업 파일을 저장하세요.</li><li><strong>기록 보관:</strong> 브라우저 데이터를 삭제하거나 시크릿 창을 닫으면 기록이 사라질 수 있습니다. 백업 JSON에는 입력한 명단과 기록이 들어 있으므로 개인 보관용으로 관리해 주세요.</li></ul>
                 <div className="library-backup"><div><strong>모든 학급과 복구 기록을 파일로 보관</strong><p>백업을 불러오면 기존 학급을 유지한 채 별도 학급으로 추가합니다.</p></div><div><button onClick={download}><Icon name="download" size={15}/>백업 파일 저장</button><button onClick={()=>fileRef.current.click()}><Icon name="upload" size={15}/>백업 불러오기</button><input ref={fileRef} hidden type="file" accept=".json,application/json" onChange={readBackup}/></div></div>
                 {pendingImport&&<div className="library-import"><strong>{pendingImport.length}개 학급을 추가합니다</strong><p>{pendingImport.map(x=>x.name).join(', ')}</p><p>기존 학급을 덮어쓰지 않고 별도 학급으로 추가합니다.</p><button className="primary" onClick={importBackup}>확인 후 추가</button><button onClick={()=>setPendingImport(null)}>취소</button></div>}
             </>}
