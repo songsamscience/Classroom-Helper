@@ -831,7 +831,7 @@ body.dark-theme .yts-error{color:#ffb4a8;background:#3a2422;border-color:#5b3430
 .ld-in{display:block;width:100%;min-width:0;text-align:center;font-size:13px;font-weight:600;padding:8px 3px;border:1px solid var(--border-soft);border-radius:8px;outline:none}
 .ld-in:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2px var(--accent-soft)}
 .ld-top-btn{width:100%;min-width:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 3px;border-radius:9px;border:1px solid var(--border-soft);background:var(--bg-card);color:var(--text-main);font-size:13px;font-weight:700;transition:background .15s,border-color .15s}
-.ld-top-btn .nm,.ld-top-btn .rs{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-top-btn .nm,.ld-top-btn .rs{max-width:100%;white-space:nowrap;text-align:center}
 .ld-top-btn .rs{font-size:12px;color:var(--text-sub);font-weight:600}
 @media(hover:hover){.ld-top-btn:hover{border-color:var(--pc);background:var(--bg-soft)}}
 .ld-top-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -849,11 +849,11 @@ body.dark-theme .yts-error{color:#ffb4a8;background:#3a2422;border-color:#5b3430
 .ld-flash b{color:#ffd166;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ld-flash.hint{font-size:13px;font-weight:600;color:#cfe3d8;padding:7px 14px;background:#0b1f17cc}
 .ld-bot{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 3px 0;min-width:0}
-.ld-prize{display:block;width:100%;text-align:center;font-size:13px;font-weight:700;padding:8px 3px;border-radius:8px;background:var(--bg-card);color:var(--text-main);border:1px solid var(--border-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-prize{display:block;width:100%;text-align:center;font-size:13px;font-weight:700;padding:8px 3px;border-radius:8px;background:var(--bg-card);color:var(--text-main);border:1px solid var(--border-soft);white-space:nowrap}
 .ld-prize.gold{background:#ffd166;border-color:#e2b54a;color:#2a2410}
 .ld-prize.miss{color:var(--text-sub);font-weight:600}
-.ld-who{display:inline-flex;align-items:center;max-width:100%;padding:4px 8px;border-radius:999px;background:var(--pc);color:#1d2620;font-size:12px;font-weight:700;animation:ldPop .3s ease-out}
-.ld-who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-who{display:inline-flex;align-items:center;justify-content:center;max-width:100%;padding:4px 5px;border-radius:999px;background:var(--pc);color:#1d2620;font-size:12px;font-weight:700;animation:ldPop .3s ease-out}
+.ld-who span{white-space:nowrap;text-align:center}
 .ld-results{background:var(--bg-card);border:1px solid var(--border-line);border-radius:12px;padding:12px 14px 14px}
 .ld-results-head{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:13px;font-weight:700;color:var(--text-main)}
 .ld-results-head .pb-btn{margin-left:auto}
@@ -865,9 +865,12 @@ body.dark-theme .yts-error{color:#ffb4a8;background:#3a2422;border-color:#5b3430
 .ld-results li b{margin-left:auto;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%}
 .ld-results li.gold{background:#ffd166;color:#2a2410}
 .ld-results li.gold .ar{color:#5a4a1c}
+/* 사다리 새로 그리기: 가로줄이 위에서부터 차례로 그어진다 */
+.ld-rung{stroke-dasharray:1;stroke-dashoffset:1;animation:ldDraw .32s ease-out forwards}
+@keyframes ldDraw{to{stroke-dashoffset:0}}
 @keyframes ldPop{from{opacity:0;transform:translateY(4px) scale(.96)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.ld-flash,.ld-who{animation:none}}
-@media(max-width:640px){.ld-go{font-size:16px;padding:12px 22px}.ld-cols{grid-template-columns:repeat(var(--n),minmax(min(var(--cw),50px),1fr));width:max(100%,calc(var(--n) * min(var(--cw),50px)))}.ld-in,.ld-prize,.ld-top-btn{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.ld-flash,.ld-who{animation:none}.ld-rung{animation:none;stroke-dashoffset:0}}
+@media(max-width:640px){.ld-go{font-size:16px;padding:12px 22px}.ld-cols{grid-template-columns:repeat(var(--n),minmax(min(var(--cw),50px),1fr));width:max(100%,calc(var(--n) * min(var(--cw),50px)))}.ld-in{font-size:12px}}
 </style>
 </head>
 <body>
@@ -2326,11 +2329,13 @@ const ldBuild=n=>{
         for(let k=0;k<L;k++){const rg=rungs.find(o=>o.k===k&&(o.g===p-1||o.g===p));if(!rg)continue;const np=rg.g===p?p+1:p-1;pts.push([p,rg.y],[np,rg.y]);p=np;}
         pts.push([p,1]);return{pts,end:p};
     });
-    return{n,levels:L,rungs,paths};
+    return{id:Math.random().toString(36).slice(2),n,levels:L,rungs,paths};
 };
 // 칸 좌표(열, 0~1) → 화면 좌표. 양 끝은 판 가장자리, 가로줄은 위아래 여백 안쪽
 const ldPx=([c,y],cw,H)=>[(c+.5)*cw,y<=0?0:y>=1?H:LD.PAD+y*(H-2*LD.PAD)];
 const ldGeom=(pts,cw,H)=>{const P=pts.map(p=>ldPx(p,cw,H));let len=0;const seg=[],ticks=[];for(let i=1;i<P.length;i++){const[x0,y0]=P[i-1],[x1,y1]=P[i],d=Math.hypot(x1-x0,y1-y0);if(y0===y1&&x0!==x1)ticks.push(len);seg.push({x0,y0,x1,y1,d,s:len});len+=d;}return{P,len,seg,ticks:ticks.map(t=>t/(len||1)),d:'M'+P.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L')};};
+// 좁은 칸에서도 글자가 잘리지 않게 칸 폭에 맞춰 글자 크기를 줄이고, 그래도 넘치면 두 줄로 (한글·화살표 1em, 숫자·영문 약 0.62em으로 어림)
+const ldFit=(text,avail,max=13,min=10)=>{if(!(avail>0))return undefined;const em=[...String(text)].reduce((s,ch)=>s+(/[ㄱ-힣←-⇿]/.test(ch)?1:ch===' '?.32:.62),0)||1;const fs=Math.floor(Math.min(max,avail/em)*10)/10;return fs>=min?{fontSize:fs}:{fontSize:min,whiteSpace:'normal',wordBreak:'break-all',lineHeight:1.2};};
 const ldAt=(g,f)=>{const t=f*g.len;for(let i=0;i<g.seg.length;i++){const s=g.seg[i];if(t<=s.s+s.d||i===g.seg.length-1){const u=s.d?Math.min(1,Math.max(0,(t-s.s)/s.d)):0;return[s.x0+(s.x1-s.x0)*u,s.y0+(s.y1-s.y0)*u];}}return[0,0];};
 
 function LadderGame({students,excludedNums,teamNames,playSound:ps}){
@@ -2349,6 +2354,7 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
     const [size,setSize]=useState({w:0,h:0});
     const [isFull,setIsFull]=useState(false);
     const [copied,setCopied]=useState(false);
+    const [askRedraw,setAskRedraw]=useState(false);
     const arenaRef=useRef(null),boardRef=useRef(null),confRef=useRef(null),confFnRef=useRef(null),animRef=useRef({items:{},raf:0}),finishRef=useRef(null);
     const psRef=useRef(ps);psRef.current=ps;
     const play=phase==='play';
@@ -2373,7 +2379,8 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
         return()=>{document.removeEventListener('fullscreenchange',f);document.removeEventListener('webkitfullscreenchange',f);};
     },[]);
     // '모두 공개했어요'는 잠깐만 보여 주고 사다리를 가리지 않게 치운다
-    useEffect(()=>{if(!flash||!flash.all)return;const t=setTimeout(()=>setFlash(f=>f&&f.all?null:f),2500);return()=>clearTimeout(t);},[flash]);
+    useEffect(()=>{if(!flash||!(flash.all||flash.redraw))return;const t=setTimeout(()=>setFlash(f=>f&&(f.all||f.redraw)?null:f),flash.redraw?1800:2500);return()=>clearTimeout(t);},[flash]);
+    useEffect(()=>{if(!askRedraw)return;const t=setTimeout(()=>setAskRedraw(false),5000);return()=>clearTimeout(t);},[askRedraw]);
     useEffect(()=>()=>{cancelAnimationFrame(animRef.current.raf);if(confFnRef.current&&confFnRef.current.reset)confFnRef.current.reset();},[]);
 
     const stopAnims=()=>{cancelAnimationFrame(animRef.current.raf);animRef.current={items:{},raf:0};};
@@ -2406,8 +2413,11 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
 
     // 게임 진행
     const start=()=>{stopAnims();ps('click');setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash(null);setPhase('play');};
-    const reshuffle=()=>{stopAnims();ps('click');setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash(null);};
-    const edit=()=>{stopAnims();ps('click');setPhase('setup');setLadder(null);setProg({});setRevealed(false);setFlash(null);};
+    const redraw=()=>{
+        if(Object.keys(prog).length&&!askRedraw){ps('click');setAskRedraw(true);return;}
+        stopAnims();ps('click');setAskRedraw(false);setLadder(ldBuild(n));setProg({});setRevealed(false);setFlash({redraw:true});
+    };
+    const edit=()=>{stopAnims();ps('click');setAskRedraw(false);setPhase('setup');setLadder(null);setProg({});setRevealed(false);setFlash(null);};
     const finish=(c,bulk)=>{
         if(!ladder)return;const j=ladder.paths[c].end;
         setFlash({c,j});
@@ -2491,7 +2501,7 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
                     <button className="pb-btn primary" disabled={nextCol===undefined} onClick={()=>trace([nextCol],false)}><Icon name="arrow-down" size={15}/> {nextCol!==undefined?`다음: ${nameOf(nextCol)}`:allDone?'모두 확인했어요':'타는 중…'}</button>
                     <button className="pb-btn" disabled={nextCol===undefined} onClick={()=>trace([...Array(n).keys()],true)}><Icon name="list-checks" size={15}/> 모두 공개</button>
                     {hide&&!allDone&&<button className="pb-btn" onClick={()=>{ps('click');setRevealed(v=>!v);}}><Icon name={revealed?'eye-off':'eye'} size={15}/> {revealed?'다시 가리기':'가림 걷기'}</button>}
-                    <button className="pb-btn" onClick={reshuffle}><Icon name="shuffle" size={15}/> 다시 섞기</button>
+                    <button className={'pb-btn'+(askRedraw?' on':'')} onClick={redraw} title="가로줄을 무작위로 새로 그려요"><Icon name="refresh-cw" size={15}/> {askRedraw?'결과가 지워져요 · 한 번 더 누르기':'사다리 새로 그리기'}</button>
                     <button className="pb-btn" onClick={edit}><Icon name="pencil" size={15}/> 고치기</button>
                 </>}
                 <span className="pb-status">{play?`${doneCols.length} / ${n}명 확인`:`${n}칸`}</span>
@@ -2501,7 +2511,7 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
                 <div className="ld-cols" style={{'--n':n,'--cw':colMin+'px'}}>
                     {[...Array(n).keys()].map(c=><div key={'t'+c} className="ld-top" style={{'--pc':color(c)}}>
                         {play?<button className={'ld-top-btn'+(prog[c]>=1?' done':prog[c]>0?' run':'')} onClick={()=>trace([c],false)} title={nameOf(c)+(prog[c]>=1?' → '+prizeOf(ladder.paths[c].end):' · 눌러서 사다리 타기')}>
-                            <i/><span className="nm">{nameOf(c)}</span>{prog[c]>=1&&<span className="rs">→ {prizeOf(ladder.paths[c].end)}</span>}
+                            <i/><span className="nm" style={ldFit(nameOf(c),cw-14,13,9)}>{nameOf(c)}</span>{prog[c]>=1&&<span className="rs" style={ldFit(prizeOf(ladder.paths[c].end),cw-14,12)}>{prizeOf(ladder.paths[c].end)}</span>}
                         </button>:<><i/><input size={1} className="ld-in" data-top={c} value={tops[c]} maxLength={20} placeholder={`${c+1}번`} aria-label={`위 ${c+1}번째 칸 이름`} onChange={e=>setAt('top',c,e.target.value)} onKeyDown={onKey('top',c)} onPaste={e=>{if(spread('top',c,e.clipboardData.getData('text')))e.preventDefault();}}/></>}
                     </div>)}
                     <div className="ld-board" ref={boardRef} style={{height:boardH}}>
@@ -2509,7 +2519,7 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
                             <defs><pattern id="ldHatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="#10291f"/><rect width="5" height="14" fill="#16352a"/></pattern></defs>
                             {!showRungs&&<rect x="0" y={LD.PAD-6} width={size.w} height={Math.max(0,H-2*LD.PAD+12)} fill="url(#ldHatch)"/>}
                             {[...Array(n).keys()].map(c=><line key={'v'+c} x1={(c+.5)*cw} x2={(c+.5)*cw} y1="0" y2={H} stroke="#d9ece2" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round"/>)}
-                            {showRungs&&ladder.rungs.map((r,i)=>{const y=ldPx([0,r.y],cw,H)[1];return<line key={'r'+i} x1={(r.g+.5)*cw} x2={(r.g+1.5)*cw} y1={y} y2={y} stroke="#d9ece2" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round"/>;})}
+                            {showRungs&&ladder.rungs.map((r,i)=>{const y=ldPx([0,r.y],cw,H)[1];return<line key={ladder.id+'r'+i} className="ld-rung" pathLength="1" style={{animationDelay:(r.y*.7).toFixed(2)+'s'}} x1={(r.g+.5)*cw} x2={(r.g+1.5)*cw} y1={y} y2={y} stroke="#d9ece2" strokeOpacity=".55" strokeWidth="3" strokeLinecap="round"/>;})}
                             {play&&ladder&&[...Array(n).keys()].filter(c=>prog[c]>0).map(c=>{const g=ldGeom(ladder.paths[c].pts,cw,H),f=Math.min(1,prog[c]),[mx,my]=ldAt(g,f);return<g key={'p'+c}>
                                 <path d={g.d} fill="none" stroke={color(c)} strokeWidth={flashC===c||f<1?7:5.5} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={`${g.len} ${g.len}`} strokeDashoffset={g.len*(1-f)} opacity={f<1||flashC===c||allDone?1:.85}/>
                                 {f<1&&<circle cx={mx} cy={my} r="10" fill={color(c)} stroke="#10291f" strokeWidth="3"/>}
@@ -2517,14 +2527,14 @@ function LadderGame({students,excludedNums,teamNames,playSound:ps}){
                             {!play&&<text x={size.w/2} y={H/2+(H>200?-34:-22)} textAnchor="middle" fill="#cfe3d8" fillOpacity=".5" fontSize="15" fontWeight="600">{hide?'가로줄은 시작하면 숨겨진 채로 만들어져요':'시작하면 가로줄이 만들어져요'}</text>}
                         </svg>}
                         {!play&&<button className="ld-go" onClick={start}><Icon name="play" size={20}/> 사다리 타기 시작</button>}
-                        {play&&flash&&<div className="ld-flash" key={flash.all?'all':flash.c+'-'+doneCols.length} style={{'--pc':flash.all?'#ffd166':color(flash.c)}}>{flash.all?<span>모두 공개했어요</span>:<><i/><span className="nm">{nameOf(flash.c)}</span><span className="ar">→</span><b>{prizeOf(flash.j)}</b></>}</div>}
+                        {play&&flash&&<div className="ld-flash" key={flash.redraw?'re'+ladder.id:flash.all?'all':flash.c+'-'+doneCols.length} style={{'--pc':flash.all||flash.redraw?'#ffd166':color(flash.c)}}>{flash.redraw?<span>{showRungs?'사다리를 새로 그렸어요':'사다리를 새로 그렸어요 · 가로줄은 숨겨져 있어요'}</span>:flash.all?<span>모두 공개했어요</span>:<><i/><span className="nm">{nameOf(flash.c)}</span><span className="ar">→</span><b>{prizeOf(flash.j)}</b></>}</div>}
                         {play&&!flash&&!Object.keys(prog).length&&<div className="ld-flash hint">위의 이름을 누르면 사다리를 타요</div>}
                         <canvas ref={confRef}/>
                     </div>
                     {[...Array(n).keys()].map(j=><div key={'b'+j} className="ld-bot">
                         {!play&&botMode==='custom'?<input size={1} className="ld-in" data-bot={j} value={bots[j]} maxLength={30} placeholder="내용" aria-label={`아래 ${j+1}번째 칸 내용`} onChange={e=>setAt('bot',j,e.target.value)} onKeyDown={onKey('bot',j)} onPaste={e=>{if(spread('bot',j,e.clipboardData.getData('text')))e.preventDefault();}}/>
-                        :<span className={'ld-prize'+(isGold(j)?' gold':'')+(botMode==='win'&&!isGold(j)?' miss':'')+(botMode==='custom'&&!(bots[j]||'').trim()?' miss':'')} title={prizeOf(j)}>{botMode==='custom'&&!(bots[j]||'').trim()?'—':prizeOf(j)}</span>}
-                        {whoAt[j]!==undefined&&<span className="ld-who" style={{'--pc':color(whoAt[j])}} title={nameOf(whoAt[j])}><span>{nameOf(whoAt[j])}</span></span>}
+                        :<span className={'ld-prize'+(isGold(j)?' gold':'')+(botMode==='win'&&!isGold(j)?' miss':'')+(botMode==='custom'&&!(bots[j]||'').trim()?' miss':'')} title={prizeOf(j)} style={ldFit(prizeOf(j),cw-14)}>{botMode==='custom'&&!(bots[j]||'').trim()?'—':prizeOf(j)}</span>}
+                        {whoAt[j]!==undefined&&<span className="ld-who" style={{'--pc':color(whoAt[j])}} title={nameOf(whoAt[j])}><span style={ldFit(nameOf(whoAt[j]),cw-16,13,9)}>{nameOf(whoAt[j])}</span></span>}
                     </div>)}
                 </div>
             </div>
