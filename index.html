@@ -3991,7 +3991,7 @@ function App(){
     const [studentCount,setStudentCount]=useState(boot.studentCount??'');
     const [students,setStudents]=useState(boot.students||[]);
     const [mode,setMode]=useState(boot.mode||'pick');
-    const [isSoundOn,setIsSoundOn]=useState(boot.isSoundOn??true);
+    const [isSoundOn,setIsSoundOn]=useState(boot.isSoundOn??false);
     // ★ 전역 다크모드 + UI 스케일
     const [isDarkMode,setIsDarkMode]=useState(()=>{try{return localStorage.getItem('songsam_dark')==='1';}catch(e){return false;}});
     const [uiScale,setUiScale]=useState(()=>{try{const v=parseFloat(localStorage.getItem('songsam_ui_scale'));return isNaN(v)?1:v;}catch(e){return 1;}});
@@ -5050,7 +5050,7 @@ const CLASSROOM_KEY='songsam_classrooms_v1';
 const ClassContext=React.createContext(null);
 const classClone=x=>JSON.parse(JSON.stringify(x));
 const classId=()=>globalThis.crypto?.randomUUID?.()||('class-'+Date.now()+'-'+Math.random().toString(36).slice(2));
-const classDefaults={step:'input',studentCount:'',students:[],mode:'pick',isSoundOn:true,placementType:'number',inputNames:'',maleInput:'',femaleInput:'',genderOption:'mixed',excludedInput:'',teams:[],teamCount:6,teamColumns:3,seats:[],seatType:'single',seatPairSettings:{mustPair:[],mustNotPair:[]},seatFixed:[],seatPresentMode:false,seatTitle:'',seatTeacher:'',seatTeacherRole:'담임',teamTitle:'',seatRowMode:'auto',seatColumns:5,seatRows:6,seatGrid:[],savedSeatLayout:null,initialTime:300,showClockInTimer:false,memos:[],memoColor:'#FFE0E0',memoFontSize:14,dDays:[],pickHistory:[],isNoRepeat:false,attendanceRecords:[],lessonTasks:[]};
+const classDefaults={step:'input',studentCount:'',students:[],mode:'pick',isSoundOn:false,placementType:'number',inputNames:'',maleInput:'',femaleInput:'',genderOption:'mixed',excludedInput:'',teams:[],teamCount:6,teamColumns:3,seats:[],seatType:'single',seatPairSettings:{mustPair:[],mustNotPair:[]},seatFixed:[],seatPresentMode:false,seatTitle:'',seatTeacher:'',seatTeacherRole:'담임',teamTitle:'',seatRowMode:'auto',seatColumns:5,seatRows:6,seatGrid:[],savedSeatLayout:null,initialTime:300,showClockInTimer:false,memos:[],memoColor:'#FFE0E0',memoFontSize:14,dDays:[],pickHistory:[],isNoRepeat:false,attendanceRecords:[],lessonTasks:[]};
 function validateClassData(raw){
     if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('학급 데이터 형식이 올바르지 않습니다.');
     const out=classClone(classDefaults),str=x=>typeof x==='string'&&x.length<=20000,num=x=>Number.isFinite(x),student=x=>(str(x)&&x.length<=100)||num(x),list=(x,test,max=200)=>Array.isArray(x)&&x.length<=max&&x.every(test),grid=x=>list(x,r=>list(r,c=>typeof c==='boolean',100),100);
