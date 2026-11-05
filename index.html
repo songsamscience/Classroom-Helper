@@ -4081,7 +4081,7 @@ function App(){
 
     const MEMO_COLORS=['#FFE0E0','#E0F4FF','#E0FFE4','#FFF4E0','#F3E0FF','#FFDAC1','#C7CEEA','#B5EAD7','#FFB7B2','#FFFFCC','#F0F0F0','#D4F0FF'];
 
-    const excludedNums=useMemo(()=>excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length),[excludedInput,students.length]);
+    const excludedNums=useMemo(()=>[...new Set(excludedInput.split(/[\s,]+/).map(n=>parseInt(n)).filter(n=>!isNaN(n)&&n>=1&&n<=students.length))],[excludedInput,students.length]);
     const activeStudents=useMemo(()=>students.filter(s=>!excludedNums.includes(s)),[students,excludedNums]);
     const seatGridTotal=useMemo(()=>seatGrid.reduce((sum,row)=>sum+row.filter(Boolean).length,0),[seatGrid]);
 
