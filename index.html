@@ -1045,7 +1045,7 @@ function DDayWidget({dDays, setDDays, playSound, showAlert}) {
     };
 
     const handleAdd = () => {
-        if (!title.trim() || !date) {
+        if (!title.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
             showAlert('제목과 날짜를 모두 입력해주세요.');
             return;
         }
@@ -3945,7 +3945,7 @@ function AttendanceTool({students,records,setRecords,excludedInput,setExcludedIn
     const entries=records.find(r=>r.date===date)?.entries||{};
     const counts=Object.fromEntries(Object.keys(ATTENDANCE_LABELS).map(key=>[key,students.filter(n=>entries[n]===key).length]));
     const saveEntries=next=>{
-        if(!date)return setNotice('날짜를 선택해 주세요.');
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return setNotice('날짜를 선택해 주세요.');
         if(!records.some(r=>r.date===date)&&records.length>=366)return setNotice('출결은 학급당 366일을 보관할 수 있어요. 다음 학년도는 새 학급으로 등록해 주세요.');
         setRecords(prev=>[...prev.filter(r=>r.date!==date),{date,entries:next}].sort((a,b)=>a.date.localeCompare(b.date)));
         setNotice('출결을 변경했어요. 이 브라우저에 자동 저장됩니다.');
@@ -4111,8 +4111,9 @@ function App(){
     useClassroomData({step,studentCount,students,mode,isSoundOn,placementType,inputNames,maleInput,femaleInput,genderOption,excludedInput,teams,teamCount,teamColumns,seats,seatType,seatPairSettings,seatFixed,seatPresentMode,seatTitle,seatTeacher,seatTeacherRole,teamTitle,seatRowMode,seatColumns,seatRows,seatGrid,savedSeatLayout,initialTime,showClockInTimer,memos,memoColor,memoFontSize,dDays,pickHistory,isNoRepeat,attendanceRecords,lessonTasks});
 
     const initAudio=()=>{if(!audioCtx.current)audioCtx.current=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.current.state==='suspended')audioCtx.current.resume();};
+    const soundOnRef=useRef(isSoundOn);soundOnRef.current=isSoundOn;
     const playSound=type=>{
-        if(!isSoundOn)return;initAudio();const ctx=audioCtx.current;const t=ctx.currentTime;
+        if(!soundOnRef.current)return;initAudio();const ctx=audioCtx.current;const t=ctx.currentTime;
         if(type==='click'){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(800,t);g.gain.setValueAtTime(.04,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);o.start(t);o.stop(t+.08);}
         else if(type==='tick'){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='triangle';o.frequency.setValueAtTime(600,t);g.gain.setValueAtTime(.025,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);o.start(t);o.stop(t+.04);}
         else if(type==='win'){[523.25,659.25,783.99,1046.5].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(f,t+i*.1);g.gain.setValueAtTime(0,t+i*.1);g.gain.linearRampToValueAtTime(.08,t+i*.1+.04);g.gain.exponentialRampToValueAtTime(.001,t+i*.1+.5);o.start(t+i*.1);o.stop(t+i*.1+.5);});}
@@ -4521,8 +4522,8 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
     const parseData=()=>{if(placementType==='number')return activeStudents;if(placementType==='name'){const l=inputNames.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return l.length?l:null;}if(placementType==='gender'){const m=maleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s),f=femaleInput.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);return m.length+f.length?{m,f}:null;}return[];};
     const buildPool=data=>{let pool=[];if(placementType==='gender'){let{m,f}=data;m=ldShuffle([...m]);f=ldShuffle([...f]);if(genderOption==='mixed'){const mx=Math.max(m.length,f.length);for(let i=0;i<mx;i++){if(i<m.length)pool.push(m[i]);if(i<f.length)pool.push(f[i]);}}else pool=[...m,...f];}else pool=ldShuffle([...data]);return pool;};
 
-    const createTeams=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");playSound('click');setIsPicking(true);setTeams([]);setTimeout(()=>{const pool=buildPool(data);const t=Array.from({length:teamCount},()=>[]);pool.forEach((s,i)=>t[i%teamCount].push(s));setTeams(t);setIsPicking(false);playSound('win');},350);};
-    const createSeats=()=>{if(isPicking)return;const data=parseData();if(!data||!data.length)return showAlert("참여할 학생이 없습니다.");
+    const createTeams=()=>{if(isPicking)return;const data=parseData();if(!data||data.length===0)return showAlert("참여할 학생이 없습니다.");playSound('click');setIsPicking(true);setTeams([]);setTimeout(()=>{const pool=placementType==='gender'?[...ldShuffle([...data.m]),...ldShuffle([...data.f])]:buildPool(data);const t=Array.from({length:teamCount},()=>[]);pool.forEach((s,i)=>t[i%teamCount].push(s));setTeams(t);setIsPicking(false);playSound('win');},350);};
+    const createSeats=()=>{if(isPicking)return;const data=parseData();if(!data||data.length===0)return showAlert("참여할 학생이 없습니다.");
         // 혼자 + 자리 배치 모드: 저장된 배치가 없거나 변경되었으면 현재 격자를 자동 저장(잠금)
         if(seatType==='single'&&seatRowMode==='custom'){
             if(seatGridTotal<1)return showAlert("켜진 좌석이 없습니다.\n좌석을 1개 이상 켜주세요.");
@@ -5053,9 +5054,9 @@ const classId=()=>globalThis.crypto?.randomUUID?.()||('class-'+Date.now()+'-'+Ma
 const classDefaults={step:'input',studentCount:'',students:[],mode:'pick',isSoundOn:false,placementType:'number',inputNames:'',maleInput:'',femaleInput:'',genderOption:'mixed',excludedInput:'',teams:[],teamCount:6,teamColumns:3,seats:[],seatType:'single',seatPairSettings:{mustPair:[],mustNotPair:[]},seatFixed:[],seatPresentMode:false,seatTitle:'',seatTeacher:'',seatTeacherRole:'담임',teamTitle:'',seatRowMode:'auto',seatColumns:5,seatRows:6,seatGrid:[],savedSeatLayout:null,initialTime:300,showClockInTimer:false,memos:[],memoColor:'#FFE0E0',memoFontSize:14,dDays:[],pickHistory:[],isNoRepeat:false,attendanceRecords:[],lessonTasks:[]};
 function validateClassData(raw){
     if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('학급 데이터 형식이 올바르지 않습니다.');
-    const out=classClone(classDefaults),str=x=>typeof x==='string'&&x.length<=20000,num=x=>Number.isFinite(x),student=x=>(str(x)&&x.length<=100)||num(x),list=(x,test,max=200)=>Array.isArray(x)&&x.length<=max&&x.every(test),grid=x=>list(x,r=>list(r,c=>typeof c==='boolean',100),100);
+    const out=classClone(classDefaults),str=x=>typeof x==='string'&&x.length<=20000,num=x=>Number.isFinite(x),student=x=>str(x)||num(x),list=(x,test,max=200)=>Array.isArray(x)&&x.length<=max&&x.every(test),grid=x=>list(x,r=>list(r,c=>typeof c==='boolean',100),100);
     const validDate=x=>typeof x==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&!isNaN(Date.parse(x))&&new Date(x).toISOString().slice(0,10)===x;
-    const validators={attendanceRecords:x=>list(x,r=>r&&validDate(r.date)&&r.entries&&typeof r.entries==='object'&&!Array.isArray(r.entries)&&Object.keys(r.entries).length<=100&&Object.entries(r.entries).every(([n,status])=>/^[1-9]\d{0,2}$/.test(n)&&Number(n)<=100&&Object.hasOwn(ATTENDANCE_LABELS,status)),366)&&new Set(x.map(r=>r.date)).size===x.length,lessonTasks:x=>list(x,t=>t&&typeof t.id==='string'&&t.id.length<=100&&typeof t.text==='string'&&t.text.trim().length>0&&t.text.length<=200&&typeof t.done==='boolean',200)&&new Set(x.map(t=>t.id)).size===x.length,students:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,100),pickHistory:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,10000),teams:x=>list(x,t=>list(t,student,100),100),seats:x=>list(x,student,100),seatPairSettings:x=>x&&list(x.mustPair,p=>list(p,student,2)&&p.length===2)&&list(x.mustNotPair,p=>list(p,student,2)&&p.length===2),seatFixed:x=>list(x,f=>f&&student(f.student)&&Number.isInteger(f.pos)&&f.pos>=1&&f.pos<=100,100),seatGrid:grid,savedSeatLayout:x=>x===null||(x&&grid(x.grid)&&Number.isInteger(x.cols)&&x.cols>=1&&x.cols<=100),memos:x=>list(x,m=>m&&student(m.id)&&str(m.text)&&/^#[a-f0-9]{6}$/i.test(m.color)&&(!m.fontSize||(num(m.fontSize)&&m.fontSize>=10&&m.fontSize<=32))),dDays:x=>list(x,d=>d&&student(d.id)&&str(d.title)&&typeof d.targetDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d.targetDate)&&!isNaN(Date.parse(d.targetDate))),studentCount:x=>x===''||(Number.isInteger(Number(x))&&Number(x)>=1&&Number(x)<=100)};
+    const validators={attendanceRecords:x=>list(x,r=>r&&validDate(r.date)&&r.entries&&typeof r.entries==='object'&&!Array.isArray(r.entries)&&Object.keys(r.entries).length<=100&&Object.entries(r.entries).every(([n,status])=>/^[1-9]\d{0,2}$/.test(n)&&Number(n)<=100&&Object.hasOwn(ATTENDANCE_LABELS,status)),366)&&new Set(x.map(r=>r.date)).size===x.length,lessonTasks:x=>list(x,t=>t&&typeof t.id==='string'&&t.id.length<=100&&typeof t.text==='string'&&t.text.trim().length>0&&t.text.length<=200&&typeof t.done==='boolean',200)&&new Set(x.map(t=>t.id)).size===x.length,students:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,100),pickHistory:x=>list(x,n=>Number.isInteger(n)&&n>=1&&n<=100,10000),teams:x=>list(x,t=>list(t,student,100),100),seats:x=>list(x,student,100),seatPairSettings:x=>x&&list(x.mustPair,p=>list(p,student,2)&&p.length===2)&&list(x.mustNotPair,p=>list(p,student,2)&&p.length===2),seatFixed:x=>list(x,f=>f&&student(f.student)&&Number.isInteger(f.pos)&&f.pos>=1&&f.pos<=100,100),seatGrid:grid,savedSeatLayout:x=>x===null||(x&&grid(x.grid)&&Number.isInteger(x.cols)&&x.cols>=1&&x.cols<=100),memos:x=>list(x,m=>m&&student(m.id)&&str(m.text)&&/^#[a-f0-9]{6}$/i.test(m.color)&&(!m.fontSize||(num(m.fontSize)&&m.fontSize>=10&&m.fontSize<=32))),dDays:x=>list(x,d=>d&&student(d.id)&&str(d.title)&&typeof d.targetDate==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d.targetDate)&&!isNaN(Date.parse(d.targetDate))),studentCount:x=>str(x)||num(x),initialTime:x=>num(x)&&x>=0&&x<=599999};
     for(const key of Object.keys(out))if(Object.prototype.hasOwnProperty.call(raw,key)){
         const v=raw[key];const ok=validators[key]?validators[key](v):typeof out[key]==='string'?str(v):typeof out[key]==='number'?num(v)&&v>=0&&v<=86400:typeof out[key]==='boolean'?typeof v==='boolean':false;
         if(!ok)throw Error('학급 데이터 항목을 확인해 주세요: '+key);out[key]=classClone(v);
