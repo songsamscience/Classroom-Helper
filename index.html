@@ -1757,10 +1757,17 @@ const PB_SKILL={CHARGE:.7,MIN:1.2,RANGE:2.2,RAD:80,F:340,F0:60,TOP:40,SAFE:260};
 const PB_FLIP={LEAD:14,START:120,GAP:1,FRAMES:60};
 const PB_COLORS=['#FF8A80','#FFD54F','#80D8FF','#B388FF','#FF80AB','#A7FFEB','#FFAB40','#EA80FC','#CCFF90','#8C9EFF','#FFF59D','#84FFFF','#FF9E80','#F48FB1','#B9F6CA','#FFE57F','#82B1FF','#E1BEE7','#FFCC80','#80CBC4'];
 const PB_COURSES=[
-    {id:'forest',name:'핀 숲',sub:'짧게',desc:'핀밭과 범퍼만 지나는 짧은 코스',plan:['pins6','funnel','bumpers','pins4']},
-    {id:'windmill',name:'풍차 마을',sub:'보통',desc:'풍차 · 지그재그 · 갈림길을 지나는 보통 코스',plan:['pins5','zigzag4','windmills','bumpers','split','pins3']},
-    {id:'adventure',name:'큰 바퀴 대모험',sub:'길게',desc:'큰 바퀴를 두 번 지나는 긴 코스',plan:['pins6','windmills','zigzag4','bumpers','wheel','pins5','split','windmills','zigzag3','bumpers','wheel','pins4']},
-    // 긴 코스 2 (2026-11-17): 구간마다 새 장치가 나오고, 지금 지나는 구간 이름이 화면 왼쪽 아래에 뜬다
+    // 기존 코스 3개 (2026-11-17 재미 요소 추가: 길이는 원래와 비슷하게, 색은 원래 초록 그대로)
+    {id:'forest',name:'핀 숲',sub:'짧게',desc:'도토리 상자(행운 상자) · 버섯 방방이 · 범퍼를 지나는 짧은 코스',
+        names:{lucky:'도토리 상자',tramp:'버섯 방방이',pins:'핀 숲'},
+        plan:['lucky','tramp','bumpers','pins4']},
+    {id:'windmill',name:'풍차 마을',sub:'보통',desc:'풍차 · 비밀 통로(지름길·되돌아가기) · 행운 상자 · 갈림길',
+        names:{worm:'비밀 통로',pins:'마을 핀밭',bumpers:'범퍼',zigzag:'언덕길'},
+        plan:['pins5','windmills','worm','bumpers','wormout','zigzag3','lucky','split','pins3']},
+    {id:'adventure',name:'큰 바퀴 대모험',sub:'길게',desc:'큰 바퀴 두 번 · 보물 상자 · 비밀 통로 · 해적선 망치 · 소용돌이',
+        names:{lucky:'보물 상자',worm:'비밀 통로',hole:'소용돌이',pins:'핀밭',zigzag:'비탈길'},
+        plan:['pins6','windmills','zigzag4','bumpers','wheel','lucky','worm','split','wormout','hammers','windmills','hole','bumpers','wheel','pins4']},
+    // 긴 코스 2 (2026-11-17): 구간마다 새 장치가 나온다 (모든 코스에서 지금 지나는 구간 이름이 화면 왼쪽 아래에 뜬다)
     {id:'space',name:'우주 탐험',sub:'길게',theme:'space',desc:'웜홀 갈림길(지름길·되돌아가기) · 행성 궤도 · 달 중력 · 블랙홀',
         names:{pins:'별빛 핀밭',bumpers:'소행성대',windmills:'인공위성',zigzag:'우주 미끄럼틀'},
         plan:['pins5','bumpers','worm','planets','wormout','zigzag3','moon','hole','pins4','windmills','planets','split','hole','bumpers','pins4']},
@@ -1797,7 +1804,8 @@ function pbBuildCourse(courseId,count){
     const planet=(cx,cy,rad,spd,r,ang,color,path)=>movers.push({k:'orbit',cx,cy,rad,spd,r,ang,color,path,x:cx+rad*Math.cos(ang),y:cy+rad*Math.sin(ang),vx:0,vy:0,hitT:-9});
     const hammer=(px,py,len,amp,per)=>movers.push({k:'pend',px,py,len,amp,om:TAU/per,ph:0,r:17,w:4,sp:{x:px,y:py,speed:0},x:px,y:py+len,vx:0,vy:0,hitT:-9});
     const flipper=(x,y,len,side,P,c)=>{const a0=side<0?.48:Math.PI-.48;flips.push({x,y,len,w:6,a0,a1:side<0?-.42:Math.PI+.42,a:a0,c,P,sp:{x,y,speed:0}});};
-    const bhole=(x,y,rad)=>holes.push({x,y,rad,core:18,eat:-9});
+    // 우주 코스는 블랙홀(보라), 다른 코스는 물 소용돌이(파랑) 모양 · 움직임은 같다
+    const bhole=(x,y,rad)=>holes.push({x,y,rad,core:18,eat:-9,whirl:course.theme!=='space',c:course.theme!=='space'?'#80d8ff':'#d1b3ff'});
     const port=(ax,ay,bx,by,kind)=>ports.push({ax,ay,bx,by,r:15,kind,t:-9});
     const cols=Math.floor((RT-L-10)/GAP);
     const gateY=Math.max(96,40+Math.ceil(count/cols)*GAP);
@@ -1860,7 +1868,7 @@ function pbBuildCourse(courseId,count){
     const theme=PB_THEMES[course.theme]||PB_THEMES.base,stars=[];
     if(theme.stars)for(let i=0;i<height/10;i++)stars.push({x:Math.random()*W,y:Math.random()*height,r:Math.random()<.15?1.7:.9,p:Math.random()*TAU});
     const extra=boxes.length+movers.length+flips.length+holes.length+ports.length+zones.length>0;
-    return {segs,pins,bumps,spins,boxes,movers,flips,holes,ports,zones,labels:course.theme?labels:[],theme,stars,extra,grid,cols,gateY,finishY,trayY,height};
+    return {segs,pins,bumps,spins,boxes,movers,flips,holes,ports,zones,labels,theme,stars,extra,grid,cols,gateY,finishY,trayY,height};
 }
 
 function pbShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -1909,7 +1917,7 @@ function pbMovers(w,dt){
 // 구슬 위에 잠깐 떠오르는 글자 (지름길!·꿀꺽!·부스터! 등) · 너무 많으면 오래된 것부터 지움
 function pbPop(w,m,text,color){w.pops.push({m,text,color,f0:w.frame});if(w.pops.length>14)w.pops.shift();}
 // 블랙홀에서 풀려난 구슬: 아래로 뱉고 잠깐 다시 빨려 들지 않게 한다
-function pbRelease(w,m){const h=m.hole;m.hold=0;m.hole=null;m.x=h.x+(Math.random()-.5)*16;m.y=h.y+h.core+PB.R+2;m.vx=(Math.random()-.5)*360;m.vy=240+Math.random()*120;m.imm=w.t+.9;m.chkX=m.x;m.chkY=m.y;m.chkT=w.t;pbPop(w,m,'탈출!','#d1b3ff');}
+function pbRelease(w,m){const h=m.hole;m.hold=0;m.hole=null;m.x=h.x+(Math.random()-.5)*16;m.y=h.y+h.core+PB.R+2;m.vx=(Math.random()-.5)*360;m.vy=240+Math.random()*120;m.imm=w.t+.9;m.chkX=m.x;m.chkY=m.y;m.chkT=w.t;pbPop(w,m,'탈출!',h.c);}
 // 행운 상자: 비율에 따라 효과 하나를 뽑는다. 자리 바꾸기는 결승 근처가 아닌 다른 구슬과 위치·속도를 맞바꾼다
 function pbBox(w,m,o,ctl){
     o.off=w.t+PB_BOX.RESPAWN;
@@ -1945,7 +1953,7 @@ function pbStep(w,dt,ctl){
             if(f){if(w.t>f.until)m.fx=null;else if(f.k==='boost'){g*=1.7;vm*=1.22;}else{g*=.45;const k=1-1.6*dt;m.vx*=k;m.vy*=k;}}
             if(m.imm<w.t)for(const h of w.holes){
                 const dx=h.x-m.x,dy=h.y-m.y,d=Math.sqrt(dx*dx+dy*dy);if(d>=h.rad)continue;
-                if(d<h.core){m.hold=w.t+.55+Math.random()*.5;m.hole=h;m.x=h.x;m.y=h.y;m.vx=m.vy=0;h.eat=w.t;pbPop(w,m,'꿀꺽!','#d1b3ff');ctl.hit('hole',m);break;}
+                if(d<h.core){m.hold=w.t+.55+Math.random()*.5;m.hole=h;m.x=h.x;m.y=h.y;m.vx=m.vy=0;h.eat=w.t;pbPop(w,m,'꿀꺽!',h.c);ctl.hit('hole',m);break;}
                 const s=1-d/h.rad,pull=3400*s+300,sw=800*s,ux=dx/d,uy=dy/d,k=1-1.4*dt;   // 가운데로 당기는 힘 + 소용돌이
                 m.vx=(m.vx+(ux*pull-uy*sw)*dt)*k;m.vy=(m.vy+(uy*pull+ux*sw)*dt)*k;
             }
@@ -2103,7 +2111,7 @@ function pbMinimap(w,v){
     g.strokeStyle='#ffb38a';g.lineWidth=lw;for(const s of w.spins){g.beginPath();g.arc(s.x,s.y,s.len,0,TAU);g.stroke();}
     for(const o of w.movers){g.beginPath();if(o.k==='orbit')g.arc(o.cx,o.cy,o.rad,0,TAU);else{g.moveTo(o.px,o.py);g.lineTo(o.px,o.py+o.len);}g.strokeStyle=o.k==='orbit'?'#80d8ff':'#ffb38a';g.stroke();}
     g.strokeStyle='#ff80ab';for(const f of w.flips){g.beginPath();g.moveTo(f.x,f.y);g.lineTo(f.x+Math.cos(f.a0)*f.len,f.y+Math.sin(f.a0)*f.len);g.stroke();}
-    for(const h of w.holes){g.beginPath();g.arc(h.x,h.y,h.rad*.55,0,TAU);g.fillStyle='#000';g.fill();g.strokeStyle='#d1b3ff';g.stroke();}
+    for(const h of w.holes){g.beginPath();g.arc(h.x,h.y,h.rad*.55,0,TAU);g.fillStyle=h.whirl?'#04161f':'#000';g.fill();g.strokeStyle=h.c;g.stroke();}
     for(const p of w.ports){g.fillStyle=p.kind==='back'?'#ff80ab':'#80d8ff';g.beginPath();g.arc(p.ax,p.ay,p.r*1.6,0,TAU);g.fill();g.beginPath();g.arc(p.bx,p.by,p.r*1.6,0,TAU);g.fill();}
     g.fillStyle='#ffffff';g.fillRect(PB.W/2-24,w.finishY-6,48,12);
     return {img,k,w:mw,h:mh,x:(v.left-mw)/2,y:14};
@@ -2148,11 +2156,12 @@ function pbDraw(ctx,w,v,mm){
     for(const b of bumps){const f=Math.max(0,1-(w.t-b.hitT)/.3);ctx.beginPath();ctx.arc(b.x,b.y,b.r+f*3,0,TAU);ctx.fillStyle=f>0?`rgba(255,214,120,${.3+f*.55})`:'rgba(255,209,102,.18)';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#ffd166';ctx.stroke();ctx.beginPath();ctx.arc(b.x,b.y,b.r*.42,0,TAU);ctx.fillStyle='#ffd166';ctx.fill();}
     for(const s of w.spins){if(s.y+s.len<top-20||s.y-s.len>bot+20)continue;ctx.beginPath();for(let k=0;k<s.arms;k++){const a=s.a+k*TAU/s.arms;ctx.moveTo(s.x,s.y);ctx.lineTo(s.x+Math.cos(a)*s.len,s.y+Math.sin(a)*s.len);}ctx.strokeStyle='rgba(255,170,130,.2)';ctx.lineWidth=s.w*2+8;ctx.stroke();ctx.strokeStyle='#ffb38a';ctx.lineWidth=s.w*2;ctx.stroke();ctx.beginPath();ctx.arc(s.x,s.y,5,0,TAU);ctx.fillStyle='#fff3e8';ctx.fill();}
     ctx.textAlign='center';ctx.textBaseline='middle';
-    // 블랙홀: 점선 끌림 범위 · 도는 고리 · 검은 중심 (삼킬 때 번쩍)
-    for(const h of w.holes){if(h.y+h.rad<top-30||h.y-h.rad>bot+30)continue;const a0=w.frame*.05,e=Math.max(0,1-(w.t-h.eat)/.3);
-        ctx.setLineDash([4,8]);ctx.beginPath();ctx.arc(h.x,h.y,h.rad,0,TAU);ctx.strokeStyle='rgba(209,179,255,.24)';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
-        for(let i=0;i<3;i++){const r=24+i*13,a=a0*(1.6-i*.4)+i*2;ctx.beginPath();ctx.arc(h.x,h.y,r,a,a+Math.PI*1.2);ctx.strokeStyle=['rgba(255,171,64,.85)','rgba(234,128,252,.6)','rgba(128,216,255,.38)'][i];ctx.lineWidth=4-i;ctx.stroke();}
-        ctx.beginPath();ctx.arc(h.x,h.y,h.core+3+e*5,0,TAU);ctx.fillStyle='#000';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=`rgba(209,179,255,${.6+e*.4})`;ctx.stroke();}
+    // 블랙홀(우주)·소용돌이(다른 코스): 점선 끌림 범위 · 도는 고리 · 가운데 구멍 (삼킬 때 번쩍)
+    for(const h of w.holes){if(h.y+h.rad<top-30||h.y-h.rad>bot+30)continue;const a0=w.frame*.05,e=Math.max(0,1-(w.t-h.eat)/.3),wh=h.whirl;
+        ctx.setLineDash([4,8]);ctx.beginPath();ctx.arc(h.x,h.y,h.rad,0,TAU);ctx.strokeStyle=wh?'rgba(128,216,255,.26)':'rgba(209,179,255,.24)';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);
+        const rc=wh?['rgba(128,216,255,.85)','rgba(167,255,235,.6)','rgba(255,255,255,.35)']:['rgba(255,171,64,.85)','rgba(234,128,252,.6)','rgba(128,216,255,.38)'];
+        for(let i=0;i<(wh?4:3);i++){const r=24+i*13,a=a0*(1.6-i*.35)+i*2;ctx.beginPath();ctx.arc(h.x,h.y,r,a,a+Math.PI*(wh?.9:1.2));ctx.strokeStyle=rc[i%3];ctx.lineWidth=Math.max(1.5,4-i);ctx.stroke();}
+        ctx.beginPath();ctx.arc(h.x,h.y,h.core+3+e*5,0,TAU);ctx.fillStyle=wh?'#04161f':'#000';ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=wh?`rgba(128,216,255,${.6+e*.4})`:`rgba(209,179,255,${.6+e*.4})`;ctx.stroke();}
     // 웜홀: 입구는 도는 소용돌이(+이름), 출구는 점선 고리 · 짝끼리 같은 색
     for(const p of w.ports){const c=p.kind==='back'?'#ff80ab':'#80d8ff',a0=w.frame*.09,f=Math.max(0,1-(w.t-p.t)/.4);
         if(p.ay>top-40&&p.ay<bot+40){ctx.beginPath();ctx.arc(p.ax,p.ay,p.r+f*4,0,TAU);ctx.fillStyle='rgba(0,0,0,.55)';ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=2.5;for(let i=0;i<3;i++){ctx.globalAlpha=1-i*.25;ctx.beginPath();ctx.arc(p.ax,p.ay,p.r-i*4,a0+i*2.1,a0+i*2.1+Math.PI*1.1);ctx.stroke();}ctx.globalAlpha=1;ctx.font=`800 11px ${F}`;ctx.fillStyle=c;ctx.fillText(p.kind==='back'?'되돌아가기':'지름길',p.ax,p.ay+p.r+13);}
