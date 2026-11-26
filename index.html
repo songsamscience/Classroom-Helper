@@ -888,12 +888,18 @@ body.dark-theme .yts-error{color:#ffb4a8;background:#3a2422;border-color:#5b3430
 </style>
 <style id="classroom-timer-clock">
 /* 타이머 화면의 현재 시각·날짜: 교실 뒤에서도 보이도록 타이머 상자 폭에 맞춰 크게 표시 */
-.tclock-card{max-width:520px}
+.tclock-card{max-width:640px}
+/* 타이머 숫자: 상자를 넓히고 위아래 빈 여백을 줄여, 상자 높이는 거의 그대로 두고 숫자만 크게 */
+.timer-box-wrap{max-width:640px}
+.timer-box-content{padding:22px 16px 18px;min-height:150px}
+.timer-display .t-input{height:1.12em;padding:0}
+.timer-display span.timer-num,.timer-display .timer-colon{line-height:1.12}
+@media(min-width:640px){.timer-box-content{padding:30px 28px 24px;min-height:258px}}
 .tclock{display:flex;flex-direction:column;align-items:center;gap:10px}
 .tclock-time{display:flex;align-items:baseline;justify-content:center;line-height:1;white-space:nowrap}
-.tclock-period{font-size:18px;font-weight:700;letter-spacing:0;color:var(--text-sub);margin-right:10px}
-.tclock-hm{font-size:56px;font-weight:800;letter-spacing:-.04em;color:var(--text-main)}
-.tclock-sec{font-size:32px;font-weight:700;letter-spacing:-.02em;color:var(--text-mute);margin-left:3px}
+.tclock-period{font-size:min(18px,5vw);font-weight:700;letter-spacing:0;color:var(--text-sub);margin-right:10px}
+.tclock-hm{font-size:min(56px,15vw);font-weight:800;letter-spacing:-.04em;color:var(--text-main)}
+.tclock-sec{font-size:min(32px,8.5vw);font-weight:700;letter-spacing:-.02em;color:var(--text-mute);margin-left:3px}
 .tclock-date{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 10px;font-size:18px;font-weight:700;line-height:1.3;color:var(--text-sub)}
 .tclock-day{padding:2px 12px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:800}
 @media(min-width:640px){.tclock-period{font-size:24px;margin-right:14px}.tclock-hm{font-size:84px}.tclock-sec{font-size:48px}.tclock-date{font-size:24px}}
@@ -4873,14 +4879,15 @@ ${isTeacher?deskHtml(barY):boardHtml(barY)}
     const getTimerFontSize=()=>{
         const totalChars=Math.floor(timeLeft/60).toString().length+3;
         const isMobile=typeof window!=='undefined'&&window.innerWidth<640;
+        // 교실 뒤에서도 보이도록 크게. 휴대폰은 화면 폭(vw)에 맞춰 상자 밖으로 넘치지 않게 한다.
         if(totalChars<=5){
-            return isMobile?'3.5rem':'5.5rem';
+            return isMobile?'min(4.75rem,20vw)':'min(10rem,24vw)';
         }else if(totalChars===6){
-            return isMobile?'2.8rem':'4.5rem';
+            return isMobile?'min(3.9rem,16.5vw)':'8rem';
         }else if(totalChars===7){
-            return isMobile?'2.2rem':'3.5rem';
+            return isMobile?'min(3.2rem,13.5vw)':'6.75rem';
         }else{
-            return isMobile?'1.8rem':'2.8rem';
+            return isMobile?'min(2.7rem,11.5vw)':'5.5rem';
         }
     };
 
